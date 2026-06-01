@@ -1,0 +1,38 @@
+namespace IpScanner.ViewModels;
+
+public sealed class ProgressViewModel : ObservableObject
+{
+    private int _online, _offline, _unknown, _deviceTotal;
+    private int _success, _failed, _skipped, _pingTotal;
+    private string _phase = "Bereit";
+
+    public string Phase { get => _phase; set => SetProperty(ref _phase, value); }
+
+    public void SetDevices(int online, int offline, int unknown, int total)
+    {
+        _online = online; _offline = offline; _unknown = unknown; _deviceTotal = Math.Max(1, total);
+        Raise(nameof(OnlineFraction)); Raise(nameof(OfflineFraction)); Raise(nameof(UnknownFraction));
+        Raise(nameof(OnlineCount)); Raise(nameof(OfflineCount)); Raise(nameof(UnknownCount));
+        Raise(nameof(DeviceCountText));
+    }
+
+    public void SetPings(int success, int failed, int skipped, int total)
+    {
+        _success = success; _failed = failed; _skipped = skipped; _pingTotal = Math.Max(1, total);
+        Raise(nameof(SuccessFraction)); Raise(nameof(FailedFraction)); Raise(nameof(SkippedFraction));
+        Raise(nameof(PingCountText));
+    }
+
+    public double OnlineFraction  => (double)_online  / _deviceTotal;
+    public double OfflineFraction => (double)_offline / _deviceTotal;
+    public double UnknownFraction => (double)_unknown / _deviceTotal;
+    public int OnlineCount  => _online;
+    public int OfflineCount => _offline;
+    public int UnknownCount => _unknown;
+    public string DeviceCountText => $"{_online + _offline + _unknown} / {_deviceTotal}";
+
+    public double SuccessFraction => (double)_success / _pingTotal;
+    public double FailedFraction  => (double)_failed  / _pingTotal;
+    public double SkippedFraction => (double)_skipped / _pingTotal;
+    public string PingCountText   => $"{_success + _failed + _skipped} / {_pingTotal}";
+}
