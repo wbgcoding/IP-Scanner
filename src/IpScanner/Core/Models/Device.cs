@@ -1,0 +1,60 @@
+namespace IpScanner.Core.Models;
+
+public sealed class Device
+{
+    public Device(string ip) => Ip = ip;
+
+    public string Ip { get; }
+    public string? Mac { get; set; }
+    public string? Hostname { get; set; }
+    public int GroupId { get; set; }
+    public bool FromDb { get; set; }
+    public bool Seen { get; private set; }
+    public int CurrentPings { get; private set; }
+    public int TargetPings { get; set; } = 10;
+    public int OfflineAfterFailures { get; set; } = 5;
+
+    public int SuccessCount { get; private set; }
+    public int FailCount { get; private set; }
+    public double? MinMs { get; private set; }
+    public double? MaxMs { get; private set; }
+    public double? AvgMs { get; private set; }
+    public double? LastMs { get; private set; }
+
+    private int _consecutiveFails;
+    private double _sumMs;
+
+    public bool IsOnline { get; private set; }
+    public bool WentOffline { get; private set; }
+
+    public void RecordPing(PingResult r)
+    {
+        CurrentPings++;
+        if (r.Success)
+        {
+            Seen = true;
+            IsOnline = true;
+            WentOffline = false;
+            _consecutiveFails = 0;
+            SuccessCount++;
+            if (r.LatencyMs is { } ms)
+            {
+                LastMs = ms;
+                MinMs = MinMs is null ? ms : Math.Min(MinMs.Value, ms);
+                MaxMs = MaxMs is null ? ms : Math.Max(MaxMs.Value, ms);
+                _sumMs += ms;
+                AvgMs = _sumMs / SuccessCount;
+            }
+        }
+        else
+        {
+            FailCount++;
+            _consecutiveFails++;
+            if (Seen && _consecutiveFails >= OfflineAfterFailures)
+            {
+                IsOnline = false;
+                WentOffline = true;
+            }
+        }
+    }
+}
