@@ -49,6 +49,31 @@ public static class ConfigManager
         return cfg;
     }
 
+    public static void Save(string path, ScanConfig c)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("# IP-Scanner configuration");
+        sb.AppendLine($"ping_count = {c.PingCount}");
+        sb.AppendLine($"ping_interval_ms = {c.PingIntervalMs}");
+        sb.AppendLine($"offline_after_failed_pings = {c.OfflineAfterFailedPings}");
+        sb.AppendLine($"init_ping_count = {c.InitPingCount}");
+        sb.AppendLine($"high_pressure_mode = {(c.HighPressureMode ? "true" : "false")}");
+        sb.AppendLine($"enable_internet_ping = {(c.EnableInternetPing ? "true" : "false")}");
+        sb.AppendLine($"internet_hosts = {string.Join(", ", c.InternetHosts)}");
+        sb.AppendLine($"known_devices_db = {(c.KnownDevicesDb ? "true" : "false")}");
+        sb.AppendLine($"output_directory = {c.OutputDirectory}");
+        sb.AppendLine($"file_output = {(c.FileOutput ? "true" : "false")}");
+        sb.AppendLine($"export_csv = {(c.ExportCsv ? "true" : "false")}");
+        sb.AppendLine($"ping_threads = {c.PingThreads}");
+        sb.AppendLine($"init_ping_threads = {c.InitPingThreads}");
+        sb.AppendLine($"refresh_rate = {c.RefreshRate.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        for (int i = 0; i < c.Subnets.Count; i++)
+            sb.AppendLine(i == 0 ? $"subnet = {c.Subnets[i]}" : $"subnet_{i + 1} = {c.Subnets[i]}");
+        if (c.PinnedIps.Count > 0)
+            sb.AppendLine($"pinned_ips = {string.Join(", ", c.PinnedIps)}");
+        File.WriteAllText(path, sb.ToString());
+    }
+
     private static Dictionary<string, string> ParseFlat(string path)
     {
         var d = new Dictionary<string, string>();
