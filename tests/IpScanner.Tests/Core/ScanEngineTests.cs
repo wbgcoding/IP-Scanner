@@ -39,4 +39,20 @@ public class ScanEngineTests
         await engine.ScanAsync(new[] { "10.0.0" }, cfg, cts.Token); // must return, not hang
         Assert.True(true);
     }
+
+    [Fact]
+    public async Task Scan_TracksPingCounts()
+    {
+        PingResult Fake(string ip, int _) =>
+            ip.EndsWith(".1") ? new PingResult(true, 1.0, 64) : new PingResult(false, null, null);
+        var engine = new ScanEngine(Fake);
+        var cfg = new ScanConfig { PingCount = 3, PingIntervalMs = 0 };
+
+        await engine.ScanAsync(new[] { "10.0.0" }, cfg, CancellationToken.None);
+
+        // .1 = 3 successes; remaining 253 hosts each got 1 failed discovery ping.
+        Assert.Equal(3, engine.Progress.SuccessPings);
+        Assert.Equal(253, engine.Progress.FailedPings);
+        Assert.True(engine.Progress.SkippedPings >= 253 * 2); // 2 analysis pings/offline host skipped
+    }
 }

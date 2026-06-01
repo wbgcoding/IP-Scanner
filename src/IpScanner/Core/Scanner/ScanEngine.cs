@@ -15,6 +15,9 @@ public sealed class ScanEngine
 
     public ScanEngine(Func<string, int, PingResult> ping) => _ping = ping;
 
+    /// <summary>Tracks ping counters across the full scan lifetime.</summary>
+    public ScanProgress Progress { get; } = new();
+
     /// <summary>Raised whenever a device's state changes (online, new ping, etc.).</summary>
     public event Action<Device>? DeviceUpdated;
 
@@ -38,12 +41,24 @@ public sealed class ScanEngine
                 });
                 var r = _ping(ip, IcmpTimeoutMs);
                 device.RecordPing(r);
+                if (r.Success) Progress.AddSuccess(); else Progress.AddFailed();
+                Progress.AddProcessed();
+                Progress.NotifyChanged();
                 DeviceUpdated?.Invoke(device);
             });
 
         if (cfg.PingCount == 0) return;
 
         var online = _devices.Values.Where(d => d.IsOnline).Select(d => d.Ip).ToList();
+
+        int analysisPerIp = infinite ? 0 : Math.Max(0, cfg.PingCount - 1);
+        int offlineCount = _devices.Count - online.Count;
+        if (analysisPerIp > 0 && offlineCount > 0)
+        {
+            Progress.AddSkipped(offlineCount * analysisPerIp);
+            Progress.NotifyChanged();
+        }
+
         await RunParallel(online, cfg.PingThreads, ct, ip =>
         {
             var device = _devices[ip];
@@ -52,7 +67,10 @@ public sealed class ScanEngine
             {
                 if (cfg.PingIntervalMs > 0) InterruptibleSleep(cfg.PingIntervalMs, ct);
                 if (ct.IsCancellationRequested) break;
-                device.RecordPing(_ping(ip, IcmpTimeoutMs));
+                var ar = _ping(ip, IcmpTimeoutMs);
+                device.RecordPing(ar);
+                if (ar.Success) Progress.AddSuccess(); else Progress.AddFailed();
+                Progress.NotifyChanged();
                 DeviceUpdated?.Invoke(device);
             }
         });
