@@ -1,13 +1,18 @@
 using System.Diagnostics;
+using System.Net;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace IpScanner.Core.Scanner;
 
-/// <summary>Resolves MAC addresses via the system ARP table.</summary>
+/// <summary>Resolves MAC addresses (SendARP first, ARP-table fallback).</summary>
 public static class ArpHelper
 {
     private static readonly Regex MacRegex =
         new(@"([0-9A-Fa-f]{2}-){5}[0-9A-Fa-f]{2}", RegexOptions.Compiled);
+
+    [DllImport("iphlpapi.dll", ExactSpelling = true)]
+    private static extern int SendARP(uint destIp, uint srcIp, byte[] macAddr, ref uint macAddrLen);
 
     public static string? ParseMac(string arpOutput)
     {
@@ -17,10 +22,25 @@ public static class ArpHelper
 
     public static string? Resolve(string ip)
     {
+        // SendARP forces L2 resolution immediately for same-subnet hosts.
+        var viaApi = SendArp(ip);
+        if (viaApi is not null) return viaApi;
+        // Fallback: read the ARP table (routed hosts / cached entries).
+        try { return ParseMac(RunCapture("arp", $"-a {ip}", 2000)); }
+        catch { return null; }
+    }
+
+    private static string? SendArp(string ip)
+    {
+        if (!IPAddress.TryParse(ip, out var addr)) return null;
         try
         {
-            var output = RunCapture("arp", $"-a {ip}", 2000);
-            return ParseMac(output);
+            uint dest = BitConverter.ToUInt32(addr.GetAddressBytes(), 0);
+            var mac = new byte[6];
+            uint len = 6;
+            if (SendARP(dest, 0, mac, ref len) != 0 || len < 6) return null;
+            if (mac.All(b => b == 0)) return null;
+            return string.Join("-", mac.Take(6).Select(b => b.ToString("X2")));
         }
         catch { return null; }
     }

@@ -255,14 +255,13 @@ public sealed class MainViewModel : ObservableObject
         });
     }
 
-    // Own machine can't be ARP'd / reverse-resolved reliably: fill from detection.
+    // Own machine can't be ARP'd / reverse-resolved reliably: force detection
+    // values (override any enrichment that may run afterwards on the self row).
     private void ApplySelfInfo(Device d)
     {
         if (d.Ip != _selfIp) return;
-        if (!string.IsNullOrEmpty(_selfMac) && (string.IsNullOrEmpty(d.Mac) || d.Mac == "Unknown"))
-            d.Mac = _selfMac;
-        if (!string.IsNullOrEmpty(_selfHost) && (string.IsNullOrEmpty(d.Hostname) || d.Hostname == "Unknown"))
-            d.Hostname = _selfHost;
+        if (!string.IsNullOrEmpty(_selfMac)) d.Mac = _selfMac;
+        if (!string.IsNullOrEmpty(_selfHost)) d.Hostname = _selfHost;
     }
 
     /// <summary>Reconcile the visible (online-only) list against the engine.</summary>

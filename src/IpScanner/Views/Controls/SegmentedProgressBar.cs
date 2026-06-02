@@ -11,6 +11,8 @@ namespace IpScanner.Views.Controls;
 /// </summary>
 public sealed class SegmentedProgressBar : FrameworkElement
 {
+    public SegmentedProgressBar() => ClipToBounds = true;
+
     public static readonly DependencyProperty Fraction1Property =
         DependencyProperty.Register(nameof(Fraction1), typeof(double), typeof(SegmentedProgressBar),
             new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsRender));
@@ -52,9 +54,11 @@ public sealed class SegmentedProgressBar : FrameworkElement
                  { (Fraction1, Color1), (Fraction2, Color2), (Fraction3, Color3) })
         {
             double segW = Math.Max(0, Math.Min(1, frac)) * w;
+            segW = Math.Min(segW, w - x);          // never draw past the track
             if (segW <= 0) continue;
             dc.DrawRectangle(brush, null, new Rect(x, 0, segW, h));
             x += segW;
+            if (x >= w) break;
         }
     }
 }
