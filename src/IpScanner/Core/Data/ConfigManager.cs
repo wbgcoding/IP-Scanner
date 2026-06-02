@@ -50,25 +50,65 @@ public static class ConfigManager
 
     public static void Save(string path, ScanConfig c)
     {
+        string B(bool v) => v ? "true" : "false";
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine("# IP-Scanner configuration");
-        sb.AppendLine($"ping_count = {c.PingCount}");
-        sb.AppendLine($"ping_interval_ms = {c.PingIntervalMs}");
-        sb.AppendLine($"offline_after_failed_pings = {c.OfflineAfterFailedPings}");
-        sb.AppendLine($"init_ping_count = {c.InitPingCount}");
-        sb.AppendLine($"high_pressure_mode = {(c.HighPressureMode ? "true" : "false")}");
-        sb.AppendLine($"enable_internet_ping = {(c.EnableInternetPing ? "true" : "false")}");
-        sb.AppendLine($"internet_hosts = {string.Join(", ", c.InternetHosts)}");
-        sb.AppendLine($"known_devices_db = {(c.KnownDevicesDb ? "true" : "false")}");
-        sb.AppendLine($"output_directory = {c.OutputDirectory}");
-        sb.AppendLine($"file_output = {(c.FileOutput ? "true" : "false")}");
-        sb.AppendLine($"export_csv = {(c.ExportCsv ? "true" : "false")}");
-        sb.AppendLine($"ping_threads = {c.PingThreads}");
-        sb.AppendLine($"init_ping_threads = {c.InitPingThreads}");
+        sb.AppendLine("# ============================================================");
+        sb.AppendLine("#  IP-Scanner Konfiguration");
+        sb.AppendLine("#  Zeilen mit # sind Kommentare. Ungultige Werte -> Standard.");
+        sb.AppendLine("#  Diese Datei wird beim Speichern in der App ueberschrieben.");
+        sb.AppendLine("# ============================================================");
+        sb.AppendLine();
+
+        sb.AppendLine("# -- Netzwerk ------------------------------------------------");
+        sb.AppendLine("# subnet, subnet_2, ...  Zu scannende Netze (CIDR). Leer = automatisch erkennen.");
+        if (c.Subnets.Count == 0)
+            sb.AppendLine("#subnet = 192.168.1.0/24");
         for (int i = 0; i < c.Subnets.Count; i++)
             sb.AppendLine(i == 0 ? $"subnet = {c.Subnets[i]}" : $"subnet_{i + 1} = {c.Subnets[i]}");
-        if (c.PinnedIps.Count > 0)
-            sb.AppendLine($"pinned_ips = {string.Join(", ", c.PinnedIps)}");
+        sb.AppendLine("# pinned_ips  Immer pingen + oben anzeigen. Komma-getrennt.");
+        sb.AppendLine(c.PinnedIps.Count > 0 ? $"pinned_ips = {string.Join(", ", c.PinnedIps)}" : "#pinned_ips = 192.168.1.1, 192.168.1.10");
+        sb.AppendLine();
+
+        sb.AppendLine("# -- Ping-Verhalten ------------------------------------------");
+        sb.AppendLine("# ping_count  Pings je Gerat (1-10000000). Standard 10.");
+        sb.AppendLine($"ping_count = {c.PingCount}");
+        sb.AppendLine("# ping_interval_ms  Pause zwischen Pings desselben Hosts (0-10000 ms). Standard 100.");
+        sb.AppendLine($"ping_interval_ms = {c.PingIntervalMs}");
+        sb.AppendLine("# offline_after_failed_pings  Nach N Fehlpings offline (1-100). Standard 5.");
+        sb.AppendLine($"offline_after_failed_pings = {c.OfflineAfterFailedPings}");
+        sb.AppendLine("# init_ping_count  Pings in der Suchphase je IP (1-100). Standard 1.");
+        sb.AppendLine($"init_ping_count = {c.InitPingCount}");
+        sb.AppendLine("# high_pressure_mode  Alle Gerate gleichzeitig, mehr Last. Standard false.");
+        sb.AppendLine($"high_pressure_mode = {B(c.HighPressureMode)}");
+        sb.AppendLine();
+
+        sb.AppendLine("# -- Internet-Latenz -----------------------------------------");
+        sb.AppendLine("# enable_internet_ping  Offentliche Hosts mitpingen. Standard true.");
+        sb.AppendLine($"enable_internet_ping = {B(c.EnableInternetPing)}");
+        sb.AppendLine("# internet_hosts  Zu messende IPs, Komma-getrennt.");
+        sb.AppendLine($"internet_hosts = {string.Join(", ", c.InternetHosts)}");
+        sb.AppendLine();
+
+        sb.AppendLine("# -- Ausgabe -------------------------------------------------");
+        sb.AppendLine("# output_directory  Speicherort der Berichte. Standard ./Scans");
+        sb.AppendLine($"output_directory = {c.OutputDirectory}");
+        sb.AppendLine("# file_output  TXT-Bericht nach jedem Scan schreiben. Standard true.");
+        sb.AppendLine($"file_output = {B(c.FileOutput)}");
+        sb.AppendLine("# export_csv  Zusatzlich CSV exportieren. Standard false.");
+        sb.AppendLine($"export_csv = {B(c.ExportCsv)}");
+        sb.AppendLine();
+
+        sb.AppendLine("# -- Datenbank -----------------------------------------------");
+        sb.AppendLine("# known_devices_db  Gerate je Netz in scanner.db merken. Standard true.");
+        sb.AppendLine($"known_devices_db = {B(c.KnownDevicesDb)}");
+        sb.AppendLine();
+
+        sb.AppendLine("# -- Performance ---------------------------------------------");
+        sb.AppendLine("# ping_threads  Worker-Threads in der Analysephase (1-1000). Standard 100.");
+        sb.AppendLine($"ping_threads = {c.PingThreads}");
+        sb.AppendLine("# init_ping_threads  Worker-Threads in der Suchphase (0-1000, 0=einer je IP). Standard 254.");
+        sb.AppendLine($"init_ping_threads = {c.InitPingThreads}");
+
         File.WriteAllText(path, sb.ToString());
     }
 

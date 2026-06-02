@@ -120,8 +120,14 @@
                       BorderThickness="0" EnableRowVirtualization="True"
                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="120"/>
-                    <DataGridTemplateColumn Header="Status" Width="90">
+                    <DataGridTemplateColumn Header="IP" Width="Auto" MinWidth="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding IpDisplay}" Foreground="{Binding IpColor}" FontWeight="SemiBold"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Status" Width="Auto" MinWidth="74">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Status}" Foreground="{StaticResource Green}"
@@ -129,16 +135,16 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Gruppe" Width="60">
+                    <DataGridTemplateColumn Header="Gruppe" Width="Auto" MinWidth="56">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border Width="14" Height="14" CornerRadius="2"
+                                <Border Width="14" Height="14" CornerRadius="2" HorizontalAlignment="Center"
                                         Background="{Binding GroupColor}"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="200" MinWidth="120"/>
-                    <DataGridTemplateColumn Header="Avg" Width="95">
+                    <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="Auto" MinWidth="90"/>
+                    <DataGridTemplateColumn Header="Avg" Width="Auto" MinWidth="55">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}"
@@ -146,7 +152,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Min" Width="80">
+                    <DataGridTemplateColumn Header="Min" Width="Auto" MinWidth="48">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding MinDisplay}" Foreground="{Binding MinColor}"
@@ -154,7 +160,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Max" Width="80">
+                    <DataGridTemplateColumn Header="Max" Width="Auto" MinWidth="48">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding MaxDisplay}" Foreground="{Binding MaxColor}"
@@ -162,7 +168,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Letzt" Width="95">
+                    <DataGridTemplateColumn Header="Letzt" Width="Auto" MinWidth="55">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding LastDisplay}" Foreground="{Binding LastColor}"
@@ -170,9 +176,9 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Fortschritt" Binding="{Binding ProgressDisplay}" Width="100"
+                    <DataGridTextColumn Header="Fortschritt" Binding="{Binding ProgressDisplay}" Width="Auto" MinWidth="70"
                                         ElementStyle="{StaticResource CenterCell}"/>
-                    <DataGridTextColumn Header="MAC" Binding="{Binding Mac}" Width="150"
+                    <DataGridTextColumn Header="MAC" Binding="{Binding Mac}" Width="Auto" MinWidth="120"
                                         ElementStyle="{StaticResource CenterCell}"/>
                 </DataGrid.Columns>
             </DataGrid>

@@ -51,6 +51,7 @@ public sealed class MainViewModel : ObservableObject
     private readonly object _byIpLock = new();
     private int _totalPings = 1;
     private int _plannedDevices = 1;
+    private string? _selfIp;
 
     /// <summary>Full scan using the configured ping count; writes report/DB.</summary>
     public Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
@@ -66,6 +67,7 @@ public sealed class MainViewModel : ObservableObject
     {
         _cts = new CancellationTokenSource();
         var info = _detectNetwork();
+        _selfIp = info.Ip;
         var cfg = pingCountOverride is null ? Config : Config.CloneWith(pingCountOverride.Value);
         var prefixes = subnetOverride ?? BuildPrefixes(info, cfg.Subnets);
 
@@ -87,8 +89,9 @@ public sealed class MainViewModel : ObservableObject
             Progress.Phase = pingCountOverride == 0 ? "Suche Geräte" : "Discovery";
         });
 
-        // Internet latency runs in the background — never blocks the scan.
-        _ = PingInternetAsync(_cts.Token);
+        // Internet latency runs in the background, independent of the scan's
+        // cancellation, so it always completes even on a quick init sweep / stop.
+        _ = PingInternetAsync();
 
         var engine = new ScanEngine(_pingFunc, _enrich);
         engine.DeviceUpdated += OnDeviceUpdated;
@@ -106,7 +109,10 @@ public sealed class MainViewModel : ObservableObject
         if (persist)
         {
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var gatewaySlug = Slug(info.Gateway);
+            // Prefer the gateway's hostname for the filename; fall back to its IP.
+            var gwDev = devices.FirstOrDefault(d => d.Ip == info.Gateway);
+            var gwName = gwDev?.Hostname is { } h && h != "Unknown" ? h : info.Gateway;
+            var gatewaySlug = Slug(gwName);
 
             if (cfg.FileOutput && devices.Count > 0)
             {
@@ -136,7 +142,7 @@ public sealed class MainViewModel : ObservableObject
         });
     }
 
-    public async Task PingInternetAsync(CancellationToken ct)
+    public async Task PingInternetAsync(CancellationToken ct = default)
     {
         if (!Config.EnableInternetPing) return;
         _dispatch(() =>
@@ -147,16 +153,19 @@ public sealed class MainViewModel : ObservableObject
                     KnownHostNames.GetValueOrDefault(ip, ip), ip));
         });
 
+        // Ping all hosts in parallel, two attempts each (robust against a dropped packet).
         var hosts = InternetHosts.ToList();
-        await Task.Run(() =>
+        await Task.WhenAll(hosts.Select(host => Task.Run(() =>
         {
-            foreach (var host in hosts)
+            double? latency = null;
+            for (int attempt = 0; attempt < 2 && latency is null; attempt++)
             {
                 if (ct.IsCancellationRequested) break;
-                var r = _pingFunc(host.Ip, 1000);
-                _dispatch(() => host.SetLatency(r.Success ? r.LatencyMs : null));
+                var r = _pingFunc(host.Ip, 1500);
+                if (r.Success) latency = r.LatencyMs;
             }
-        }, ct);
+            _dispatch(() => host.SetLatency(latency));
+        })));
     }
 
     public void Stop() => _cts?.Cancel();
@@ -217,7 +226,7 @@ public sealed class MainViewModel : ObservableObject
             bool tracked = _byIp.TryGetValue(d.Ip, out var vm);
             if (d.IsOnline)
             {
-                if (!tracked) { vm = new DeviceViewModel(d); _byIp[d.Ip] = vm; InsertSorted(vm); }
+                if (!tracked) { vm = new DeviceViewModel(d, d.Ip == _selfIp); _byIp[d.Ip] = vm; InsertSorted(vm); }
                 else vm!.Refresh();
             }
             else if (tracked)
@@ -237,7 +246,7 @@ public sealed class MainViewModel : ObservableObject
             {
                 if (!_byIp.ContainsKey(dev.Ip))
                 {
-                    var vm = new DeviceViewModel(dev);
+                    var vm = new DeviceViewModel(dev, dev.Ip == _selfIp);
                     _byIp[dev.Ip] = vm;
                     InsertSorted(vm);
                 }
