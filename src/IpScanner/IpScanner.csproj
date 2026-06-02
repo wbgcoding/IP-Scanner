@@ -7,12 +7,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>IP-Scanner</AssemblyName>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <!-- ApplicationIcon omitted: Resources\network.ico does not exist yet, re-add in later task -->
+    <ApplicationIcon>Resources\network.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\oui.txt" />
+    <Resource Include="Resources\network.ico" />
   </ItemGroup>
 </Project>

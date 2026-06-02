@@ -17,7 +17,14 @@ public sealed class DeviceViewModel : ObservableObject
     public string Hostname => _device.Hostname is null or "Unknown" ? "—" : _device.Hostname;
     public string Mac => _device.Mac is null or "Unknown" ? "—" : _device.Mac;
     public int GroupId => _device.GroupId;
-    public string GroupColor => GroupColorPalette.ColorForIndex(Math.Max(0, _device.GroupId - 3));
+
+    // 0/1 = none/unknown -> gray, 2 = gateway -> green, >=3 -> diverse palette.
+    public string GroupColor => _device.GroupId switch
+    {
+        <= 1 => "#45475A",
+        2 => "#A6E3A1",
+        var g => GroupColorPalette.ColorForIndex(g - 3),
+    };
 
     public string AvgDisplay => Fmt(_device.AvgMs);
     public string MinDisplay => Fmt(_device.MinMs);

@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Catppuccin Mocha palette -->
+    <SolidColorBrush x:Key="Bg"        Color="#1E1E2E"/>
+    <SolidColorBrush x:Key="BgAlt"     Color="#252535"/>
+    <SolidColorBrush x:Key="BgDark"    Color="#181825"/>
+    <SolidColorBrush x:Key="Surface"   Color="#313244"/>
+    <SolidColorBrush x:Key="Text"      Color="#CDD6F4"/>
+    <SolidColorBrush x:Key="Subtext"   Color="#6C7086"/>
+    <SolidColorBrush x:Key="Green"     Color="#A6E3A1"/>
+    <SolidColorBrush x:Key="Red"       Color="#F38BA8"/>
+    <SolidColorBrush x:Key="Blue"      Color="#89B4FA"/>
+    <SolidColorBrush x:Key="Mauve"     Color="#CBA6F7"/>
+    <SolidColorBrush x:Key="Peach"     Color="#FAB387"/>
+    <SolidColorBrush x:Key="GrayBlock" Color="#45475A"/>
+    <SolidColorBrush x:Key="MidGray"   Color="#585B70"/>
+
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource Bg}"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+    </Style>
+</ResourceDictionary>

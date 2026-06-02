@@ -1,6 +1,223 @@
 <Window x:Class="IpScanner.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="IP-Scanner" Height="600" Width="900">
-    <Grid />
+        xmlns:ctrl="clr-namespace:IpScanner.Views.Controls"
+        Title="IP-Scanner" Height="700" Width="1200"
+        Icon="Resources/network.ico"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource BgDark}" Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Title + subnet pills -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
+                               FontWeight="Bold" FontSize="16" Margin="0,0,8,0"/>
+                    <ItemsControl ItemsSource="{Binding Networks}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource Surface}" CornerRadius="10"
+                                        Padding="8,2" Margin="2,0">
+                                    <TextBlock Text="{Binding Cidr}" Foreground="{StaticResource Blue}" FontSize="11"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Center: progress bars -->
+                <StackPanel Grid.Column="1" Margin="18,0" VerticalAlignment="Center">
+                    <Grid Margin="0,0,0,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/><ColumnDefinition Width="*"/><ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Geräte" Foreground="{StaticResource Subtext}" FontSize="10"
+                                   HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <ctrl:SegmentedProgressBar Grid.Column="1" Height="8"
+                            Track="{StaticResource Surface}"
+                            Color1="{StaticResource Green}" Color2="{StaticResource Red}" Color3="{StaticResource GrayBlock}"
+                            Fraction1="{Binding Progress.OnlineFraction}"
+                            Fraction2="{Binding Progress.OfflineFraction}"
+                            Fraction3="{Binding Progress.UnknownFraction}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Progress.DeviceCountText}"
+                                   Foreground="{StaticResource Text}" FontSize="10" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </Grid>
+                    <!-- Geräte legend -->
+                    <StackPanel Orientation="Horizontal" Margin="56,0,0,4">
+                        <Border Background="{StaticResource Green}" Width="8" Height="8" CornerRadius="1" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Progress.OnlineCount, StringFormat=' Online {0}'}" Foreground="{StaticResource Subtext}" FontSize="9" Margin="0,0,10,0"/>
+                        <Border Background="{StaticResource Red}" Width="8" Height="8" CornerRadius="1" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Progress.OfflineCount, StringFormat=' Offline {0}'}" Foreground="{StaticResource Subtext}" FontSize="9" Margin="0,0,10,0"/>
+                        <Border Background="{StaticResource GrayBlock}" Width="8" Height="8" CornerRadius="1" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Progress.UnknownCount, StringFormat=' Unbekannt {0}'}" Foreground="{StaticResource Subtext}" FontSize="9"/>
+                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/><ColumnDefinition Width="*"/><ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Pings" Foreground="{StaticResource Subtext}" FontSize="10"
+                                   HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <ctrl:SegmentedProgressBar Grid.Column="1" Height="8"
+                            Track="{StaticResource Surface}"
+                            Color1="{StaticResource Blue}" Color2="{StaticResource Peach}" Color3="{StaticResource MidGray}"
+                            Fraction1="{Binding Progress.SuccessFraction}"
+                            Fraction2="{Binding Progress.FailedFraction}"
+                            Fraction3="{Binding Progress.SkippedFraction}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Progress.PingCountText}"
+                                   Foreground="{StaticResource Text}" FontSize="10" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </Grid>
+                    <!-- Pings legend -->
+                    <StackPanel Orientation="Horizontal" Margin="56,4,0,0">
+                        <Border Background="{StaticResource Blue}" Width="8" Height="8" CornerRadius="1" VerticalAlignment="Center"/>
+                        <TextBlock Text="Erfolg" Foreground="{StaticResource Subtext}" FontSize="9" Margin="3,0,10,0"/>
+                        <Border Background="{StaticResource Peach}" Width="8" Height="8" CornerRadius="1" VerticalAlignment="Center"/>
+                        <TextBlock Text="Fehlschlag" Foreground="{StaticResource Subtext}" FontSize="9" Margin="3,0,10,0"/>
+                        <Border Background="{StaticResource MidGray}" Width="8" Height="8" CornerRadius="1" VerticalAlignment="Center"/>
+                        <TextBlock Text="Übersprungen" Foreground="{StaticResource Subtext}" FontSize="9" Margin="3,0,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Right: controls -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Pings:" Foreground="{StaticResource Subtext}" FontSize="11"
+                               VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <ComboBox x:Name="PingCountBox" Width="80" Margin="0,0,6,0" SelectedIndex="0">
+                        <ComboBoxItem>10</ComboBoxItem><ComboBoxItem>100</ComboBoxItem>
+                        <ComboBoxItem>1000</ComboBoxItem><ComboBoxItem>10000</ComboBoxItem>
+                        <ComboBoxItem>100000</ComboBoxItem><ComboBoxItem>∞</ComboBoxItem>
+                    </ComboBox>
+                    <Button x:Name="ScanButton" Content="▶ Scan" Click="OnScanClick" Margin="0,0,4,0" Padding="12,4"/>
+                    <Button x:Name="StopButton" Content="■ Stop" Click="OnStopClick" Margin="0,0,4,0" Padding="9,4"/>
+                    <Button x:Name="SettingsButton" Content="⚙" Click="OnSettingsClick" Padding="9,4"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main: table + sidebar -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="230"/>
+            </Grid.ColumnDefinitions>
+
+            <DataGrid Grid.Column="0" ItemsSource="{Binding Devices}" AutoGenerateColumns="False"
+                      IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                      Background="{StaticResource Bg}" Foreground="{StaticResource Text}"
+                      RowBackground="{StaticResource Bg}" AlternatingRowBackground="{StaticResource BgAlt}"
+                      BorderThickness="0" EnableRowVirtualization="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="120"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80"/>
+                    <DataGridTemplateColumn Header="Gruppe" Width="60">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Width="14" Height="14" CornerRadius="2"
+                                        Background="{Binding GroupColor}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="*"/>
+                    <DataGridTextColumn Header="Avg" Binding="{Binding AvgDisplay}" Width="90"/>
+                    <DataGridTextColumn Header="Min" Binding="{Binding MinDisplay}" Width="90"/>
+                    <DataGridTextColumn Header="Max" Binding="{Binding MaxDisplay}" Width="90"/>
+                    <DataGridTextColumn Header="Letzt" Binding="{Binding LastDisplay}" Width="90"/>
+                    <DataGridTextColumn Header="Fortschritt" Binding="{Binding ProgressDisplay}" Width="90"/>
+                    <DataGridTextColumn Header="MAC" Binding="{Binding Mac}" Width="150"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Sidebar -->
+            <Border Grid.Column="1" Background="{StaticResource BgDark}" BorderBrush="{StaticResource Surface}"
+                    BorderThickness="1,0,0,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding Networks}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="11,10" BorderBrush="{StaticResource Surface}" BorderThickness="0,0,0,1">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                                                <Border Background="{Binding BadgeColor}" CornerRadius="8" Padding="6,1">
+                                                    <TextBlock Text="{Binding Title}" FontSize="9" FontWeight="Bold" Foreground="#1E1E2E"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding Cidr}" Foreground="{StaticResource Blue}"
+                                                           FontSize="9" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Text="IP" Foreground="{StaticResource Subtext}" FontSize="10"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Ip}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="1" Text="MAC" Foreground="{StaticResource Subtext}" FontSize="10"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Mac}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="2" Text="Gateway" Foreground="{StaticResource Subtext}" FontSize="10"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Gateway}" Foreground="{StaticResource Green}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="3" Text="Subnetz" Foreground="{StaticResource Subtext}" FontSize="10"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SubnetMask}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="4" Text="DNS" Foreground="{StaticResource Subtext}" FontSize="10"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Dns}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Right" TextWrapping="Wrap"/>
+                                                <TextBlock Grid.Row="5" Text="Interface" Foreground="{StaticResource Subtext}" FontSize="10"/>
+                                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Interface}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="6" Text="Online" Foreground="{StaticResource Subtext}" FontSize="10"/>
+                                                <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding OnlineCount}" Foreground="{StaticResource Green}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="7" Text="Offline" Foreground="{StaticResource Subtext}" FontSize="10"/>
+                                                <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding OfflineCount}" Foreground="{StaticResource Subtext}" FontSize="10" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Internet latency -->
+                        <Border Padding="11,10" BorderBrush="{StaticResource Surface}" BorderThickness="0,0,0,1">
+                            <StackPanel>
+                                <TextBlock Text="INTERNET-LATENZ" Foreground="{StaticResource Subtext}" FontSize="9" Margin="0,0,0,6"/>
+                                <ItemsControl ItemsSource="{Binding InternetHosts}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,2">
+                                                <TextBlock Text="{Binding Name}" Foreground="{StaticResource Subtext}" FontSize="10"/>
+                                                <TextBlock Text="{Binding LatencyDisplay}" Foreground="{StaticResource Green}"
+                                                           FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Phase + export -->
+                        <Border Padding="11,10">
+                            <StackPanel>
+                                <Border Background="{StaticResource BgAlt}" CornerRadius="5" Padding="9,6" Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding Progress.Phase}" Foreground="{StaticResource Mauve}"
+                                               FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="LETZTER EXPORT" Foreground="{StaticResource Subtext}" FontSize="9" Margin="0,0,0,3"/>
+                                <TextBlock x:Name="ExportPathText" Text="—" Foreground="{StaticResource MidGray}"
+                                           FontSize="9" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
 </Window>

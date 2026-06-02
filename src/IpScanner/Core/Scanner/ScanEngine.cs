@@ -11,9 +11,18 @@ namespace IpScanner.Core.Scanner;
 public sealed class ScanEngine
 {
     private readonly Func<string, int, PingResult> _ping;
+    private readonly Func<string, (string? mac, string? host)>? _enrich;
     private const int IcmpTimeoutMs = 1000;
 
-    public ScanEngine(Func<string, int, PingResult> ping) => _ping = ping;
+    /// <param name="ping">Ping function (injected for tests).</param>
+    /// <param name="enrich">Optional MAC/hostname resolver, called once per device
+    /// when it first answers. Null in tests; production passes ARP+DNS+NetBIOS.</param>
+    public ScanEngine(Func<string, int, PingResult> ping,
+                      Func<string, (string? mac, string? host)>? enrich = null)
+    {
+        _ping = ping;
+        _enrich = enrich;
+    }
 
     /// <summary>Tracks ping counters across the full scan lifetime.</summary>
     public ScanProgress Progress { get; } = new();
@@ -43,6 +52,17 @@ public sealed class ScanEngine
                 device.RecordPing(r);
                 if (r.Success) Progress.AddSuccess(); else Progress.AddFailed();
                 Progress.AddProcessed();
+                // First reply: resolve MAC + hostname once (off the test path).
+                if (r.Success && device.SuccessCount == 1 && _enrich is not null)
+                {
+                    try
+                    {
+                        var (mac, host) = _enrich(ip);
+                        if (!string.IsNullOrEmpty(mac)) device.Mac = mac;
+                        if (!string.IsNullOrEmpty(host)) device.Hostname = host;
+                    }
+                    catch { /* enrichment is best-effort */ }
+                }
                 Progress.NotifyChanged();
                 DeviceUpdated?.Invoke(device);
             });

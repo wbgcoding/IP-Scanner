@@ -1,0 +1,58 @@
+<Window x:Class="IpScanner.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Einstellungen" Height="520" Width="560"
+        WindowStartupLocation="CenterOwner">
+    <DockPanel Margin="10">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Speichern" Click="OnSave" Padding="14,5" Margin="0,0,8,0"/>
+            <Button Content="Abbrechen" Click="OnCancel" Padding="14,5"/>
+        </StackPanel>
+        <TabControl Background="{StaticResource Bg}">
+            <TabItem Header="Netzwerk">
+                <StackPanel Margin="12">
+                    <TextBlock Text="Subnetze (eine pro Zeile)" Foreground="{StaticResource Text}" Margin="0,0,0,4"/>
+                    <TextBox x:Name="SubnetsBox" Height="90" AcceptsReturn="True" TextWrapping="Wrap"/>
+                    <TextBlock Text="Pinned IPs (eine pro Zeile)" Foreground="{StaticResource Text}" Margin="0,10,0,4"/>
+                    <TextBox x:Name="PinnedBox" Height="70" AcceptsReturn="True" TextWrapping="Wrap"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Ping-Verhalten">
+                <StackPanel Margin="12">
+                    <DockPanel Margin="0,4"><TextBlock Text="Ping-Anzahl" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="PingCountBox" Width="100"/></DockPanel>
+                    <DockPanel Margin="0,4"><TextBlock Text="Ping-Intervall (ms)" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="IntervalBox" Width="100"/></DockPanel>
+                    <DockPanel Margin="0,4"><TextBlock Text="Offline nach N Fehlversuchen" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="OfflineAfterBox" Width="100"/></DockPanel>
+                    <DockPanel Margin="0,4"><TextBlock Text="Discovery-Pings" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="InitPingCountBox" Width="100"/></DockPanel>
+                    <CheckBox x:Name="HighPressureBox" Content="High-Pressure-Modus" Foreground="{StaticResource Text}" Margin="0,8,0,0"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Internet">
+                <StackPanel Margin="12">
+                    <CheckBox x:Name="EnableInternetBox" Content="Internet-Ping aktivieren" Foreground="{StaticResource Text}"/>
+                    <TextBlock Text="Internet-Hosts (einer pro Zeile)" Foreground="{StaticResource Text}" Margin="0,10,0,4"/>
+                    <TextBox x:Name="InternetHostsBox" Height="120" AcceptsReturn="True" TextWrapping="Wrap"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Ausgabe">
+                <StackPanel Margin="12">
+                    <DockPanel Margin="0,4"><TextBlock Text="Ausgabeverzeichnis" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="OutputDirBox" Width="280"/></DockPanel>
+                    <CheckBox x:Name="FileOutputBox" Content="TXT-Bericht schreiben" Foreground="{StaticResource Text}" Margin="0,8,0,0"/>
+                    <CheckBox x:Name="ExportCsvBox" Content="CSV exportieren" Foreground="{StaticResource Text}" Margin="0,4,0,0"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Performance">
+                <StackPanel Margin="12">
+                    <DockPanel Margin="0,4"><TextBlock Text="Analyse-Threads" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="PingThreadsBox" Width="100"/></DockPanel>
+                    <DockPanel Margin="0,4"><TextBlock Text="Discovery-Threads" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="InitThreadsBox" Width="100"/></DockPanel>
+                    <DockPanel Margin="0,4"><TextBlock Text="Refresh-Rate (s)" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="RefreshRateBox" Width="100"/></DockPanel>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="Datenbank">
+                <StackPanel Margin="12">
+                    <CheckBox x:Name="KnownDbBox" Content="Known-Devices-DB aktivieren" Foreground="{StaticResource Text}"/>
+                    <Button Content="DB leeren" Click="OnClearDb" Padding="10,4" Margin="0,10,0,0" HorizontalAlignment="Left"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>
