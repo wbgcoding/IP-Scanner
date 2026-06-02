@@ -24,25 +24,12 @@
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                    <ItemsControl ItemsSource="{Binding Networks}" VerticalAlignment="Center">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{StaticResource Surface}" CornerRadius="10"
-                                        Padding="8,2" Margin="2,0">
-                                    <TextBlock Text="{Binding Cidr}" Foreground="{StaticResource Blue}" FontSize="11"/>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    <TextBox x:Name="SubnetBox" Width="160" Height="30" Margin="10,0,6,0" VerticalAlignment="Center"
+                    <TextBox x:Name="SubnetBox" Width="160" Height="30" Margin="0,0,6,0" VerticalAlignment="Center"
                              Foreground="{StaticResource Text}" FontSize="12" VerticalContentAlignment="Center" Padding="8,0"
-                             ToolTip="Basis-IP, z.B. 192.168.1.0  (leer = automatisch erkennen)"/>
-                    <ComboBox x:Name="CidrBox" Width="92" Height="30" IsEditable="True" Text="/24"
+                             ToolTip="Basis-IP, z.B. 192.168.1.0  (leer = automatisch erkennen). Eigene Maske: 10.0.0.0/22"/>
+                    <ComboBox x:Name="CidrBox" Width="80" Height="30" SelectedIndex="0"
                               VerticalAlignment="Center" Margin="0,0,6,0"
-                              ToolTip="Netzmaske: /24 (254 Hosts), /16 (256 Subnetze), /8 oder eigener Wert">
+                              ToolTip="Netzmaske: /24 (254 Hosts), /16 (256 Subnetze), /8. Eigener Wert: im IP-Feld z.B. 10.0.0.0/22">
                         <ComboBoxItem>/24</ComboBoxItem>
                         <ComboBoxItem>/16</ComboBoxItem>
                         <ComboBoxItem>/8</ComboBoxItem>
@@ -59,7 +46,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Geräte" Foreground="{StaticResource Subtext}" FontSize="10"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <ctrl:SegmentedProgressBar Grid.Column="1" Height="8"
+                        <ctrl:SegmentedProgressBar Grid.Column="1" Height="13"
                             Track="{StaticResource Surface}"
                             Color1="{StaticResource Green}" Color2="{StaticResource Red}" Color3="{StaticResource GrayBlock}"
                             Fraction1="{Binding Progress.OnlineFraction}"
@@ -83,7 +70,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Pings" Foreground="{StaticResource Subtext}" FontSize="10"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <ctrl:SegmentedProgressBar Grid.Column="1" Height="8"
+                        <ctrl:SegmentedProgressBar Grid.Column="1" Height="13"
                             Track="{StaticResource Surface}"
                             Color1="{StaticResource Blue}" Color2="{StaticResource Peach}" Color3="{StaticResource MidGray}"
                             Fraction1="{Binding Progress.SuccessFraction}"
@@ -138,7 +125,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Status}" Foreground="{StaticResource Green}"
-                                           FontWeight="SemiBold"/>
+                                           FontWeight="SemiBold" HorizontalAlignment="Center"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -155,7 +142,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}"
-                                           FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                           FontWeight="SemiBold" HorizontalAlignment="Center"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -163,7 +150,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding MinDisplay}" Foreground="{Binding MinColor}"
-                                           HorizontalAlignment="Right"/>
+                                           HorizontalAlignment="Center"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -171,7 +158,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding MaxDisplay}" Foreground="{Binding MaxColor}"
-                                           HorizontalAlignment="Right"/>
+                                           HorizontalAlignment="Center"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -179,12 +166,14 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding LastDisplay}" Foreground="{Binding LastColor}"
-                                           FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                           FontWeight="SemiBold" HorizontalAlignment="Center"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Fortschritt" Binding="{Binding ProgressDisplay}" Width="100"/>
-                    <DataGridTextColumn Header="MAC" Binding="{Binding Mac}" Width="150"/>
+                    <DataGridTextColumn Header="Fortschritt" Binding="{Binding ProgressDisplay}" Width="100"
+                                        ElementStyle="{StaticResource CenterCell}"/>
+                    <DataGridTextColumn Header="MAC" Binding="{Binding Mac}" Width="150"
+                                        ElementStyle="{StaticResource CenterCell}"/>
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -211,21 +200,21 @@
                                                     <RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/>
                                                 </Grid.RowDefinitions>
                                                 <TextBlock Text="IP" Foreground="{StaticResource Subtext}" FontSize="10"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Ip}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Ip}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Center"/>
                                                 <TextBlock Grid.Row="1" Text="MAC" Foreground="{StaticResource Subtext}" FontSize="10"/>
-                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Mac}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Mac}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
                                                 <TextBlock Grid.Row="2" Text="Gateway" Foreground="{StaticResource Subtext}" FontSize="10"/>
-                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Gateway}" Foreground="{StaticResource Green}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Gateway}" Foreground="{StaticResource Green}" FontSize="10" HorizontalAlignment="Center"/>
                                                 <TextBlock Grid.Row="3" Text="Subnetz" Foreground="{StaticResource Subtext}" FontSize="10"/>
-                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SubnetMask}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SubnetMask}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Center"/>
                                                 <TextBlock Grid.Row="4" Text="DNS" Foreground="{StaticResource Subtext}" FontSize="10"/>
                                                 <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Dns}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Right" TextWrapping="Wrap"/>
                                                 <TextBlock Grid.Row="5" Text="Interface" Foreground="{StaticResource Subtext}" FontSize="10"/>
-                                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Interface}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Interface}" Foreground="{StaticResource Text}" FontSize="10" HorizontalAlignment="Center"/>
                                                 <TextBlock Grid.Row="6" Text="Online" Foreground="{StaticResource Subtext}" FontSize="10"/>
-                                                <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding OnlineCount}" Foreground="{StaticResource Green}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding OnlineCount}" Foreground="{StaticResource Green}" FontSize="10" HorizontalAlignment="Center"/>
                                                 <TextBlock Grid.Row="7" Text="Offline" Foreground="{StaticResource Subtext}" FontSize="10"/>
-                                                <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding OfflineCount}" Foreground="{StaticResource Subtext}" FontSize="10" HorizontalAlignment="Right"/>
+                                                <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding OfflineCount}" Foreground="{StaticResource Subtext}" FontSize="10" HorizontalAlignment="Center"/>
                                             </Grid>
                                         </StackPanel>
                                     </Border>
@@ -243,7 +232,7 @@
                                             <Grid Margin="0,2">
                                                 <TextBlock Text="{Binding Name}" Foreground="{StaticResource Subtext}" FontSize="10"/>
                                                 <TextBlock Text="{Binding LatencyDisplay}" Foreground="{StaticResource Green}"
-                                                           FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                                           FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

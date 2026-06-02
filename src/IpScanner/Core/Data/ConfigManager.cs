@@ -35,7 +35,6 @@ public static class ConfigManager
                 case "export_csv":                  cfg.ExportCsv = ParseBool(value); break;
                 case "ping_threads":                cfg.PingThreads = ParseInt(value, 1, 1000, 100); break;
                 case "init_ping_threads":           cfg.InitPingThreads = ParseInt(value, 0, 1000, 254); break;
-                case "refresh_rate":                cfg.RefreshRate = ParseDouble(value, 0.1, 60.0, 1.0); break;
                 case "pinned_ips":                  cfg.PinnedIps = ParseIpList(value); break;
                 default:
                     var m = Regex.Match(key, @"^subnet(?:_(\d+))?$");
@@ -66,7 +65,6 @@ public static class ConfigManager
         sb.AppendLine($"export_csv = {(c.ExportCsv ? "true" : "false")}");
         sb.AppendLine($"ping_threads = {c.PingThreads}");
         sb.AppendLine($"init_ping_threads = {c.InitPingThreads}");
-        sb.AppendLine($"refresh_rate = {c.RefreshRate.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
         for (int i = 0; i < c.Subnets.Count; i++)
             sb.AppendLine(i == 0 ? $"subnet = {c.Subnets[i]}" : $"subnet_{i + 1} = {c.Subnets[i]}");
         if (c.PinnedIps.Count > 0)

@@ -21,14 +21,12 @@ public sealed class SettingsViewModel : ObservableObject
         _outputDirectory = cfg.OutputDirectory;
         _pingThreads = cfg.PingThreads;
         _initPingThreads = cfg.InitPingThreads;
-        _refreshRate = cfg.RefreshRate;
         Subnets = new(cfg.Subnets);
         PinnedIps = new(cfg.PinnedIps);
         InternetHosts = new(cfg.InternetHosts);
     }
 
     private int _pingCount, _pingIntervalMs, _offlineAfter, _initPingCount, _pingThreads, _initPingThreads;
-    private double _refreshRate;
     private string _outputDirectory;
 
     public int PingCount { get => _pingCount; set => SetProperty(ref _pingCount, value); }
@@ -43,7 +41,6 @@ public sealed class SettingsViewModel : ObservableObject
     public string OutputDirectory { get => _outputDirectory; set => SetProperty(ref _outputDirectory, value); }
     public int PingThreads { get => _pingThreads; set => SetProperty(ref _pingThreads, value); }
     public int InitPingThreads { get => _initPingThreads; set => SetProperty(ref _initPingThreads, value); }
-    public double RefreshRate { get => _refreshRate; set => SetProperty(ref _refreshRate, value); }
 
     public ObservableCollection<string> Subnets { get; }
     public ObservableCollection<string> PinnedIps { get; }
@@ -63,7 +60,6 @@ public sealed class SettingsViewModel : ObservableObject
         OutputDirectory = OutputDirectory,
         PingThreads = PingThreads,
         InitPingThreads = InitPingThreads,
-        RefreshRate = RefreshRate,
         Subnets = Subnets.ToList(),
         PinnedIps = PinnedIps.ToList(),
         InternetHosts = InternetHosts.ToList(),

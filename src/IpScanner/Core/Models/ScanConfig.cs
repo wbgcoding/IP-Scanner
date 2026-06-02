@@ -19,7 +19,6 @@ public sealed class ScanConfig
     public bool ExportCsv { get; set; }
     public int PingThreads { get; set; } = 100;
     public int InitPingThreads { get; set; } = 254;
-    public double RefreshRate { get; set; } = 1.0;
 
     public const int InfinitePingCount = -1;
 
@@ -32,6 +31,6 @@ public sealed class ScanConfig
         EnableInternetPing = EnableInternetPing, InternetHosts = InternetHosts,
         KnownDevicesDb = KnownDevicesDb, OutputDirectory = OutputDirectory,
         FileOutput = FileOutput, ExportCsv = ExportCsv, PingThreads = PingThreads,
-        InitPingThreads = InitPingThreads, RefreshRate = RefreshRate,
+        InitPingThreads = InitPingThreads,
     };
 }

@@ -45,7 +45,7 @@ public sealed class ScanEngine
                 if (ct.IsCancellationRequested) return;
                 var device = _devices.GetOrAdd(ip, x => new Device(x)
                 {
-                    TargetPings = cfg.PingCount,
+                    TargetPings = cfg.PingCount == 0 ? 1 : cfg.PingCount,
                     OfflineAfterFailures = cfg.OfflineAfterFailedPings,
                 });
                 var r = _ping(ip, IcmpTimeoutMs);

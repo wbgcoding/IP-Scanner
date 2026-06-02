@@ -47,7 +47,6 @@
                 <StackPanel Margin="12">
                     <DockPanel Margin="0,4"><TextBlock Text="Analyse-Threads" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="PingThreadsBox" Width="100"/></DockPanel>
                     <DockPanel Margin="0,4"><TextBlock Text="Discovery-Threads" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="InitThreadsBox" Width="100"/></DockPanel>
-                    <DockPanel Margin="0,4"><TextBlock Text="Refresh-Rate (s)" Foreground="{StaticResource Text}" Width="200"/><TextBox x:Name="RefreshRateBox" Width="100"/></DockPanel>
                 </StackPanel>
             </TabItem>
             <TabItem Header="Datenbank">

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using IpScanner.Core.Data;
 using IpScanner.Core.Models;
@@ -33,7 +32,6 @@ public partial class SettingsWindow : Window
         ExportCsvBox.IsChecked = c.ExportCsv;
         PingThreadsBox.Text = c.PingThreads.ToString();
         InitThreadsBox.Text = c.InitPingThreads.ToString();
-        RefreshRateBox.Text = c.RefreshRate.ToString(CultureInfo.InvariantCulture);
         KnownDbBox.IsChecked = c.KnownDevicesDb;
     }
 
@@ -43,8 +41,6 @@ public partial class SettingsWindow : Window
             .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
             .Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
         int I(string s, int d) => int.TryParse(s.Trim(), out var v) ? v : d;
-        double D(string s, double d) => double.TryParse(s.Trim().Replace(',', '.'),
-            CultureInfo.InvariantCulture, out var v) ? v : d;
 
         Result = new ScanConfig
         {
@@ -62,7 +58,6 @@ public partial class SettingsWindow : Window
             ExportCsv = ExportCsvBox.IsChecked == true,
             PingThreads = I(PingThreadsBox.Text, 100),
             InitPingThreads = I(InitThreadsBox.Text, 254),
-            RefreshRate = D(RefreshRateBox.Text, 1.0),
             KnownDevicesDb = KnownDbBox.IsChecked == true,
         };
         DialogResult = true;

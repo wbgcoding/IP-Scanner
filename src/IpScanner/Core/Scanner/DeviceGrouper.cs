@@ -44,13 +44,15 @@ public static class DeviceGrouper
 
     private static string? GroupKey(Device d)
     {
-        if (!string.IsNullOrEmpty(d.Mac) && d.Mac.Length >= 8)
-            return "mac:" + d.Mac[..8].ToUpperInvariant();
-        if (!string.IsNullOrEmpty(d.Hostname) && d.Hostname.Length >= 2)
+        // Group by hostname prefix first, then fall back to MAC OUI.
+        if (!string.IsNullOrEmpty(d.Hostname) && d.Hostname != "Unknown" && d.Hostname.Length >= 2)
         {
-            var prefix = new string(d.Hostname.TakeWhile(c => !char.IsDigit(c)).ToArray());
+            // Leading letters only: "pc-a"/"pc-b" -> "pc", "desktop-01" -> "desktop".
+            var prefix = new string(d.Hostname.TakeWhile(char.IsLetter).ToArray());
             if (prefix.Length >= 2) return "host:" + prefix.ToLowerInvariant();
         }
+        if (!string.IsNullOrEmpty(d.Mac) && d.Mac != "Unknown" && d.Mac.Length >= 8)
+            return "mac:" + d.Mac[..8].ToUpperInvariant();
         return null;
     }
 }

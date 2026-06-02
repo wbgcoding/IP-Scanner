@@ -9,7 +9,27 @@ public sealed class DeviceViewModel : ObservableObject
     private static readonly CultureInfo De = CultureInfo.GetCultureInfo("de-DE");
     private readonly Device _device;
 
-    public DeviceViewModel(Device device) => _device = device;
+    public DeviceViewModel(Device device)
+    {
+        _device = device;
+        IpSortKey = ToSortKey(device.Ip);
+    }
+
+    /// <summary>Numeric IPv4 for sorting (0 when unparseable).</summary>
+    public long IpSortKey { get; }
+
+    private static long ToSortKey(string ip)
+    {
+        var p = ip.Split('.');
+        if (p.Length != 4) return 0;
+        long key = 0;
+        foreach (var part in p)
+        {
+            if (!int.TryParse(part, out var n)) return 0;
+            key = key * 256 + n;
+        }
+        return key;
+    }
 
     public string Ip => _device.Ip;
     public string Status => _device.IsOnline ? "ONLINE" : "OFFLINE";

@@ -20,7 +20,6 @@ public sealed class MainViewModel : ObservableObject
     private CancellationTokenSource? _cts;
 
     private const string DbPath = "scanner.db";
-    private const int UiThrottleMs = 100;   // coalesce live UI updates to ~10/s
 
     private static readonly Dictionary<string, string> KnownHostNames = new()
     {
@@ -52,7 +51,6 @@ public sealed class MainViewModel : ObservableObject
     private readonly object _byIpLock = new();
     private int _totalPings = 1;
     private int _plannedDevices = 1;
-    private long _lastProgressTick;
 
     /// <summary>Full scan using the configured ping count; writes report/DB.</summary>
     public Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
@@ -79,6 +77,7 @@ public sealed class MainViewModel : ObservableObject
 
         _dispatch(() =>
         {
+            lock (_byIpLock) { Devices.Clear(); _byIp.Clear(); }
             Networks.Clear();
             for (int i = 0; i < prefixes.Count; i++)
             {
@@ -93,13 +92,7 @@ public sealed class MainViewModel : ObservableObject
 
         var engine = new ScanEngine(_pingFunc, _enrich);
         engine.DeviceUpdated += OnDeviceUpdated;
-        engine.Progress.Changed += () =>
-        {
-            long now = Environment.TickCount64;
-            if (now - Interlocked.Read(ref _lastProgressTick) < UiThrottleMs) return;
-            Interlocked.Exchange(ref _lastProgressTick, now);
-            _dispatch(() => UpdateProgress(engine));
-        };
+        engine.Progress.Changed += () => _dispatch(() => UpdateProgress(engine));
 
         try
         {
@@ -224,7 +217,7 @@ public sealed class MainViewModel : ObservableObject
             bool tracked = _byIp.TryGetValue(d.Ip, out var vm);
             if (d.IsOnline)
             {
-                if (!tracked) { vm = new DeviceViewModel(d); _byIp[d.Ip] = vm; Devices.Add(vm); }
+                if (!tracked) { vm = new DeviceViewModel(d); _byIp[d.Ip] = vm; InsertSorted(vm); }
                 else vm!.Refresh();
             }
             else if (tracked)
@@ -246,10 +239,18 @@ public sealed class MainViewModel : ObservableObject
                 {
                     var vm = new DeviceViewModel(dev);
                     _byIp[dev.Ip] = vm;
-                    Devices.Add(vm);
+                    InsertSorted(vm);
                 }
             }
         }
+    }
+
+    /// <summary>Insert a device row keeping the list ordered by numeric IP.</summary>
+    private void InsertSorted(DeviceViewModel vm)
+    {
+        int i = 0;
+        while (i < Devices.Count && Devices[i].IpSortKey <= vm.IpSortKey) i++;
+        Devices.Insert(i, vm);
     }
 
     private void RefreshAll()
