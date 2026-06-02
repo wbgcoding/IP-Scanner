@@ -13,12 +13,38 @@ public static class NetworkDetector
 {
     public static string? GetLocalIpFast()
     {
+        // 1. UDP-connect trick (no packet sent): resolves the routed source IP.
         try
         {
             using var s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            s.Connect("8.8.8.8", 80);              // no packet sent for UDP
+            s.Connect("8.8.8.8", 80);
             var ip = ((IPEndPoint)s.LocalEndPoint!).Address.ToString();
-            return ip != "0.0.0.0" && !ip.StartsWith("169.254.") ? ip : null;
+            if (ip != "0.0.0.0" && !ip.StartsWith("169.254.")) return ip;
+        }
+        catch { /* no route / offline — fall back to NIC scan */ }
+
+        // 2. Fallback: first up, non-loopback NIC with a usable IPv4 (prefer one
+        //    that has a default gateway). Works offline / without an 8.8.8.8 route.
+        try
+        {
+            string? any = null;
+            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (ni.OperationalStatus != OperationalStatus.Up) continue;
+                if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+                var props = ni.GetIPProperties();
+                bool hasGateway = props.GatewayAddresses.Any(g => g.Address.AddressFamily == AddressFamily.InterNetwork
+                                                                  && !g.Address.ToString().StartsWith("0."));
+                foreach (var ua in props.UnicastAddresses)
+                {
+                    if (ua.Address.AddressFamily != AddressFamily.InterNetwork) continue;
+                    var ip = ua.Address.ToString();
+                    if (ip.StartsWith("127.") || ip.StartsWith("169.254.")) continue;
+                    if (hasGateway) return ip;     // best candidate
+                    any ??= ip;                    // remember as fallback
+                }
+            }
+            return any;
         }
         catch { return null; }
     }
