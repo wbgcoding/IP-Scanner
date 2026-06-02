@@ -32,6 +32,15 @@ public partial class MainWindow : Window
             enrich: Enrich)
         { Config = _config };
         DataContext = _vm;
+
+        // Prefill the subnet field with the currently detected network so the
+        // value is visible immediately (user can edit it before scanning).
+        try
+        {
+            var ni = NetworkDetector.DetectFast();
+            if (ni.Cidr is not null) SubnetBox.Text = ni.Cidr;
+        }
+        catch { /* detection best-effort */ }
     }
 
     // Resolve MAC + hostname for an online device: ARP + reverse DNS, with a
