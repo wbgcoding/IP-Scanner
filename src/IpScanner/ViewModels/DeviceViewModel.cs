@@ -30,6 +30,22 @@ public sealed class DeviceViewModel : ObservableObject
     public string MinDisplay => Fmt(_device.MinMs);
     public string MaxDisplay => Fmt(_device.MaxMs);
     public string LastDisplay => Fmt(_device.LastMs);
+
+    // Latency heatmap: green (fast) -> red (slow). Mirrors Python thresholds.
+    public string AvgColor => HeatColor(_device.AvgMs);
+    public string MinColor => HeatColor(_device.MinMs);
+    public string MaxColor => HeatColor(_device.MaxMs);
+    public string LastColor => HeatColor(_device.LastMs);
+
+    private static string HeatColor(double? ms) => ms switch
+    {
+        null => "#585B70",   // no data -> muted
+        <= 50 => "#A6E3A1",  // excellent (green)
+        <= 100 => "#C9E88A", // good (lime)
+        <= 200 => "#F9E2AF", // okay (yellow)
+        <= 400 => "#FAB387", // bad (orange)
+        _ => "#F38BA8",      // very bad (red)
+    };
     public string ProgressDisplay =>
         _device.TargetPings == ScanConfig.InfinitePingCount
             ? $"{_device.CurrentPings}/∞"
@@ -44,5 +60,6 @@ public sealed class DeviceViewModel : ObservableObject
         Raise(nameof(Mac)); Raise(nameof(GroupId)); Raise(nameof(GroupColor));
         Raise(nameof(AvgDisplay)); Raise(nameof(MinDisplay)); Raise(nameof(MaxDisplay));
         Raise(nameof(LastDisplay)); Raise(nameof(ProgressDisplay));
+        Raise(nameof(AvgColor)); Raise(nameof(MinColor)); Raise(nameof(MaxColor)); Raise(nameof(LastColor));
     }
 }
