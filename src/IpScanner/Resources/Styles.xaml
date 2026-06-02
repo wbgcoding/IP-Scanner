@@ -19,4 +19,56 @@
         <Setter Property="Background" Value="{StaticResource Bg}"/>
         <Setter Property="FontFamily" Value="Segoe UI"/>
     </Style>
+
+    <!-- Pill button base: rounded, flat, hover/press feedback. -->
+    <Style x:Key="PillButton" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource Text}"/>
+        <Setter Property="Background" Value="{StaticResource Surface}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="14,6"/>
+        <Setter Property="Margin" Value="3,0,0,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="b" CornerRadius="7" Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="b" Property="Opacity" Value="0.85"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="b" Property="Opacity" Value="0.65"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="b" Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Accent (start/scan): green, dark text. -->
+    <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource PillButton}">
+        <Setter Property="Background" Value="{StaticResource Green}"/>
+        <Setter Property="Foreground" Value="#1E1E2E"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+
+    <!-- Danger (stop): red, dark text. -->
+    <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PillButton}">
+        <Setter Property="Background" Value="{StaticResource Red}"/>
+        <Setter Property="Foreground" Value="#1E1E2E"/>
+    </Style>
+
+    <!-- Icon/ghost (settings): subtle surface, larger glyph. -->
+    <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource PillButton}">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Padding" Value="11,6"/>
+    </Style>
 </ResourceDictionary>

@@ -49,8 +49,8 @@ public sealed class MainViewModel : ObservableObject
     private readonly Dictionary<string, DeviceViewModel> _byIp = new();
     private readonly object _byIpLock = new();
     private int _totalPings = 1;
+    private int _plannedDevices = 1;
     private long _lastProgressTick;
-    private long _lastRefreshTick;
 
     public async Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
     {
@@ -60,7 +60,9 @@ public sealed class MainViewModel : ObservableObject
 
         bool infinite = Config.PingCount == ScanConfig.InfinitePingCount;
         int perIp = infinite ? 1 : Math.Max(1, Config.PingCount);
-        _totalPings = Math.Max(1, prefixes.Count * (Ipv4.LastHost - Ipv4.FirstHost + 1) * perIp);
+        int hostsPerSubnet = Ipv4.LastHost - Ipv4.FirstHost + 1;
+        _plannedDevices = Math.Max(1, prefixes.Count * hostsPerSubnet);
+        _totalPings = Math.Max(1, _plannedDevices * perIp);
 
         _dispatch(() =>
         {
@@ -83,7 +85,7 @@ public sealed class MainViewModel : ObservableObject
             long now = Environment.TickCount64;
             if (now - Interlocked.Read(ref _lastProgressTick) < UiThrottleMs) return;
             Interlocked.Exchange(ref _lastProgressTick, now);
-            _dispatch(() => UpdateProgress(engine.Progress));
+            _dispatch(() => UpdateProgress(engine));
         };
 
         try
@@ -120,8 +122,9 @@ public sealed class MainViewModel : ObservableObject
         // Final reconcile so every row shows its true end state.
         _dispatch(() =>
         {
+            SyncDevices(engine);
             RefreshAll();
-            UpdateProgress(engine.Progress);
+            UpdateProgress(engine);
             Progress.Phase = "Bereit";
         });
     }
@@ -163,36 +166,41 @@ public sealed class MainViewModel : ObservableObject
         return list;
     }
 
-    private void OnDeviceUpdated(Device d)
+    // Only ONLINE devices are shown in the list; offline ones are added/removed
+    // from the grid as their state flips.
+    private void OnDeviceUpdated(Device d) => _dispatch(() =>
     {
-        bool isNew;
-        lock (_byIpLock) { isNew = !_byIp.ContainsKey(d.Ip); }
-
-        if (isNew)
+        lock (_byIpLock)
         {
-            _dispatch(() =>
+            bool tracked = _byIp.TryGetValue(d.Ip, out var vm);
+            if (d.IsOnline)
             {
-                lock (_byIpLock)
+                if (!tracked) { vm = new DeviceViewModel(d); _byIp[d.Ip] = vm; Devices.Add(vm); }
+                else vm!.Refresh();
+            }
+            else if (tracked)
+            {
+                Devices.Remove(vm!);
+                _byIp.Remove(d.Ip);
+            }
+        }
+    });
+
+    /// <summary>Reconcile the visible (online-only) list against the engine.</summary>
+    private void SyncDevices(ScanEngine engine)
+    {
+        lock (_byIpLock)
+        {
+            foreach (var dev in engine.Devices.Where(d => d.IsOnline))
+            {
+                if (!_byIp.ContainsKey(dev.Ip))
                 {
-                    if (_byIp.ContainsKey(d.Ip)) return;
-                    var vm = new DeviceViewModel(d);
-                    _byIp[d.Ip] = vm;
+                    var vm = new DeviceViewModel(dev);
+                    _byIp[dev.Ip] = vm;
                     Devices.Add(vm);
                 }
-            });
-            return;
-        }
-
-        long now = Environment.TickCount64;
-        if (now - Interlocked.Read(ref _lastRefreshTick) < UiThrottleMs) return;
-        Interlocked.Exchange(ref _lastRefreshTick, now);
-        _dispatch(() =>
-        {
-            lock (_byIpLock)
-            {
-                if (_byIp.TryGetValue(d.Ip, out var vm)) vm.Refresh();
             }
-        });
+        }
     }
 
     private void RefreshAll()
@@ -203,20 +211,22 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    private void UpdateProgress(ScanProgress p)
+    private void UpdateProgress(ScanEngine engine)
     {
-        List<DeviceViewModel> snapshot;
-        lock (_byIpLock) { snapshot = Devices.ToList(); }
+        var all = engine.Devices.ToList();
+        var p = engine.Progress;
 
-        int online = snapshot.Count(d => d.IsOnline);
-        int total = snapshot.Count;
-        Progress.SetDevices(online, total - online, 0, Math.Max(total, 1));
+        int discovered = all.Count;
+        int online = all.Count(d => d.IsOnline);
+        int offline = discovered - online;
+        int unknown = Math.Max(0, _plannedDevices - discovered);   // not yet scanned
+        Progress.SetDevices(online, offline, unknown, Math.Max(_plannedDevices, 1));
         Progress.SetPings(p.SuccessPings, p.FailedPings, p.SkippedPings, _totalPings);
 
         foreach (var net in Networks)
         {
             var prefix = Ipv4.SubnetPrefix(net.Cidr.Split('/')[0]);
-            var inNet = snapshot.Where(d => d.Ip.StartsWith(prefix + ".")).ToList();
+            var inNet = all.Where(d => d.Ip.StartsWith(prefix + ".")).ToList();
             net.OnlineCount = inNet.Count(d => d.IsOnline);
             net.OfflineCount = inNet.Count(d => !d.IsOnline);
         }

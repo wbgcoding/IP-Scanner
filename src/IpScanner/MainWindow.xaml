@@ -100,9 +100,9 @@
                         <ComboBoxItem>1000</ComboBoxItem><ComboBoxItem>10000</ComboBoxItem>
                         <ComboBoxItem>100000</ComboBoxItem><ComboBoxItem>∞</ComboBoxItem>
                     </ComboBox>
-                    <Button x:Name="ScanButton" Content="▶ Scan" Click="OnScanClick" Margin="0,0,4,0" Padding="12,4"/>
-                    <Button x:Name="StopButton" Content="■ Stop" Click="OnStopClick" Margin="0,0,4,0" Padding="9,4"/>
-                    <Button x:Name="SettingsButton" Content="⚙" Click="OnSettingsClick" Padding="9,4"/>
+                    <Button x:Name="ScanButton" Content="▶ Scan" Click="OnScanClick" Style="{StaticResource AccentButton}"/>
+                    <Button x:Name="StopButton" Content="■ Stop" Click="OnStopClick" Style="{StaticResource DangerButton}"/>
+                    <Button x:Name="SettingsButton" Content="⚙" Click="OnSettingsClick" Style="{StaticResource GhostButton}"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -121,7 +121,14 @@
                       BorderThickness="0" EnableRowVirtualization="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="120"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80"/>
+                    <DataGridTemplateColumn Header="Status" Width="90">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Status}" Foreground="{StaticResource Green}"
+                                           FontWeight="SemiBold"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="Gruppe" Width="60">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
