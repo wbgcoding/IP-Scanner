@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ctrl="clr-namespace:IpScanner.Views.Controls"
         Title="IP-Scanner" Height="720" Width="1320" MinWidth="700" MinHeight="480"
-        Icon="Resources/network.ico"
+        Icon="Resources/network.ico" Background="{StaticResource Bg}"
         WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
