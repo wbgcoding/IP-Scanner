@@ -26,7 +26,7 @@ public static class NetBiosHelper
     {
         try
         {
-            var output = ArpHelper.RunCapture("nbtstat", $"-A {ip}", 6000);
+            var output = ArpHelper.RunCapture("nbtstat", $"-A {ip}", 2500);
             var name = ParseName(output);
             var mac = ArpHelper.ParseMac(output);
             return (name, mac == "00-00-00-00-00-00" ? null : mac);

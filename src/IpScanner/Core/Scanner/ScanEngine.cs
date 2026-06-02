@@ -52,19 +52,26 @@ public sealed class ScanEngine
                 device.RecordPing(r);
                 if (r.Success) Progress.AddSuccess(); else Progress.AddFailed();
                 Progress.AddProcessed();
-                // First reply: resolve MAC + hostname once (off the test path).
-                if (r.Success && device.SuccessCount == 1 && _enrich is not null)
-                {
-                    try
-                    {
-                        var (mac, host) = _enrich(ip);
-                        if (!string.IsNullOrEmpty(mac)) device.Mac = mac;
-                        if (!string.IsNullOrEmpty(host)) device.Hostname = host;
-                    }
-                    catch { /* enrichment is best-effort */ }
-                }
                 Progress.NotifyChanged();
                 DeviceUpdated?.Invoke(device);
+                // First reply: resolve MAC + hostname OFF the critical path so
+                // discovery finishes fast and analysis pings start without delay.
+                if (r.Success && device.SuccessCount == 1 && _enrich is not null)
+                {
+                    var d = device;
+                    var addr = ip;
+                    _ = Task.Run(() =>
+                    {
+                        try
+                        {
+                            var (mac, host) = _enrich(addr);
+                            if (!string.IsNullOrEmpty(mac)) d.Mac = mac;
+                            if (!string.IsNullOrEmpty(host)) d.Hostname = host;
+                            DeviceUpdated?.Invoke(d);
+                        }
+                        catch { /* enrichment is best-effort */ }
+                    });
+                }
             });
 
         if (cfg.PingCount == 0) return;

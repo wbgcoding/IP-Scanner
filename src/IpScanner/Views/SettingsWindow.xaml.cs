@@ -1,5 +1,6 @@
 using System.Windows;
 using IpScanner.Core.Data;
+using IpScanner.Core.Localization;
 using IpScanner.Core.Models;
 
 namespace IpScanner.Views;
@@ -65,9 +66,15 @@ public partial class SettingsWindow : Window
 
     private void OnCancel(object sender, RoutedEventArgs e) => DialogResult = false;
 
+    private void OnBrowse(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.OutputDir };
+        if (dlg.ShowDialog(this) == true) OutputDirBox.Text = dlg.FolderName;
+    }
+
     private void OnClearDb(object sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show("Known-Devices-Datenbank wirklich leeren?", "Bestätigen",
+        if (MessageBox.Show(Loc.ClearDbConfirm, Loc.Confirm,
                 MessageBoxButton.YesNo) == MessageBoxResult.Yes)
         {
             try { new KnownDevicesDb("scanner.db").Clear(); } catch { /* ignore */ }

@@ -74,8 +74,8 @@ public sealed class DeviceViewModel : ObservableObject
     };
     public string ProgressDisplay =>
         _device.TargetPings == ScanConfig.InfinitePingCount
-            ? $"{_device.CurrentPings}/∞"
-            : $"{_device.CurrentPings}/{_device.TargetPings}";
+            ? $"{Core.NumberFormat.Short(_device.CurrentPings)}/∞"
+            : $"{Core.NumberFormat.Short(_device.CurrentPings)}/{Core.NumberFormat.Short(_device.TargetPings)}";
 
     private static string Fmt(double? v) => v is null ? "—" : v.Value.ToString("F1", De) + " ms";
 

@@ -1,6 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
     <!-- ══ Catppuccin Mocha palette ══ -->
     <SolidColorBrush x:Key="Bg"        Color="#1E1E2E"/>
     <SolidColorBrush x:Key="BgAlt"     Color="#252535"/>

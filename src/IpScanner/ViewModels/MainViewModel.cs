@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IpScanner.Core.Data;
 using IpScanner.Core.Export;
+using IpScanner.Core.Localization;
 using IpScanner.Core.Models;
 using IpScanner.Core.Net;
 using IpScanner.Core.Scanner;
@@ -44,6 +45,7 @@ public sealed class MainViewModel : ObservableObject
     public ProgressViewModel Progress { get; } = new();
     public ScanConfig Config { get; set; } = new();
     public string? LastExportPath { get; private set; }
+    public bool HasExport => !string.IsNullOrEmpty(LastExportPath);
     /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
     public string? ManualSubnet { get; set; }
 
@@ -52,6 +54,9 @@ public sealed class MainViewModel : ObservableObject
     private int _totalPings = 1;
     private int _plannedDevices = 1;
     private string? _selfIp;
+    private string? _selfMac;
+    private string? _selfHost;
+    private string? _gatewayIp;
 
     /// <summary>Full scan using the configured ping count; writes report/DB.</summary>
     public Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
@@ -68,6 +73,11 @@ public sealed class MainViewModel : ObservableObject
         _cts = new CancellationTokenSource();
         var info = _detectNetwork();
         _selfIp = info.Ip;
+        _selfMac = info.Mac;
+        _selfHost = Environment.MachineName;
+        _gatewayIp = info.Gateway;
+        LastExportPath = null;
+        Raise(nameof(HasExport));
         var cfg = pingCountOverride is null ? Config : Config.CloneWith(pingCountOverride.Value);
         var prefixes = subnetOverride ?? BuildPrefixes(info, cfg.Subnets);
 
@@ -86,7 +96,7 @@ public sealed class MainViewModel : ObservableObject
                 var ni = i == 0 ? info : new NetworkInfo { Ip = prefixes[i] + ".0" };
                 Networks.Add(new NetworkInfoViewModel(i + 1, ni, GroupColorPalette.ColorForIndex(i)));
             }
-            Progress.Phase = pingCountOverride == 0 ? "Suche Geräte" : "Discovery";
+            Progress.Phase = Loc.PhaseSearching;
         });
 
         // Internet latency runs in the background, independent of the scan's
@@ -120,6 +130,7 @@ public sealed class MainViewModel : ObservableObject
                 if (cfg.ExportCsv)
                     CsvExporter.Write(devices, cfg.OutputDirectory, timestamp, gatewaySlug);
                 Raise(nameof(LastExportPath));
+                Raise(nameof(HasExport));
             }
 
             if (cfg.KnownDevicesDb && info.Gateway is not null)
@@ -138,23 +149,26 @@ public sealed class MainViewModel : ObservableObject
             SyncDevices(engine);
             RefreshAll();
             UpdateProgress(engine);
-            Progress.Phase = "Bereit";
+            Progress.Phase = Loc.PhaseReady;
         });
     }
 
     public async Task PingInternetAsync(CancellationToken ct = default)
     {
         if (!Config.EnableInternetPing) return;
+
+        // Build the list synchronously (don't snapshot the ObservableCollection
+        // after an async dispatch — it would still be empty and ping nothing).
+        var hosts = Config.InternetHosts
+            .Select(ip => new InternetHostViewModel(KnownHostNames.GetValueOrDefault(ip, ip), ip))
+            .ToList();
         _dispatch(() =>
         {
             InternetHosts.Clear();
-            foreach (var ip in Config.InternetHosts)
-                InternetHosts.Add(new InternetHostViewModel(
-                    KnownHostNames.GetValueOrDefault(ip, ip), ip));
+            foreach (var h in hosts) InternetHosts.Add(h);
         });
 
         // Ping all hosts in parallel, two attempts each (robust against a dropped packet).
-        var hosts = InternetHosts.ToList();
         await Task.WhenAll(hosts.Select(host => Task.Run(() =>
         {
             double? latency = null;
@@ -219,8 +233,11 @@ public sealed class MainViewModel : ObservableObject
 
     // Only ONLINE devices are shown in the list; offline ones are added/removed
     // from the grid as their state flips.
-    private void OnDeviceUpdated(Device d) => _dispatch(() =>
+    private void OnDeviceUpdated(Device d)
     {
+        ApplySelfInfo(d);
+        _dispatch(() =>
+        {
         lock (_byIpLock)
         {
             bool tracked = _byIp.TryGetValue(d.Ip, out var vm);
@@ -235,7 +252,18 @@ public sealed class MainViewModel : ObservableObject
                 _byIp.Remove(d.Ip);
             }
         }
-    });
+        });
+    }
+
+    // Own machine can't be ARP'd / reverse-resolved reliably: fill from detection.
+    private void ApplySelfInfo(Device d)
+    {
+        if (d.Ip != _selfIp) return;
+        if (!string.IsNullOrEmpty(_selfMac) && (string.IsNullOrEmpty(d.Mac) || d.Mac == "Unknown"))
+            d.Mac = _selfMac;
+        if (!string.IsNullOrEmpty(_selfHost) && (string.IsNullOrEmpty(d.Hostname) || d.Hostname == "Unknown"))
+            d.Hostname = _selfHost;
+    }
 
     /// <summary>Reconcile the visible (online-only) list against the engine.</summary>
     private void SyncDevices(ScanEngine engine)
@@ -275,6 +303,10 @@ public sealed class MainViewModel : ObservableObject
         var all = engine.Devices.ToList();
         var p = engine.Progress;
 
+        // Live grouping: recompute group colors as devices/MACs/hostnames arrive.
+        DeviceGrouper.AssignGroups(all, _gatewayIp);
+        lock (_byIpLock) { foreach (var vm in Devices) vm.Refresh(); }
+
         int discovered = all.Count;
         int online = all.Count(d => d.IsOnline);
         int offline = discovered - online;
@@ -288,6 +320,8 @@ public sealed class MainViewModel : ObservableObject
             var inNet = all.Where(d => d.Ip.StartsWith(prefix + ".")).ToList();
             net.OnlineCount = inNet.Count(d => d.IsOnline);
             net.OfflineCount = inNet.Count(d => !d.IsOnline);
+            var avgs = inNet.Where(d => d.IsOnline && d.AvgMs is not null).Select(d => d.AvgMs!.Value).ToList();
+            net.SetAvg(avgs.Count > 0 ? avgs.Average() : null);
         }
     }
 

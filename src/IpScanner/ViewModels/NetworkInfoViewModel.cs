@@ -18,7 +18,7 @@ public sealed class NetworkInfoViewModel : ObservableObject
 
     public int    Index      { get; }
     public string BadgeColor { get; }
-    public string Title      => $"Netzwerk {Index}";
+    public string Title      => $"{Core.Localization.Loc.Network} {Index}";
     public string Cidr       { get; }
     public string Ip         { get; }
     public string Mac        { get; }

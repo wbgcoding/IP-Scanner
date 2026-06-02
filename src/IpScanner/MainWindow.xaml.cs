@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using IpScanner.Core.Data;
+using IpScanner.Core.Localization;
 using IpScanner.Core.Models;
 using IpScanner.Core.Scanner;
 using IpScanner.ViewModels;
@@ -74,21 +75,35 @@ public partial class MainWindow : Window
 
     private async void OnScanClick(object sender, RoutedEventArgs e) => await StartScan();
 
-    private async void OnApplySubnet(object sender, RoutedEventArgs e) => await StartScan();
+    private async void OnSubnetKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.Enter) await StartScan();
+    }
 
     private async Task StartScan()
     {
         // Build manual subnet "ip/cidr" from the box + dropdown (empty = auto-detect).
-        var ip = SubnetBox.Text.Trim();
-        if (ip.Length == 0)
+        var raw = SubnetBox.Text.Trim();
+        if (raw.Length == 0)
         {
             _vm.ManualSubnet = null;
         }
         else
         {
-            int cidr = ParseCidr(CidrBox.Text);
+            string ipPart; int cidr;
+            if (raw.Contains('/'))                       // custom mask typed in the box
+            {
+                var parts = raw.Split('/');
+                ipPart = parts[0].Trim();
+                cidr = ParseCidr(parts[1]);
+            }
+            else
+            {
+                ipPart = raw;
+                cidr = ParseCidr((CidrBox.SelectedItem as ComboBoxItem)?.Content?.ToString());
+            }
             if (cidr < 24 && !ConfirmLargeRange(cidr)) return;
-            _vm.ManualSubnet = $"{ip}/{cidr}";
+            _vm.ManualSubnet = $"{ipPart}/{cidr}";
         }
 
         ScanButton.IsEnabled = false;
@@ -97,13 +112,12 @@ public partial class MainWindow : Window
             ApplySelectedPingCount();
             _vm.Config = _config;
             await _vm.RunScanAsync();
-            if (_vm.LastExportPath is not null) ExportPathText.Text = _vm.LastExportPath;
-            if (ip.Length == 0 && _vm.Networks.Count > 0)
+            if (raw.Length == 0 && _vm.Networks.Count > 0)
                 SubnetBox.Text = _vm.Networks[0].Cidr.Split('/')[0];
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, ex.Message, "Scan-Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(this, ex.Message, Loc.ScanError, MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally { ScanButton.IsEnabled = true; }
     }
@@ -132,9 +146,8 @@ public partial class MainWindow : Window
     private bool ConfirmLargeRange(int cidr)
     {
         int subnets = cidr >= 16 ? 256 : 65536;
-        var r = MessageBox.Show(this,
-            $"/{cidr} umfasst {subnets} Subnetze (~{subnets * 254:N0} Hosts). Das kann sehr lange dauern. Fortfahren?",
-            "Großer Bereich", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        var r = MessageBox.Show(this, Loc.LargeRangeMsg(cidr, subnets, (long)subnets * 254),
+            Loc.LargeRange, MessageBoxButton.YesNo, MessageBoxImage.Warning);
         return r == MessageBoxResult.Yes;
     }
 
