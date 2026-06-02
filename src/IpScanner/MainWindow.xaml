@@ -145,32 +145,40 @@
                     <DataGridTemplateColumn Header="{x:Static loc:Loc.Avg}" Width="Auto" MinWidth="55">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}"
-                                           FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding AvgMark}" Foreground="{Binding AvgMarkColor}" FontSize="9" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                    <TextBlock Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}" FontWeight="SemiBold"/>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="{x:Static loc:Loc.Min}" Width="Auto" MinWidth="48">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding MinDisplay}" Foreground="{Binding MinColor}"
-                                           HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding MinMark}" Foreground="{Binding MinMarkColor}" FontSize="9" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                    <TextBlock Text="{Binding MinDisplay}" Foreground="{Binding MinColor}"/>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="{x:Static loc:Loc.Max}" Width="Auto" MinWidth="48">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding MaxDisplay}" Foreground="{Binding MaxColor}"
-                                           HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding MaxMark}" Foreground="{Binding MaxMarkColor}" FontSize="9" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                    <TextBlock Text="{Binding MaxDisplay}" Foreground="{Binding MaxColor}"/>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="{x:Static loc:Loc.Last}" Width="Auto" MinWidth="55">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding LastDisplay}" Foreground="{Binding LastColor}"
-                                           FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding LastMark}" Foreground="{Binding LastMarkColor}" FontSize="9" VerticalAlignment="Center" Margin="0,0,3,0"/>
+                                    <TextBlock Text="{Binding LastDisplay}" Foreground="{Binding LastColor}" FontWeight="SemiBold"/>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

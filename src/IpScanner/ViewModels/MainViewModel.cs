@@ -51,7 +51,7 @@ public sealed class MainViewModel : ObservableObject
 
     private readonly Dictionary<string, DeviceViewModel> _byIp = new();
     private readonly object _byIpLock = new();
-    private int _totalPings = 1;
+    private long _totalPings = 1;
     private int _plannedDevices = 1;
     private string? _selfIp;
     private string? _selfMac;
@@ -85,7 +85,7 @@ public sealed class MainViewModel : ObservableObject
         int perIp = infinite ? 1 : Math.Max(1, cfg.PingCount);
         int hostsPerSubnet = Ipv4.LastHost - Ipv4.FirstHost + 1;
         _plannedDevices = Math.Max(1, prefixes.Count * hostsPerSubnet);
-        _totalPings = Math.Max(1, _plannedDevices * perIp);
+        _totalPings = Math.Max(1L, (long)_plannedDevices * perIp);
 
         _dispatch(() =>
         {
@@ -323,6 +323,37 @@ public sealed class MainViewModel : ObservableObject
             var avgs = inNet.Where(d => d.IsOnline && d.AvgMs is not null).Select(d => d.AvgMs!.Value).ToList();
             net.SetAvg(avgs.Count > 0 ? avgs.Average() : null);
         }
+
+        MarkExtremes();
+    }
+
+    // Mark best (lowest) green and worst (highest) red per ping column across rows.
+    private void MarkExtremes()
+    {
+        List<DeviceViewModel> list;
+        lock (_byIpLock) { list = Devices.ToList(); }
+
+        var (avgB, avgW) = Extremes(list, v => v.AvgRaw);
+        var (minB, minW) = Extremes(list, v => v.MinRaw);
+        var (maxB, maxW) = Extremes(list, v => v.MaxRaw);
+        var (lastB, lastW) = Extremes(list, v => v.LastRaw);
+
+        static int Mark(DeviceViewModel vm, DeviceViewModel? b, DeviceViewModel? w)
+            => vm == b ? -1 : vm == w ? 1 : 0;
+
+        foreach (var vm in list)
+            vm.SetMarks(Mark(vm, avgB, avgW), Mark(vm, minB, minW),
+                        Mark(vm, maxB, maxW), Mark(vm, lastB, lastW));
+    }
+
+    private static (DeviceViewModel? best, DeviceViewModel? worst) Extremes(
+        List<DeviceViewModel> list, Func<DeviceViewModel, double?> sel)
+    {
+        var withVal = list.Where(v => sel(v) is not null).ToList();
+        if (withVal.Count < 2) return (null, null);
+        var best = withVal.OrderBy(v => sel(v)!.Value).First();
+        var worst = withVal.OrderByDescending(v => sel(v)!.Value).First();
+        return sel(best)!.Value == sel(worst)!.Value ? (null, null) : (best, worst);
     }
 
     private static string Slug(string? host)

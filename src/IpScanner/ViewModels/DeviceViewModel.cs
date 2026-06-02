@@ -57,6 +57,34 @@ public sealed class DeviceViewModel : ObservableObject
     public string MaxDisplay => Fmt(_device.MaxMs);
     public string LastDisplay => Fmt(_device.LastMs);
 
+    // Raw latency values (for cross-row best/worst comparison).
+    public double? AvgRaw => _device.AvgMs;
+    public double? MinRaw => _device.MinMs;
+    public double? MaxRaw => _device.MaxMs;
+    public double? LastRaw => _device.LastMs;
+
+    // Best (lowest) / worst (highest) marker per column: green ● best, red ● worst.
+    private const string Best = "▼", Worst = "▲", BestColor = "#A6E3A1", WorstColor = "#F38BA8", NoColor = "#00000000";
+    private int _avgMark, _minMark, _maxMark, _lastMark;   // -1 best, 1 worst, 0 none
+    public string AvgMark => MarkGlyph(_avgMark);
+    public string MinMark => MarkGlyph(_minMark);
+    public string MaxMark => MarkGlyph(_maxMark);
+    public string LastMark => MarkGlyph(_lastMark);
+    public string AvgMarkColor => MarkColor(_avgMark);
+    public string MinMarkColor => MarkColor(_minMark);
+    public string MaxMarkColor => MarkColor(_maxMark);
+    public string LastMarkColor => MarkColor(_lastMark);
+    private static string MarkGlyph(int m) => m < 0 ? Best : m > 0 ? Worst : "";
+    private static string MarkColor(int m) => m < 0 ? BestColor : m > 0 ? WorstColor : NoColor;
+
+    /// <summary>Set per-column best(-1)/worst(1)/none(0) markers.</summary>
+    public void SetMarks(int avg, int min, int max, int last)
+    {
+        _avgMark = avg; _minMark = min; _maxMark = max; _lastMark = last;
+        Raise(nameof(AvgMark)); Raise(nameof(MinMark)); Raise(nameof(MaxMark)); Raise(nameof(LastMark));
+        Raise(nameof(AvgMarkColor)); Raise(nameof(MinMarkColor)); Raise(nameof(MaxMarkColor)); Raise(nameof(LastMarkColor));
+    }
+
     // Latency heatmap: green (fast) -> red (slow). Mirrors Python thresholds.
     public string AvgColor => HeatColor(_device.AvgMs);
     public string MinColor => HeatColor(_device.MinMs);

@@ -6,7 +6,7 @@ namespace IpScanner.ViewModels;
 public sealed class ProgressViewModel : ObservableObject
 {
     private int _online, _offline, _unknown, _deviceTotal;
-    private int _success, _failed, _skipped, _pingTotal;
+    private long _success, _failed, _skipped, _pingTotal;
     private string _phase = Loc.PhaseReady;
 
     public string Phase { get => _phase; set => SetProperty(ref _phase, value); }
@@ -20,7 +20,7 @@ public sealed class ProgressViewModel : ObservableObject
         Raise(nameof(DeviceCountText));
     }
 
-    public void SetPings(int success, int failed, int skipped, int total)
+    public void SetPings(long success, long failed, long skipped, long total)
     {
         _success = success; _failed = failed; _skipped = skipped; _pingTotal = Math.Max(1, total);
         Raise(nameof(SuccessFraction)); Raise(nameof(FailedFraction)); Raise(nameof(SkippedFraction));

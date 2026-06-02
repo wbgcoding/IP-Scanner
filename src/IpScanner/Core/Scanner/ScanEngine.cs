@@ -82,7 +82,7 @@ public sealed class ScanEngine
         int offlineCount = _devices.Count - online.Count;
         if (analysisPerIp > 0 && offlineCount > 0)
         {
-            Progress.AddSkipped(offlineCount * analysisPerIp);
+            Progress.AddSkipped((long)offlineCount * analysisPerIp);
             Progress.NotifyChanged();
         }
 
