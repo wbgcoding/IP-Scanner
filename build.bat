@@ -6,6 +6,7 @@ dotnet publish src\IpScanner\IpScanner.csproj ^
     -r win-x64 --self-contained -c Release ^
     -p:PublishSingleFile=true ^
     -p:IncludeNativeLibrariesForSelfExtract=true ^
+    -p:DebugType=none -p:DebugSymbols=false ^
     -o dist
 if errorlevel 1 ( echo BUILD FAILED & pause & exit /b 1 )
 echo.

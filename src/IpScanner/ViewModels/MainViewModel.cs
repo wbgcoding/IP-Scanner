@@ -48,6 +48,10 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
     public string? ManualSubnet { get; set; }
 
+    private string _localIp = "—";
+    /// <summary>This machine's detected IPv4, shown in the header.</summary>
+    public string LocalIp { get => _localIp; set => SetProperty(ref _localIp, value); }
+
     private readonly Dictionary<string, DeviceViewModel> _byIp = new();
     private readonly object _byIpLock = new();
     private int _totalPings = 1;

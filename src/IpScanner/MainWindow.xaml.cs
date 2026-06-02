@@ -38,6 +38,7 @@ public partial class MainWindow : Window
         try
         {
             var ni = NetworkDetector.DetectFast();
+            _vm.LocalIp = ni.Ip ?? "—";
             if (ni.Cidr is not null) SubnetBox.Text = ni.Cidr;
         }
         catch { /* detection best-effort */ }

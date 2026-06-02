@@ -23,8 +23,14 @@
                 <!-- Title + subnet pills -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
-                               FontWeight="Bold" FontSize="16" Margin="0,0,8,0"/>
-                    <ItemsControl ItemsSource="{Binding Networks}">
+                               FontWeight="Bold" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                    <Border Background="{StaticResource Surface}" CornerRadius="10" Padding="9,3" Margin="0,0,4,0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="IP " Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding LocalIp}" Foreground="{StaticResource Green}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <ItemsControl ItemsSource="{Binding Networks}" VerticalAlignment="Center">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>

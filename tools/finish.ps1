@@ -17,7 +17,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
 
 Write-Host '[4/4] Publishing single-file exe ...' -ForegroundColor Cyan
 dotnet publish src\IpScanner\IpScanner.csproj -r win-x64 --self-contained -c Release `
-    -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o dist
+    -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:DebugType=none -p:DebugSymbols=false -o dist
 if ($LASTEXITCODE -ne 0) { throw 'Publish failed' }
 
 Write-Host "Done: $root\dist\IP-Scanner.exe" -ForegroundColor Green
