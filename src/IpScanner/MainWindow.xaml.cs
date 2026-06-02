@@ -38,10 +38,16 @@ public partial class MainWindow : Window
         try
         {
             var ni = NetworkDetector.DetectFast();
-            _vm.LocalIp = ni.Ip ?? "—";
             if (ni.Cidr is not null) SubnetBox.Text = ni.Cidr;
         }
         catch { /* detection best-effort */ }
+
+        // On startup, immediately run a discovery sweep of the local network so
+        // the sidebar network info and online devices show up without a manual scan.
+        Loaded += async (_, _) =>
+        {
+            try { await _vm.RunInitScanAsync(); } catch { /* best-effort */ }
+        };
     }
 
     // Resolve MAC + hostname for an online device: ARP + reverse DNS, with a

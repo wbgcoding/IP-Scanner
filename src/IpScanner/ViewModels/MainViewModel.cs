@@ -48,24 +48,31 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
     public string? ManualSubnet { get; set; }
 
-    private string _localIp = "—";
-    /// <summary>This machine's detected IPv4, shown in the header.</summary>
-    public string LocalIp { get => _localIp; set => SetProperty(ref _localIp, value); }
-
     private readonly Dictionary<string, DeviceViewModel> _byIp = new();
     private readonly object _byIpLock = new();
     private int _totalPings = 1;
     private int _plannedDevices = 1;
     private long _lastProgressTick;
 
-    public async Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
+    /// <summary>Full scan using the configured ping count; writes report/DB.</summary>
+    public Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
+        => RunScanInternal(null, persist: true, subnetOverride);
+
+    /// <summary>Startup discovery sweep: 1 ping per IP, no analysis, no file/DB.
+    /// Populates the network sidebar and online devices immediately.</summary>
+    public Task RunInitScanAsync()
+        => RunScanInternal(0, persist: false, null);
+
+    private async Task RunScanInternal(int? pingCountOverride, bool persist,
+                                       IReadOnlyList<string>? subnetOverride)
     {
         _cts = new CancellationTokenSource();
         var info = _detectNetwork();
-        var prefixes = subnetOverride ?? BuildPrefixes(info, Config.Subnets);
+        var cfg = pingCountOverride is null ? Config : Config.CloneWith(pingCountOverride.Value);
+        var prefixes = subnetOverride ?? BuildPrefixes(info, cfg.Subnets);
 
-        bool infinite = Config.PingCount == ScanConfig.InfinitePingCount;
-        int perIp = infinite ? 1 : Math.Max(1, Config.PingCount);
+        bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
+        int perIp = infinite ? 1 : Math.Max(1, cfg.PingCount);
         int hostsPerSubnet = Ipv4.LastHost - Ipv4.FirstHost + 1;
         _plannedDevices = Math.Max(1, prefixes.Count * hostsPerSubnet);
         _totalPings = Math.Max(1, _plannedDevices * perIp);
@@ -78,7 +85,7 @@ public sealed class MainViewModel : ObservableObject
                 var ni = i == 0 ? info : new NetworkInfo { Ip = prefixes[i] + ".0" };
                 Networks.Add(new NetworkInfoViewModel(i + 1, ni, GroupColorPalette.ColorForIndex(i)));
             }
-            Progress.Phase = "Discovery";
+            Progress.Phase = pingCountOverride == 0 ? "Suche Geräte" : "Discovery";
         });
 
         // Internet latency runs in the background — never blocks the scan.
@@ -96,32 +103,33 @@ public sealed class MainViewModel : ObservableObject
 
         try
         {
-            await engine.ScanAsync(prefixes, Config, _cts.Token);
+            await engine.ScanAsync(prefixes, cfg, _cts.Token);
         }
         catch (OperationCanceledException) { /* stopped by user */ }
 
-        // Assign device groups (colors) now that all devices/MACs are known.
         var devices = engine.Devices.ToList();
         DeviceGrouper.AssignGroups(devices, info.Gateway);
 
-        // Export + DB persistence after the scan (also runs after a user stop).
-        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var gatewaySlug = Slug(info.Gateway);
-
-        if (Config.FileOutput && devices.Count > 0)
+        if (persist)
         {
-            LastExportPath = TxtExporter.Write(devices, info, Config.OutputDirectory, timestamp, gatewaySlug);
-            if (Config.ExportCsv)
-                CsvExporter.Write(devices, Config.OutputDirectory, timestamp, gatewaySlug);
-            Raise(nameof(LastExportPath));
-        }
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var gatewaySlug = Slug(info.Gateway);
 
-        if (Config.KnownDevicesDb && info.Gateway is not null)
-        {
-            var gw = devices.FirstOrDefault(d => d.Ip == info.Gateway);
-            if (gw?.Mac is { } mac && mac != "Unknown")
+            if (cfg.FileOutput && devices.Count > 0)
             {
-                try { new KnownDevicesDb(DbPath).Save(mac, devices, timestamp); } catch { /* DB optional */ }
+                LastExportPath = TxtExporter.Write(devices, info, cfg.OutputDirectory, timestamp, gatewaySlug);
+                if (cfg.ExportCsv)
+                    CsvExporter.Write(devices, cfg.OutputDirectory, timestamp, gatewaySlug);
+                Raise(nameof(LastExportPath));
+            }
+
+            if (cfg.KnownDevicesDb && info.Gateway is not null)
+            {
+                var gw = devices.FirstOrDefault(d => d.Ip == info.Gateway);
+                if (gw?.Mac is { } mac && mac != "Unknown")
+                {
+                    try { new KnownDevicesDb(DbPath).Save(mac, devices, timestamp); } catch { /* DB optional */ }
+                }
             }
         }
 

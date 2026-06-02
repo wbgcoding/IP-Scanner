@@ -22,4 +22,16 @@ public sealed class ScanConfig
     public double RefreshRate { get; set; } = 1.0;
 
     public const int InfinitePingCount = -1;
+
+    /// <summary>Copy with a different ping count (lists shared, read-only use).</summary>
+    public ScanConfig CloneWith(int pingCount) => new()
+    {
+        Subnets = Subnets, PinnedIps = PinnedIps, PingCount = pingCount,
+        PingIntervalMs = PingIntervalMs, OfflineAfterFailedPings = OfflineAfterFailedPings,
+        InitPingCount = InitPingCount, HighPressureMode = HighPressureMode,
+        EnableInternetPing = EnableInternetPing, InternetHosts = InternetHosts,
+        KnownDevicesDb = KnownDevicesDb, OutputDirectory = OutputDirectory,
+        FileOutput = FileOutput, ExportCsv = ExportCsv, PingThreads = PingThreads,
+        InitPingThreads = InitPingThreads, RefreshRate = RefreshRate,
+    };
 }

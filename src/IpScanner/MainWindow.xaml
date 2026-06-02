@@ -24,12 +24,6 @@
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                    <Border Background="{StaticResource Surface}" CornerRadius="10" Padding="9,3" Margin="0,0,4,0" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="IP " Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding LocalIp}" Foreground="{StaticResource Green}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
                     <ItemsControl ItemsSource="{Binding Networks}" VerticalAlignment="Center">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
@@ -43,8 +37,8 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBox x:Name="SubnetBox" Width="150" Height="30" Margin="10,0,6,0" VerticalAlignment="Center"
-                             Foreground="{StaticResource Text}" FontSize="12" VerticalContentAlignment="Center"
+                    <TextBox x:Name="SubnetBox" Width="180" Height="30" Margin="10,0,6,0" VerticalAlignment="Center"
+                             Foreground="{StaticResource Text}" FontSize="12" VerticalContentAlignment="Center" Padding="8,0"
                              ToolTip="Subnet ändern, z.B. 192.168.1.0/24  (leer = automatisch erkennen)"/>
                     <Button Content="Setzen" Click="OnApplySubnet" Style="{StaticResource GhostButton}"
                             FontSize="12" Padding="12,6"/>
