@@ -45,6 +45,8 @@ public sealed class MainViewModel : ObservableObject
     public ProgressViewModel Progress { get; } = new();
     public ScanConfig Config { get; set; } = new();
     public string? LastExportPath { get; private set; }
+    /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
+    public string? ManualSubnet { get; set; }
 
     private readonly Dictionary<string, DeviceViewModel> _byIp = new();
     private readonly object _byIpLock = new();
@@ -154,8 +156,12 @@ public sealed class MainViewModel : ObservableObject
 
     public void Stop() => _cts?.Cancel();
 
-    private static IReadOnlyList<string> BuildPrefixes(NetworkInfo info, List<string> extra)
+    private IReadOnlyList<string> BuildPrefixes(NetworkInfo info, List<string> extra)
     {
+        // Manual subnet (header field) wins and replaces auto-detect + config.
+        var manual = ToPrefix(ManualSubnet);
+        if (manual is not null) return new List<string> { manual };
+
         var list = new List<string>();
         if (info.Ip is not null) list.Add(Ipv4.SubnetPrefix(info.Ip));
         foreach (var s in extra)
@@ -164,6 +170,19 @@ public sealed class MainViewModel : ObservableObject
             if (!list.Contains(prefix)) list.Add(prefix);
         }
         return list;
+    }
+
+    /// <summary>Validate + reduce "192.168.1.0/24" or "192.168.1" to the /24
+    /// prefix "192.168.1"; null when the input isn't a usable IPv4 subnet.</summary>
+    private static string? ToPrefix(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return null;
+        var oct = input.Split('/')[0].Trim().Split('.');
+        if (oct.Length < 3) return null;
+        var first3 = oct.Take(3).ToArray();
+        return first3.All(o => int.TryParse(o, out var n) && n is >= 0 and <= 255)
+            ? string.Join('.', first3)
+            : null;
     }
 
     // Only ONLINE devices are shown in the list; offline ones are added/removed

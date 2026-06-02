@@ -242,7 +242,8 @@
                         <Border Background="{StaticResource BgDark}" CornerRadius="8" Padding="4">
                             <TabPanel IsItemsHost="True" Background="Transparent"/>
                         </Border>
-                        <Border Grid.Row="1" Background="{StaticResource BgAlt}" CornerRadius="8" Margin="0,8,0,0">
+                        <Border Grid.Row="1" Background="{StaticResource Bg}" BorderBrush="{StaticResource Surface}"
+                                BorderThickness="1" CornerRadius="8" Margin="0,8,0,0">
                             <ContentPresenter ContentSource="SelectedContent"/>
                         </Border>
                     </Grid>

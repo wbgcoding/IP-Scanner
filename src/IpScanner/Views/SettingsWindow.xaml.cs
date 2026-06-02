@@ -12,6 +12,7 @@ public partial class SettingsWindow : Window
     public SettingsWindow(ScanConfig cfg)
     {
         InitializeComponent();
+        WindowTheme.ApplyDark(this);
         Result = cfg;
         Load(cfg);
     }

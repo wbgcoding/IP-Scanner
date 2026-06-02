@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        WindowTheme.ApplyDark(this);
 
         // Seed a default config file on first run (acts as the template).
         if (!File.Exists(ConfigPath))
@@ -48,15 +49,23 @@ public partial class MainWindow : Window
         return (mac, host);
     }
 
-    private async void OnScanClick(object sender, RoutedEventArgs e)
+    private async void OnScanClick(object sender, RoutedEventArgs e) => await StartScan();
+
+    private async void OnApplySubnet(object sender, RoutedEventArgs e) => await StartScan();
+
+    private async Task StartScan()
     {
         ScanButton.IsEnabled = false;
         try
         {
             ApplySelectedPingCount();
+            _vm.ManualSubnet = string.IsNullOrWhiteSpace(SubnetBox.Text) ? null : SubnetBox.Text.Trim();
             _vm.Config = _config;
             await _vm.RunScanAsync();
             if (_vm.LastExportPath is not null) ExportPathText.Text = _vm.LastExportPath;
+            // Prefill the field with the detected subnet so it's visible/editable.
+            if (string.IsNullOrWhiteSpace(SubnetBox.Text) && _vm.Networks.Count > 0)
+                SubnetBox.Text = _vm.Networks[0].Cidr;
         }
         catch (Exception ex)
         {

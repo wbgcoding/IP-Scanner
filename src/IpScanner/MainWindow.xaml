@@ -37,6 +37,10 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    <TextBox x:Name="SubnetBox" Width="148" Height="28" Margin="10,0,0,0" VerticalAlignment="Center"
+                             ToolTip="Subnet ändern, z.B. 192.168.1.0/24  (leer = automatisch erkennen)"/>
+                    <Button Content="Setzen" Click="OnApplySubnet" Style="{StaticResource GhostButton}"
+                            FontSize="12" Padding="12,6"/>
                 </StackPanel>
 
                 <!-- Center: progress bars -->
