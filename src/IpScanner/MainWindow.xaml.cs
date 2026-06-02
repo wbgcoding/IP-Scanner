@@ -38,9 +38,16 @@ public partial class MainWindow : Window
         try
         {
             var ni = NetworkDetector.DetectFast();
-            if (ni.Cidr is not null) SubnetBox.Text = ni.Cidr;
+            if (ni.Cidr is not null) SubnetBox.Text = ni.Cidr.Split('/')[0];   // base IP, no /24
         }
         catch { /* detection best-effort */ }
+
+        // Center horizontally on the primary monitor; fill its full work-area height.
+        var wa = SystemParameters.WorkArea;
+        Width = Math.Min(Width, wa.Width);
+        Height = wa.Height;
+        Top = wa.Top;
+        Left = wa.Left + (wa.Width - Width) / 2;
 
         // On startup, immediately run a discovery sweep of the local network so
         // the sidebar network info and online devices show up without a manual scan.
@@ -71,17 +78,28 @@ public partial class MainWindow : Window
 
     private async Task StartScan()
     {
+        // Build manual subnet "ip/cidr" from the box + dropdown (empty = auto-detect).
+        var ip = SubnetBox.Text.Trim();
+        if (ip.Length == 0)
+        {
+            _vm.ManualSubnet = null;
+        }
+        else
+        {
+            int cidr = ParseCidr(CidrBox.Text);
+            if (cidr < 24 && !ConfirmLargeRange(cidr)) return;
+            _vm.ManualSubnet = $"{ip}/{cidr}";
+        }
+
         ScanButton.IsEnabled = false;
         try
         {
             ApplySelectedPingCount();
-            _vm.ManualSubnet = string.IsNullOrWhiteSpace(SubnetBox.Text) ? null : SubnetBox.Text.Trim();
             _vm.Config = _config;
             await _vm.RunScanAsync();
             if (_vm.LastExportPath is not null) ExportPathText.Text = _vm.LastExportPath;
-            // Prefill the field with the detected subnet so it's visible/editable.
-            if (string.IsNullOrWhiteSpace(SubnetBox.Text) && _vm.Networks.Count > 0)
-                SubnetBox.Text = _vm.Networks[0].Cidr;
+            if (ip.Length == 0 && _vm.Networks.Count > 0)
+                SubnetBox.Text = _vm.Networks[0].Cidr.Split('/')[0];
         }
         catch (Exception ex)
         {
@@ -101,6 +119,23 @@ public partial class MainWindow : Window
             ConfigManager.Save(ConfigPath, _config);
             _vm.Config = _config;
         }
+    }
+
+    // Extract a CIDR number from the dropdown text ("/24", "24", "/16" ...).
+    private static int ParseCidr(string? text)
+    {
+        var digits = new string((text ?? "").Where(char.IsDigit).ToArray());
+        return int.TryParse(digits, out var n) && n is >= 1 and <= 32 ? n : 24;
+    }
+
+    // Warn before scanning a large range (/16 = 256 subnets, /8 = 65536).
+    private bool ConfirmLargeRange(int cidr)
+    {
+        int subnets = cidr >= 16 ? 256 : 65536;
+        var r = MessageBox.Show(this,
+            $"/{cidr} umfasst {subnets} Subnetze (~{subnets * 254:N0} Hosts). Das kann sehr lange dauern. Fortfahren?",
+            "Großer Bereich", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        return r == MessageBoxResult.Yes;
     }
 
     private void ApplySelectedPingCount()

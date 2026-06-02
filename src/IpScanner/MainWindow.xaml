@@ -4,7 +4,7 @@
         xmlns:ctrl="clr-namespace:IpScanner.Views.Controls"
         Title="IP-Scanner" Height="720" Width="1320" MinWidth="700" MinHeight="480"
         Icon="Resources/network.ico" Background="{StaticResource Bg}"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="Manual">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -37,9 +37,16 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBox x:Name="SubnetBox" Width="180" Height="30" Margin="10,0,6,0" VerticalAlignment="Center"
+                    <TextBox x:Name="SubnetBox" Width="160" Height="30" Margin="10,0,6,0" VerticalAlignment="Center"
                              Foreground="{StaticResource Text}" FontSize="12" VerticalContentAlignment="Center" Padding="8,0"
-                             ToolTip="Subnet ändern, z.B. 192.168.1.0/24  (leer = automatisch erkennen)"/>
+                             ToolTip="Basis-IP, z.B. 192.168.1.0  (leer = automatisch erkennen)"/>
+                    <ComboBox x:Name="CidrBox" Width="92" Height="30" IsEditable="True" Text="/24"
+                              VerticalAlignment="Center" Margin="0,0,6,0"
+                              ToolTip="Netzmaske: /24 (254 Hosts), /16 (256 Subnetze), /8 oder eigener Wert">
+                        <ComboBoxItem>/24</ComboBoxItem>
+                        <ComboBoxItem>/16</ComboBoxItem>
+                        <ComboBoxItem>/8</ComboBoxItem>
+                    </ComboBox>
                     <Button Content="Setzen" Click="OnApplySubnet" Style="{StaticResource GhostButton}"
                             FontSize="12" Padding="12,6"/>
                 </StackPanel>

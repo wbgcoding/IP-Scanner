@@ -170,9 +170,9 @@ public sealed class MainViewModel : ObservableObject
 
     private IReadOnlyList<string> BuildPrefixes(NetworkInfo info, List<string> extra)
     {
-        // Manual subnet (header field) wins and replaces auto-detect + config.
-        var manual = ToPrefix(ManualSubnet);
-        if (manual is not null) return new List<string> { manual };
+        // Manual subnet (header field + CIDR) wins and replaces auto-detect + config.
+        var manual = ManualPrefixes(ManualSubnet);
+        if (manual is { Count: > 0 }) return manual;
 
         var list = new List<string>();
         if (info.Ip is not null) list.Add(Ipv4.SubnetPrefix(info.Ip));
@@ -184,17 +184,35 @@ public sealed class MainViewModel : ObservableObject
         return list;
     }
 
-    /// <summary>Validate + reduce "192.168.1.0/24" or "192.168.1" to the /24
-    /// prefix "192.168.1"; null when the input isn't a usable IPv4 subnet.</summary>
-    private static string? ToPrefix(string? input)
+    /// <summary>Expand "ip/cidr" into the list of /24 prefixes to scan.
+    /// /24 -> one prefix; /16 -> 256 (a.b.0..255); /8 -> 65536 (a.0..255.0..255).
+    /// Returns null when the input isn't a usable IPv4 subnet.</summary>
+    private static List<string>? ManualPrefixes(string? input)
     {
         if (string.IsNullOrWhiteSpace(input)) return null;
-        var oct = input.Split('/')[0].Trim().Split('.');
-        if (oct.Length < 3) return null;
-        var first3 = oct.Take(3).ToArray();
-        return first3.All(o => int.TryParse(o, out var n) && n is >= 0 and <= 255)
-            ? string.Join('.', first3)
-            : null;
+        var slash = input.Split('/');
+        var oct = slash[0].Trim().Split('.');
+        int cidr = slash.Length > 1 && int.TryParse(slash[1].Trim(), out var c) ? c : 24;
+
+        bool Ok(int i) => i < oct.Length && int.TryParse(oct[i], out var n) && n is >= 0 and <= 255;
+
+        if (cidr >= 24)
+        {
+            if (!(Ok(0) && Ok(1) && Ok(2))) return null;
+            return new List<string> { $"{oct[0]}.{oct[1]}.{oct[2]}" };
+        }
+        if (cidr >= 16)
+        {
+            if (!(Ok(0) && Ok(1))) return null;
+            var list = new List<string>(256);
+            for (int t = 0; t <= 255; t++) list.Add($"{oct[0]}.{oct[1]}.{t}");
+            return list;
+        }
+        if (!Ok(0)) return null;                          // /8 (or smaller)
+        var big = new List<string>(65536);
+        for (int s = 0; s <= 255; s++)
+            for (int t = 0; t <= 255; t++) big.Add($"{oct[0]}.{s}.{t}");
+        return big;
     }
 
     // Only ONLINE devices are shown in the list; offline ones are added/removed
