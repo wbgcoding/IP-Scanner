@@ -20,7 +20,7 @@ public sealed class MainViewModel : ObservableObject
     private readonly Func<string, (string? mac, string? host)>? _enrich;
     private CancellationTokenSource? _cts;
 
-    private const string DbPath = "scanner.db";
+    internal const string DbPath = "scanner.db";
 
     private static readonly Dictionary<string, string> KnownHostNames = new()
     {
@@ -53,6 +53,7 @@ public sealed class MainViewModel : ObservableObject
     private readonly object _byIpLock = new();
     private long _totalPings = 1;
     private int _plannedDevices = 1;
+    private long _lastGroupTick;
     private string? _selfIp;
     private string? _selfMac;
     private string? _selfHost;
@@ -71,6 +72,8 @@ public sealed class MainViewModel : ObservableObject
     private async Task RunScanInternal(int? pingCountOverride, bool persist,
                                        IReadOnlyList<string>? subnetOverride)
     {
+        _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
         var info = _detectNetwork();
         _selfIp = info.Ip;
@@ -116,14 +119,13 @@ public sealed class MainViewModel : ObservableObject
         catch (OperationCanceledException) { /* stopped by user */ }
 
         var devices = engine.Devices.ToList();
-        DeviceGrouper.AssignGroups(devices, info.Gateway);
 
         if (persist)
         {
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             // Prefer the gateway's hostname for the filename; fall back to its IP.
             var gwDev = devices.FirstOrDefault(d => d.Ip == info.Gateway);
-            var gwName = gwDev?.Hostname is { } h && h != "Unknown" ? h : info.Gateway;
+            var gwName = gwDev?.Hostname is { } h && h != Device.Unknown ? h : info.Gateway;
             var gatewaySlug = Slug(gwName);
 
             if (cfg.FileOutput && devices.Count > 0)
@@ -138,7 +140,7 @@ public sealed class MainViewModel : ObservableObject
             if (cfg.KnownDevicesDb && info.Gateway is not null)
             {
                 var gw = devices.FirstOrDefault(d => d.Ip == info.Gateway);
-                if (gw?.Mac is { } mac && mac != "Unknown")
+                if (gw?.Mac is { } mac && mac != Device.Unknown)
                 {
                     try { new KnownDevicesDb(DbPath).Save(mac, devices, timestamp); } catch { /* DB optional */ }
                 }
@@ -150,7 +152,7 @@ public sealed class MainViewModel : ObservableObject
         {
             SyncDevices(engine);
             RefreshAll();
-            UpdateProgress(engine);
+            UpdateProgress(engine, forceGroups: true);
             Progress.Phase = Loc.PhaseReady;
         });
     }
@@ -303,13 +305,19 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    private void UpdateProgress(ScanEngine engine)
+    private void UpdateProgress(ScanEngine engine, bool forceGroups = false)
     {
         var all = engine.Devices.ToList();
         var p = engine.Progress;
 
-        // Live grouping: recompute group colors as devices/MACs/hostnames arrive.
-        DeviceGrouper.AssignGroups(all, _gatewayIp);
+        // Live grouping is O(n) — debounce it (≤ every 400 ms) so a fast ping
+        // stream doesn't pin the UI thread; force a final pass at scan end.
+        long now = Environment.TickCount64;
+        if (forceGroups || now - _lastGroupTick >= 400)
+        {
+            _lastGroupTick = now;
+            DeviceGrouper.AssignGroups(all, _gatewayIp);
+        }
         lock (_byIpLock) { foreach (var vm in Devices) vm.Refresh(); }
 
         int discovered = all.Count;

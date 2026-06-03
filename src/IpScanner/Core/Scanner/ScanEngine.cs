@@ -31,7 +31,7 @@ public sealed class ScanEngine
     public event Action<Device>? DeviceUpdated;
 
     private readonly ConcurrentDictionary<string, Device> _devices = new();
-    public IReadOnlyCollection<Device> Devices => (IReadOnlyCollection<Device>)_devices.Values;
+    public IReadOnlyCollection<Device> Devices => _devices.Values.ToArray();
 
     public async Task ScanAsync(IReadOnlyList<string> subnetPrefixes, ScanConfig cfg,
                                 CancellationToken ct)

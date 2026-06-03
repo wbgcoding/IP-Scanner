@@ -199,7 +199,7 @@ public partial class MainWindow : Window
     {
         if (MessageBox.Show(Loc.ClearDbConfirm, Loc.Confirm, MessageBoxButton.YesNo) == MessageBoxResult.Yes)
         {
-            try { new KnownDevicesDb("scanner.db").Clear(); } catch { /* ignore */ }
+            try { new KnownDevicesDb(MainViewModel.DbPath).Clear(); } catch { /* ignore */ }
         }
     }
 

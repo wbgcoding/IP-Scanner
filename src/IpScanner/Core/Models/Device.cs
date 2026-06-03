@@ -2,6 +2,9 @@ namespace IpScanner.Core.Models;
 
 public sealed class Device
 {
+    /// <summary>Sentinel for an unresolved MAC/hostname.</summary>
+    public const string Unknown = "Unknown";
+
     public Device(string ip) => Ip = ip;
 
     public string Ip { get; }

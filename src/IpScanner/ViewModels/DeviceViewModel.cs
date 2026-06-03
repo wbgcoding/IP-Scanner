@@ -22,7 +22,7 @@ public sealed class DeviceViewModel : ObservableObject
     /// <summary>True for a pinned IP (kept at the top of the list).</summary>
     public bool IsPinned { get; }
     public string IpDisplay => (IsPinned ? "📌 " : "") + _device.Ip + (IsSelf ? "  ★" : "");
-    public string IpColor => IsSelf ? "#CBA6F7" : IsPinned ? "#FAB387" : "#CDD6F4";
+    public string IpColor => IsSelf ? Core.Palette.Mauve : IsPinned ? Core.Palette.Peach : Core.Palette.Text;
 
     /// <summary>Numeric IPv4 for sorting (0 when unparseable).</summary>
     public long IpSortKey { get; }
@@ -43,15 +43,15 @@ public sealed class DeviceViewModel : ObservableObject
     public string Ip => _device.Ip;
     public string Status => _device.IsOnline ? "ONLINE" : "OFFLINE";
     public bool IsOnline => _device.IsOnline;
-    public string Hostname => _device.Hostname is null or "Unknown" ? "—" : _device.Hostname;
-    public string Mac => _device.Mac is null or "Unknown" ? "—" : _device.Mac;
+    public string Hostname => _device.Hostname is null or Device.Unknown ? "—" : _device.Hostname;
+    public string Mac => _device.Mac is null or Device.Unknown ? "—" : _device.Mac;
     public int GroupId => _device.GroupId;
 
     // 0/1 = none/unknown -> gray, 2 = gateway -> green, >=3 -> diverse palette.
     public string GroupColor => _device.GroupId switch
     {
-        <= 1 => "#45475A",
-        2 => "#A6E3A1",
+        <= 1 => Core.Palette.Surface2,
+        2 => Core.Palette.Green,
         var g => GroupColorPalette.ColorForIndex(g - 3),
     };
 
@@ -67,7 +67,8 @@ public sealed class DeviceViewModel : ObservableObject
     public double? LastRaw => _device.LastMs;
 
     // Best (lowest) / worst (highest) marker per column: green ● best, red ● worst.
-    private const string Best = "▼", Worst = "▲", BestColor = "#A6E3A1", WorstColor = "#F38BA8", NoColor = "#00000000";
+    private const string Best = "▼", Worst = "▲";
+    private static readonly string BestColor = Core.Palette.Green, WorstColor = Core.Palette.Red, NoColor = Core.Palette.Transparent;
     private int _avgMark, _minMark, _maxMark, _lastMark;   // -1 best, 1 worst, 0 none
     public string AvgMark => MarkGlyph(_avgMark);
     public string MinMark => MarkGlyph(_minMark);
@@ -96,12 +97,12 @@ public sealed class DeviceViewModel : ObservableObject
 
     private static string HeatColor(double? ms) => ms switch
     {
-        null => "#585B70",   // no data -> muted
-        <= 50 => "#A6E3A1",  // excellent (green)
-        <= 100 => "#C9E88A", // good (lime)
-        <= 200 => "#F9E2AF", // okay (yellow)
-        <= 400 => "#FAB387", // bad (orange)
-        _ => "#F38BA8",      // very bad (red)
+        null => Core.Palette.MidGray,
+        <= 50 => Core.Palette.Green,    // excellent
+        <= 100 => Core.Palette.Lime,    // good
+        <= 200 => Core.Palette.Yellow,  // okay
+        <= 400 => Core.Palette.Peach,   // bad
+        _ => Core.Palette.Red,          // very bad
     };
     public string ProgressDisplay =>
         _device.TargetPings == ScanConfig.InfinitePingCount

@@ -33,8 +33,8 @@ public sealed class KnownDevicesDb
         using var tx = conn.BeginTransaction();
         foreach (var d in devices)
         {
-            if (string.IsNullOrEmpty(d.Mac) || d.Mac == "Unknown") continue;
-            var cmd = conn.CreateCommand(
+            if (string.IsNullOrEmpty(d.Mac) || d.Mac == Device.Unknown) continue;
+            using var cmd = conn.CreateCommand(
                 """
                 INSERT INTO known_devices (network_mac, mac, ip, hostname, last_seen)
                 VALUES ($n, $m, $ip, $h, $t)
@@ -65,10 +65,10 @@ public sealed class KnownDevicesDb
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            result.Add(new Device(r.IsDBNull(0) ? "Unknown" : r.GetString(0))
+            result.Add(new Device(r.IsDBNull(0) ? Device.Unknown : r.GetString(0))
             {
-                Mac = r.IsDBNull(1) ? "Unknown" : r.GetString(1),
-                Hostname = r.IsDBNull(2) ? "Unknown" : r.GetString(2),
+                Mac = r.IsDBNull(1) ? Device.Unknown : r.GetString(1),
+                Hostname = r.IsDBNull(2) ? Device.Unknown : r.GetString(2),
                 FromDb = true,
             });
         }

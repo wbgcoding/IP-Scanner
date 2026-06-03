@@ -54,8 +54,12 @@ public static class ArpHelper
             StandardOutputEncoding = System.Text.Encoding.UTF8,
         };
         p.Start();
-        string output = p.StandardOutput.ReadToEnd();
-        p.WaitForExit(timeoutMs);
-        return output;
+        // Read async so a hung child can't block this thread forever; enforce the timeout.
+        var readTask = p.StandardOutput.ReadToEndAsync();
+        if (!p.WaitForExit(timeoutMs))
+        {
+            try { p.Kill(entireProcessTree: true); } catch { /* already gone */ }
+        }
+        return readTask.Wait(500) ? readTask.Result : "";
     }
 }

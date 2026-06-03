@@ -31,9 +31,9 @@ public static class CsvExporter
             {
                 d.Ip,
                 d.IsOnline ? "ONLINE" : "OFFLINE",
-                d.Hostname == "Unknown" ? "" : d.Hostname ?? "",
+                d.Hostname == Device.Unknown ? "" : d.Hostname ?? "",
                 MacVendorLookup.Instance.Lookup(d.Mac) ?? "",
-                d.Mac == "Unknown" ? "" : d.Mac ?? "",
+                d.Mac == Device.Unknown ? "" : d.Mac ?? "",
                 Num(d.AvgMs), Num(d.MinMs), Num(d.MaxMs), Num(d.LastMs),
                 d.CurrentPings.ToString(), target, d.FromDb ? "1" : "0",
             }));
