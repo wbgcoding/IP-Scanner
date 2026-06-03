@@ -9,17 +9,20 @@ public sealed class DeviceViewModel : ObservableObject
     private static readonly CultureInfo De = CultureInfo.GetCultureInfo("de-DE");
     private readonly Device _device;
 
-    public DeviceViewModel(Device device, bool isSelf = false)
+    public DeviceViewModel(Device device, bool isSelf = false, bool isPinned = false)
     {
         _device = device;
         IsSelf = isSelf;
+        IsPinned = isPinned;
         IpSortKey = ToSortKey(device.Ip);
     }
 
     /// <summary>True for this machine's own row.</summary>
     public bool IsSelf { get; }
-    public string IpDisplay => IsSelf ? _device.Ip + "  ★" : _device.Ip;
-    public string IpColor => IsSelf ? "#CBA6F7" : "#CDD6F4";   // mauve for self
+    /// <summary>True for a pinned IP (kept at the top of the list).</summary>
+    public bool IsPinned { get; }
+    public string IpDisplay => (IsPinned ? "📌 " : "") + _device.Ip + (IsSelf ? "  ★" : "");
+    public string IpColor => IsSelf ? "#CBA6F7" : IsPinned ? "#FAB387" : "#CDD6F4";
 
     /// <summary>Numeric IPv4 for sorting (0 when unparseable).</summary>
     public long IpSortKey { get; }

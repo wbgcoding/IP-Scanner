@@ -15,7 +15,7 @@ public sealed class ScanConfig
         new() { "8.8.8.8", "8.8.4.4", "1.1.1.1", "9.9.9.9" };
     public bool KnownDevicesDb { get; set; } = true;
     public string OutputDirectory { get; set; } = "./Scans";
-    public bool FileOutput { get; set; } = true;
+    public bool FileOutput { get; set; }          // TXT report off by default
     public bool ExportCsv { get; set; }
     public int PingThreads { get; set; } = 100;
     public int InitPingThreads { get; set; } = 254;

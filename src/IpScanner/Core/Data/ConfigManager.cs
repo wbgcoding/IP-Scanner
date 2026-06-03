@@ -92,7 +92,7 @@ public static class ConfigManager
         sb.AppendLine("# -- Ausgabe -------------------------------------------------");
         sb.AppendLine("# output_directory  Speicherort der Berichte. Standard ./Scans");
         sb.AppendLine($"output_directory = {c.OutputDirectory}");
-        sb.AppendLine("# file_output  TXT-Bericht nach jedem Scan schreiben. Standard true.");
+        sb.AppendLine("# file_output  TXT-Bericht nach jedem Scan schreiben. Standard false.");
         sb.AppendLine($"file_output = {B(c.FileOutput)}");
         sb.AppendLine("# export_csv  Zusatzlich CSV exportieren. Standard false.");
         sb.AppendLine($"export_csv = {B(c.ExportCsv)}");

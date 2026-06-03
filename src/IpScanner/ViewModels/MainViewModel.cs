@@ -57,6 +57,7 @@ public sealed class MainViewModel : ObservableObject
     private string? _selfMac;
     private string? _selfHost;
     private string? _gatewayIp;
+    private HashSet<string> _pinned = new();
 
     /// <summary>Full scan using the configured ping count; writes report/DB.</summary>
     public Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
@@ -76,6 +77,7 @@ public sealed class MainViewModel : ObservableObject
         _selfMac = info.Mac;
         _selfHost = Environment.MachineName;
         _gatewayIp = info.Gateway;
+        _pinned = new HashSet<string>(Config.PinnedIps);
         LastExportPath = null;
         Raise(nameof(HasExport));
         var cfg = pingCountOverride is null ? Config : Config.CloneWith(pingCountOverride.Value);
@@ -243,7 +245,7 @@ public sealed class MainViewModel : ObservableObject
             bool tracked = _byIp.TryGetValue(d.Ip, out var vm);
             if (d.IsOnline)
             {
-                if (!tracked) { vm = new DeviceViewModel(d, d.Ip == _selfIp); _byIp[d.Ip] = vm; InsertSorted(vm); }
+                if (!tracked) { vm = new DeviceViewModel(d, d.Ip == _selfIp, _pinned.Contains(d.Ip)); _byIp[d.Ip] = vm; InsertSorted(vm); }
                 else vm!.Refresh();
             }
             else if (tracked)
@@ -273,7 +275,7 @@ public sealed class MainViewModel : ObservableObject
             {
                 if (!_byIp.ContainsKey(dev.Ip))
                 {
-                    var vm = new DeviceViewModel(dev, dev.Ip == _selfIp);
+                    var vm = new DeviceViewModel(dev, dev.Ip == _selfIp, _pinned.Contains(dev.Ip));
                     _byIp[dev.Ip] = vm;
                     InsertSorted(vm);
                 }
@@ -281,11 +283,15 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    /// <summary>Insert a device row keeping the list ordered by numeric IP.</summary>
+    /// <summary>Insert a device row: pinned rows first, then ordered by numeric IP.</summary>
     private void InsertSorted(DeviceViewModel vm)
     {
+        int Rank(DeviceViewModel d) => d.IsPinned ? 0 : 1;
         int i = 0;
-        while (i < Devices.Count && Devices[i].IpSortKey <= vm.IpSortKey) i++;
+        while (i < Devices.Count &&
+               (Rank(Devices[i]) < Rank(vm) ||
+                (Rank(Devices[i]) == Rank(vm) && Devices[i].IpSortKey <= vm.IpSortKey)))
+            i++;
         Devices.Insert(i, vm);
     }
 

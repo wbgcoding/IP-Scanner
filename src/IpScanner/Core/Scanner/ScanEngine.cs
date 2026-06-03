@@ -37,6 +37,10 @@ public sealed class ScanEngine
                                 CancellationToken ct)
     {
         var ips = subnetPrefixes.SelectMany(Ipv4.HostsInSubnet).ToList();
+        // Pinned IPs are always scanned, even outside the chosen subnet(s).
+        var seen = new HashSet<string>(ips);
+        foreach (var pin in cfg.PinnedIps)
+            if (Ipv4.IsValid(pin) && seen.Add(pin)) ips.Add(pin);
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
 
         await RunParallel(ips, cfg.InitPingThreads <= 0 ? ips.Count : cfg.InitPingThreads, ct,

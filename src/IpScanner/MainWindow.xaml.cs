@@ -124,14 +124,82 @@ public partial class MainWindow : Window
 
     private void OnStopClick(object sender, RoutedEventArgs e) => _vm.Stop();
 
+    // ── Embedded settings overlay ──
     private void OnSettingsClick(object sender, RoutedEventArgs e)
     {
-        var win = new SettingsWindow(_config) { Owner = this };
-        if (win.ShowDialog() == true)
+        LoadSettings(_config);
+        SettingsOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void OnSettingsCancel(object sender, RoutedEventArgs e)
+        => SettingsOverlay.Visibility = Visibility.Collapsed;
+
+    private void OnSettingsSave(object sender, RoutedEventArgs e)
+    {
+        _config = ReadSettings();
+        ConfigManager.Save(ConfigPath, _config);
+        _vm.Config = _config;
+        SettingsOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private void LoadSettings(ScanConfig c)
+    {
+        SubnetsBox.Text = string.Join(Environment.NewLine, c.Subnets);
+        PinnedBox.Text = string.Join(Environment.NewLine, c.PinnedIps);
+        SetPingCountBox.Text = c.PingCount.ToString();
+        IntervalBox.Text = c.PingIntervalMs.ToString();
+        OfflineAfterBox.Text = c.OfflineAfterFailedPings.ToString();
+        InitPingCountBox.Text = c.InitPingCount.ToString();
+        HighPressureBox.IsChecked = c.HighPressureMode;
+        EnableInternetBox.IsChecked = c.EnableInternetPing;
+        InternetHostsBox.Text = string.Join(Environment.NewLine, c.InternetHosts);
+        OutputDirBox.Text = c.OutputDirectory;
+        FileOutputBox.IsChecked = c.FileOutput;
+        ExportCsvBox.IsChecked = c.ExportCsv;
+        KnownDbBox.IsChecked = c.KnownDevicesDb;
+        PingThreadsBox.Text = c.PingThreads.ToString();
+        InitThreadsBox.Text = c.InitPingThreads.ToString();
+    }
+
+    private ScanConfig ReadSettings()
+    {
+        // Split on newlines, commas and semicolons so values can be comma-separated.
+        static List<string> Items(string t) => t
+            .Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
+        int I(string s, int d) => int.TryParse(s.Trim(), out var v) ? v : d;
+
+        return new ScanConfig
         {
-            _config = win.Result;
-            ConfigManager.Save(ConfigPath, _config);
-            _vm.Config = _config;
+            Subnets = Items(SubnetsBox.Text),
+            PinnedIps = Items(PinnedBox.Text),
+            PingCount = I(SetPingCountBox.Text, 10),
+            PingIntervalMs = I(IntervalBox.Text, 100),
+            OfflineAfterFailedPings = I(OfflineAfterBox.Text, 5),
+            InitPingCount = I(InitPingCountBox.Text, 1),
+            HighPressureMode = HighPressureBox.IsChecked == true,
+            EnableInternetPing = EnableInternetBox.IsChecked == true,
+            InternetHosts = Items(InternetHostsBox.Text),
+            OutputDirectory = OutputDirBox.Text.Trim(),
+            FileOutput = FileOutputBox.IsChecked == true,
+            ExportCsv = ExportCsvBox.IsChecked == true,
+            KnownDevicesDb = KnownDbBox.IsChecked == true,
+            PingThreads = I(PingThreadsBox.Text, 100),
+            InitPingThreads = I(InitThreadsBox.Text, 254),
+        };
+    }
+
+    private void OnBrowse(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.OutputDir };
+        if (dlg.ShowDialog(this) == true) OutputDirBox.Text = dlg.FolderName;
+    }
+
+    private void OnClearDb(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show(Loc.ClearDbConfirm, Loc.Confirm, MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+        {
+            try { new KnownDevicesDb("scanner.db").Clear(); } catch { /* ignore */ }
         }
     }
 
