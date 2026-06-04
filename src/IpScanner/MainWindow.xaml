@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ctrl="clr-namespace:IpScanner.Views.Controls"
         xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Title="IP-Scanner" Height="720" Width="1320" MinWidth="700" MinHeight="480"
         Icon="Resources/network.ico" Background="{StaticResource Bg}"
         WindowStartupLocation="Manual">
@@ -91,9 +92,9 @@
                                  KeyDown="OnSubnetKeyDown" ToolTip="{x:Static loc:Loc.SubnetTooltip}"/>
                         <ComboBox x:Name="CidrBox" Width="80" Height="30" SelectedIndex="0" IsEditable="True"
                                   VerticalAlignment="Center" ToolTip="{x:Static loc:Loc.MaskTooltip}">
-                            <ComboBoxItem>/24</ComboBoxItem>
-                            <ComboBoxItem>/16</ComboBoxItem>
-                            <ComboBoxItem>/8</ComboBoxItem>
+                            <sys:String>/24</sys:String>
+                            <sys:String>/16</sys:String>
+                            <sys:String>/8</sys:String>
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -106,7 +107,7 @@
                         </ComboBox>
                         <Button x:Name="ScanStopButton" Content="{x:Static loc:Loc.Scan}" Click="OnScanStopClick"
                                 Style="{StaticResource AccentButton}" MinWidth="86"/>
-                        <Button x:Name="SettingsButton" Click="OnSettingsClick" Style="{StaticResource GhostButton}"
+                        <Button x:Name="SettingsButton" Click="OnSettingsClick" Style="{StaticResource IconButton}"
                                 ToolTip="{x:Static loc:Loc.Settings}">
                             <Viewbox Width="16" Height="16">
                                 <!-- Gear (cog) vector -->
@@ -403,6 +404,11 @@
 
                             <!-- Datenbank -->
                             <TextBlock Text="{x:Static loc:Loc.TabDatabase}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
+                            <TextBlock Text="{x:Static loc:Loc.DbFile}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipDbFile}"/>
+                            <DockPanel Margin="0,0,0,12">
+                                <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowseDb" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
+                                <TextBox x:Name="DbPathBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipDbFile}"/>
+                            </DockPanel>
                             <DockPanel>
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                                     <Button Content="{x:Static loc:Loc.MergeDb}" Click="OnMergeDb" Style="{StaticResource GhostButton}" ToolTip="{x:Static loc:Loc.TipMergeDb}"/>

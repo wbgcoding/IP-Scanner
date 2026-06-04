@@ -52,6 +52,8 @@ public partial class MainWindow : Window
             if (ev.PropertyName == nameof(MainViewModel.IsScanning))
                 Dispatcher.BeginInvoke(UpdateScanButton);
         };
+        LogoImage.RenderTransform = _logoSpin;
+        System.Windows.Media.CompositionTarget.Rendering += OnSpinTick;
 
         // On startup, immediately run a discovery sweep of the local network so
         // the sidebar network info and online devices show up without a manual scan.
@@ -61,7 +63,23 @@ public partial class MainWindow : Window
         };
     }
 
+    // Logo spin: speed eases toward a target so starting/stopping never jumps.
     private readonly System.Windows.Media.RotateTransform _logoSpin = new();
+    private double _spinAngle, _spinSpeed, _spinTarget;   // deg, deg/s
+    private long _spinLastTick = System.Diagnostics.Stopwatch.GetTimestamp();
+
+    private void OnSpinTick(object? sender, EventArgs e)
+    {
+        long now = System.Diagnostics.Stopwatch.GetTimestamp();
+        double dt = Math.Min(0.1, (now - _spinLastTick) / (double)System.Diagnostics.Stopwatch.Frequency);
+        _spinLastTick = now;
+        if (_spinSpeed == 0 && _spinTarget == 0) return;
+
+        _spinSpeed += (_spinTarget - _spinSpeed) * Math.Min(1.0, dt * 2.5);   // ~1s ramp
+        if (_spinTarget == 0 && Math.Abs(_spinSpeed) < 3) _spinSpeed = 0;
+        _spinAngle = (_spinAngle + _spinSpeed * dt) % 360;
+        _logoSpin.Angle = _spinAngle;
+    }
 
     private void UpdateScanButton()
     {
@@ -69,21 +87,10 @@ public partial class MainWindow : Window
         ScanStopButton.Content = scanning ? Loc.Stop : Loc.Scan;
         ScanStopButton.Style = (Style)FindResource(scanning ? "DangerButton" : "AccentButton");
 
-        // Logo spins while a scan is running — faster with more threads.
-        LogoImage.RenderTransform = _logoSpin;
-        if (scanning)
-        {
-            int threads = _config.ScanThreads <= 0 ? 254 : _config.ScanThreads;
-            double seconds = Math.Clamp(120.0 / threads, 0.6, 6.0);
-            var spin = new System.Windows.Media.Animation.DoubleAnimation(0, 360, TimeSpan.FromSeconds(seconds))
-            { RepeatBehavior = System.Windows.Media.Animation.RepeatBehavior.Forever };
-            _logoSpin.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, spin);
-        }
-        else
-        {
-            _logoSpin.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, null);
-            _logoSpin.Angle = 0;
-        }
+        // Spin while scanning — faster with more threads, eased in/out.
+        int threads = _config.ScanThreads <= 0 ? 254 : _config.ScanThreads;
+        double seconds = Math.Clamp(120.0 / threads, 0.6, 6.0);
+        _spinTarget = scanning ? 360.0 / seconds : 0.0;
     }
 
     /// <summary>Scale the whole UI (text included) by the configured percent.</summary>
@@ -190,7 +197,7 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog(this) != true) return;
         try
         {
-            int n = new KnownDevicesDb(MainViewModel.DbPath).MergeFrom(dlg.FileName);
+            int n = new KnownDevicesDb(_config.DatabasePath).MergeFrom(dlg.FileName);
             MessageBox.Show(this, Loc.MergeDone(n), Loc.MergeDb, MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
@@ -240,6 +247,7 @@ public partial class MainWindow : Window
         EnableInternetBox.IsChecked = c.EnableInternetPing;
         InternetHostsBox.Text = string.Join(Environment.NewLine, c.InternetHosts);
         OutputDirBox.Text = c.OutputDirectory;
+        DbPathBox.Text = c.DatabasePath;
         FileOutputBox.IsChecked = c.FileOutput;
         ExportCsvBox.IsChecked = c.ExportCsv;
         KnownDbBox.IsChecked = c.KnownDevicesDb;
@@ -267,6 +275,7 @@ public partial class MainWindow : Window
             EnableInternetPing = EnableInternetBox.IsChecked == true,
             InternetHosts = Items(InternetHostsBox.Text),
             OutputDirectory = OutputDirBox.Text.Trim(),
+            DatabasePath = DbPathBox.Text.Trim().Length > 0 ? DbPathBox.Text.Trim() : "./Scans/scanner.db",
             FileOutput = FileOutputBox.IsChecked == true,
             ExportCsv = ExportCsvBox.IsChecked == true,
             KnownDevicesDb = KnownDbBox.IsChecked == true,
@@ -283,8 +292,20 @@ public partial class MainWindow : Window
     {
         if (MessageBox.Show(Loc.ClearDbConfirm, Loc.Confirm, MessageBoxButton.YesNo) == MessageBoxResult.Yes)
         {
-            try { new KnownDevicesDb(MainViewModel.DbPath).Clear(); } catch { /* ignore */ }
+            try { new KnownDevicesDb(_config.DatabasePath).Clear(); } catch { /* ignore */ }
         }
+    }
+
+    private void OnBrowseDb(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = Loc.DbFile,
+            Filter = "Datenbank (*.db)|*.db|*.*|*.*",
+            FileName = "scanner.db",
+            OverwritePrompt = false,    // existing db is opened, not replaced
+        };
+        if (dlg.ShowDialog(this) == true) DbPathBox.Text = dlg.FileName;
     }
 
     // Extract a CIDR number from the dropdown text ("/24", "24", "/16" ...).

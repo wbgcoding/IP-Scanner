@@ -20,8 +20,6 @@ public sealed class MainViewModel : ObservableObject
     private readonly Func<string, (string? mac, string? host)>? _enrich;
     private CancellationTokenSource? _cts;
 
-    internal const string DbPath = "scanner.db";
-
     /// <summary>Split an "ip name" config entry; without a name the IP doubles as name.</summary>
     private static (string ip, string name) ParseHostEntry(string entry)
     {
@@ -56,13 +54,15 @@ public sealed class MainViewModel : ObservableObject
 
     public string? LastExportPath { get; private set; }
     public bool HasExport => !string.IsNullOrEmpty(LastExportPath);
-    /// <summary>"Threads: 50" info for the totals footer.</summary>
+    /// <summary>"Threads: 12 / 50" live info for the totals footer.</summary>
     public string ThreadsText { get; private set; } = "";
+    private string _threadsLimit = "";
     /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
     public string? ManualSubnet { get; set; }
 
     private readonly Dictionary<string, DeviceViewModel> _byIp = new();
     private readonly object _byIpLock = new();
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, byte> _dirty = new();
     private long _totalPings = 1;
     private int _plannedDevices = 1;
     private long _lastGroupTick;
@@ -112,8 +112,7 @@ public sealed class MainViewModel : ObservableObject
 
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
         Progress.InfinitePings = infinite;
-        ThreadsText = $"{Loc.Threads}: {(cfg.ScanThreads <= 0 ? Loc.MaxLabel : cfg.ScanThreads.ToString())}";
-        Raise(nameof(ThreadsText));
+        _threadsLimit = cfg.ScanThreads <= 0 ? Loc.MaxLabel : cfg.ScanThreads.ToString();
         int perIp = infinite ? 1 : Math.Max(1, cfg.PingCount);
         int hostsPerSubnet = Ipv4.LastHost - Ipv4.FirstHost + 1;
         _plannedDevices = Math.Max(1, prefixes.Count * hostsPerSubnet);
@@ -182,7 +181,7 @@ public sealed class MainViewModel : ObservableObject
                 var gw = devices.FirstOrDefault(d => d.Ip == info.Gateway);
                 if (gw?.Mac is { } mac && mac != Device.Unknown)
                 {
-                    try { new KnownDevicesDb(DbPath).Save(mac, devices, timestamp); } catch { /* DB optional */ }
+                    try { new KnownDevicesDb(cfg.DatabasePath).Save(mac, devices, timestamp); } catch { /* DB optional */ }
                 }
             }
         }
@@ -289,15 +288,23 @@ public sealed class MainViewModel : ObservableObject
     private void OnDeviceUpdated(Device d)
     {
         ApplySelfInfo(d);
+        if (!d.IsOnline && !d.Seen) return;
+
+        // Known rows are only marked dirty (flushed by the throttled aggregate
+        // pass) — dispatching per ping floods the UI thread and lags the table.
+        bool tracked;
+        lock (_byIpLock) tracked = _byIp.ContainsKey(d.Ip);
+        if (tracked) { _dirty.TryAdd(d.Ip, 0); return; }
+
         _dispatch(() =>
         {
-        lock (_byIpLock)
-        {
-            bool tracked = _byIp.TryGetValue(d.Ip, out var vm);
-            if (!d.IsOnline && !d.Seen) return;
-            if (!tracked) { vm = new DeviceViewModel(d, d.Ip == _selfIp, _pinned.Contains(d.Ip)); _byIp[d.Ip] = vm; InsertSorted(vm); }
-            else vm!.Refresh();
-        }
+            lock (_byIpLock)
+            {
+                if (_byIp.ContainsKey(d.Ip)) return;
+                var vm = new DeviceViewModel(d, d.Ip == _selfIp, _pinned.Contains(d.Ip));
+                _byIp[d.Ip] = vm;
+                InsertSorted(vm);
+            }
         });
     }
 
@@ -359,8 +366,23 @@ public sealed class MainViewModel : ObservableObject
         {
             _lastGroupTick = now;
             DeviceGrouper.AssignGroups(all, _gatewayIp);
+            // Groups may have shifted: refresh every row.
+            lock (_byIpLock) { foreach (var vm in Devices) vm.Refresh(); }
+            _dirty.Clear();
         }
-        lock (_byIpLock) { foreach (var vm in Devices) vm.Refresh(); }
+        else
+        {
+            // Refresh only rows whose device actually changed since last pass.
+            foreach (var ip in _dirty.Keys)
+            {
+                _dirty.TryRemove(ip, out _);
+                DeviceViewModel? vm;
+                lock (_byIpLock) _byIp.TryGetValue(ip, out vm);
+                vm?.Refresh();
+            }
+        }
+        ThreadsText = $"{Loc.Threads}: {engine.ActivePings} / {_threadsLimit}";
+        Raise(nameof(ThreadsText));
 
         int discovered = all.Count;
         int online = all.Count(d => d.IsOnline);

@@ -92,6 +92,33 @@
         <Setter Property="Padding" Value="11,6"/>
     </Style>
 
+    <!-- Button for non-text content (vector icons) — uses a ContentPresenter
+         because the default template renders Content as plain text. -->
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Padding" Value="11,6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="b" CornerRadius="7" Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="b" Property="Opacity" Value="0.85"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="b" Property="Opacity" Value="0.62"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="b" Property="Opacity" Value="0.4"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ══ TextBox ══ -->
     <Style TargetType="TextBox">
         <Setter Property="Foreground" Value="{StaticResource Text}"/>
@@ -211,10 +238,16 @@
                                 </ControlTemplate>
                             </ToggleButton.Template>
                         </ToggleButton>
-                        <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
+                        <ContentPresenter x:Name="contentSite" Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                           IsHitTestVisible="False" Margin="10,0,28,0"
                                           VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        <!-- Editable mode: WPF requires this exact part name. -->
+                        <TextBox x:Name="PART_EditableTextBox" Visibility="Collapsed" Style="{x:Null}"
+                                 Background="Transparent" BorderThickness="0" Margin="6,0,28,0"
+                                 Foreground="{StaticResource Text}" CaretBrush="{StaticResource Text}"
+                                 SelectionBrush="{StaticResource Mauve}" VerticalContentAlignment="Center"
+                                 FontSize="{TemplateBinding FontSize}"/>
                         <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}"
                                AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
                             <Border Background="{StaticResource BgDark}" BorderBrush="{StaticResource Surface}"
@@ -227,6 +260,12 @@
                             </Border>
                         </Popup>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEditable" Value="True">
+                            <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="contentSite" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

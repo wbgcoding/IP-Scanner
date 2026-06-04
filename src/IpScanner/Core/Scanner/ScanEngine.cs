@@ -33,6 +33,17 @@ public sealed class ScanEngine
     private readonly ConcurrentDictionary<string, Device> _devices = new();
     public IReadOnlyCollection<Device> Devices => _devices.Values.ToArray();
 
+    private int _activePings;
+    /// <summary>Number of ping operations in flight right now.</summary>
+    public int ActivePings => Volatile.Read(ref _activePings);
+
+    private PingResult Ping(string ip)
+    {
+        Interlocked.Increment(ref _activePings);
+        try { return _ping(ip, IcmpTimeoutMs); }
+        finally { Interlocked.Decrement(ref _activePings); }
+    }
+
     public async Task ScanAsync(IReadOnlyList<string> subnetPrefixes, ScanConfig cfg,
                                 CancellationToken ct)
     {
@@ -67,7 +78,7 @@ public sealed class ScanEngine
                 int tries = Math.Max(1, cfg.InitPingCount);
                 for (int t = 0; t < tries && !ct.IsCancellationRequested; t++)
                 {
-                    r = _ping(ip, IcmpTimeoutMs);
+                    r = Ping(ip);
                     device.RecordPing(r);
                     if (r.Success) Progress.AddSuccess(); else Progress.AddFailed();
                     if (r.Success) break;
@@ -131,7 +142,7 @@ public sealed class ScanEngine
             {
                 if (loopCt.IsCancellationRequested) return;
                 var device = _devices[ip];
-                var r = _ping(ip, IcmpTimeoutMs);
+                var r = Ping(ip);
                 device.RecordPing(r);
                 // Failed probes are not counted as scan pings (they would grow
                 // unbounded on long runs); a reply counts and joins the run.
@@ -164,7 +175,7 @@ public sealed class ScanEngine
                 {
                     if (cfg.PingIntervalMs > 0) InterruptibleSleep(cfg.PingIntervalMs, ct);
                     if (ct.IsCancellationRequested) break;
-                    var ar = _ping(device.Ip, IcmpTimeoutMs);
+                    var ar = Ping(device.Ip);
                     device.RecordPing(ar);
                     if (ar.Success) Progress.AddSuccess(); else Progress.AddFailed();
                     Progress.NotifyChanged();

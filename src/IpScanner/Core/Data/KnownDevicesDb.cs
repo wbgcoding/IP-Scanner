@@ -10,6 +10,9 @@ public sealed class KnownDevicesDb
 
     public KnownDevicesDb(string path)
     {
+        // Make sure the target folder exists (db lives in the scans folder by default).
+        var dir = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(path));
+        if (!string.IsNullOrEmpty(dir)) System.IO.Directory.CreateDirectory(dir);
         _connStr = $"Data Source={path}";
         using var conn = Open();
         conn.CreateCommand(

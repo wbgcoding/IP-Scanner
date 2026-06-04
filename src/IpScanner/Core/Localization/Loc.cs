@@ -88,7 +88,8 @@ public static class Loc
     public static string ExportCsv => S("CSV exportieren", "Export CSV");
     public static string KnownDb => S("Known-Devices-Datenbank aktivieren", "Enable known-devices database");
     public static string ClearDb => S("Datenbank leeren", "Clear database");
-    public static string MergeDb => S("DB zusammenführen …", "Merge DB …");
+    public static string MergeDb => S("Datenbanken zusammenführen …", "Merge databases …");
+    public static string DbFile => S("Datenbankdatei", "Database file");
     public static string MergeDone(int n) => German
         ? $"{n} Einträge zusammengeführt."
         : $"{n} entries merged.";
@@ -147,6 +148,9 @@ public static class Loc
     public static string TipKnownDb => S(
         "Merkt sich gefundene Geräte je Netzwerk in scanner.db, damit bekannte Geräte beim nächsten Scan wiedererkannt werden.",
         "Remembers discovered devices per network in scanner.db so known devices are recognized on the next scan.");
+    public static string TipDbFile => S(
+        "Pfad der Known-Devices-Datenbank. Liegt standardmäßig im Scans-Ordner.",
+        "Path of the known-devices database. Lives in the scans folder by default.");
     public static string TipMergeDb => S(
         "Wählt die scanner.db einer anderen Programm-Instanz und führt deren Geräte in die eigene Datenbank zusammen (neuere Einträge gewinnen).",
         "Pick another instance's scanner.db and merge its devices into this database (newer entries win).");

@@ -16,6 +16,8 @@ public sealed class ScanConfig
     public List<string> InternetHosts { get; set; } =
         new() { "8.8.8.8 Google 1", "8.8.4.4 Google 2", "1.1.1.1 Cloudflare", "9.9.9.9 Quad9" };
     public bool KnownDevicesDb { get; set; } = true;
+    /// <summary>Known-devices database file (lives in the scans folder by default).</summary>
+    public string DatabasePath { get; set; } = "./Scans/scanner.db";
     public string OutputDirectory { get; set; } = "./Scans";
     public bool FileOutput { get; set; }          // TXT report off by default
     public bool ExportCsv { get; set; }
@@ -34,7 +36,7 @@ public sealed class ScanConfig
         InitPingCount = InitPingCount, OfflineRecheckSeconds = OfflineRecheckSeconds,
         EnableInternetPing = EnableInternetPing,
         InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb,
-        OutputDirectory = OutputDirectory, FileOutput = FileOutput,
+        DatabasePath = DatabasePath, OutputDirectory = OutputDirectory, FileOutput = FileOutput,
         ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
     };
 }
