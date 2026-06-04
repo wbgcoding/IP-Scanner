@@ -101,12 +101,13 @@ public partial class MainWindow : Window
             : new System.Windows.Media.ScaleTransform(f, f);
     }
 
-    // Resolve MAC + hostname for an online device: ARP + reverse DNS, with a
-    // NetBIOS fallback when DNS/ARP miss (works across subnets).
+    // Resolve MAC + hostname for an online device. Hostname chain:
+    // reverse DNS -> mDNS (.local, covers IoT/Android/Linux/Apple) -> NetBIOS.
     private static (string? mac, string? host) Enrich(string ip)
     {
         var host = HostnameResolver.Resolve(ip);
         var mac = ArpHelper.Resolve(ip);
+        host ??= MdnsHelper.Resolve(ip, 1200);
         if (host is null || mac is null)
         {
             var (nbName, nbMac) = NetBiosHelper.Lookup(ip);

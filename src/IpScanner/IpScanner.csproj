@@ -20,6 +20,9 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="IpScanner.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Resources\oui.txt" />
     <Resource Include="Resources\network.ico" />
     <Resource Include="Resources\logo.png" />
