@@ -7,7 +7,7 @@ public sealed class NetworkInfo
     public string? Gateway { get; set; }
     public string? SubnetMask { get; set; }
     public List<string> DnsServers { get; set; } = new();
-    public string Interface { get; set; } = "eth0";
+    public string Interface { get; set; } = "";
 
     /// <summary>"192.168.1.0/24" style label, or null.</summary>
     public string? Cidr =>

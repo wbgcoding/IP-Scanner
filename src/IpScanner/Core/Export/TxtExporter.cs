@@ -25,7 +25,7 @@ public static class TxtExporter
         sb.AppendLine();
         sb.AppendLine("Network Information:");
         sb.AppendLine(new string('-', 30));
-        sb.AppendLine($"Interface:   {info.Interface}");
+        sb.AppendLine($"Interface:   {(info.Interface.Length > 0 ? info.Interface : "Unknown")}");
         sb.AppendLine($"IP Address:  {info.Ip ?? "Unknown"}");
         if (info.Gateway is not null) sb.AppendLine($"Gateway:     {info.Gateway}");
         if (info.SubnetMask is not null) sb.AppendLine($"Subnet Mask: {info.SubnetMask}");

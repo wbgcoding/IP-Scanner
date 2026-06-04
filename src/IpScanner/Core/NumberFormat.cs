@@ -13,6 +13,10 @@ public static class NumberFormat
         return n.ToString(c);
     }
 
+    /// <summary>Latency: "12,3 ms" (current culture), "—" when missing.</summary>
+    public static string Ms(double? v) =>
+        v is null ? "—" : v.Value.ToString("F1", CultureInfo.CurrentCulture) + " ms";
+
     /// <summary>File size: 980 B, 12,3 KB, 4,2 MB, 1,1 GB.</summary>
     public static string Bytes(long b)
     {

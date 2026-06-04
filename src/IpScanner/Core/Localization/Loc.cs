@@ -24,6 +24,26 @@ public static class Loc
 
     private static string S(string de, string en) => German ? de : en;
 
+    // ── App / shared ──
+    public static string AppTitle => "IP-Scanner";
+    public static string Ok => S("OK", "OK");
+    public static string NotAvailable => S("N/A", "N/A");
+    public static string StatusOnline => Online.ToUpperInvariant();
+    public static string StatusOffline => Offline.ToUpperInvariant();
+    public static string TxtExport => S("TXT Export", "TXT Export");
+    public static string CsvExport => S("CSV Export", "CSV Export");
+    public static string LangDe => "Deutsch";   // endonyms on purpose
+    public static string LangEn => "English";
+    public static string DbFileFilter => S(
+        "Datenbank (*.db)|*.db|Alle Dateien (*.*)|*.*",
+        "Database (*.db)|*.db|All files (*.*)|*.*");
+    public static string ConfFileFilter => S(
+        "Konfiguration (*.conf)|*.conf|Alle Dateien (*.*)|*.*",
+        "Configuration (*.conf)|*.conf|All files (*.*)|*.*");
+    public static string ExampleSubnets => "192.168.2.0/24";
+    public static string ExamplePinnedIps => "192.168.2.10, 192.168.2.20";
+    public static string ExampleInternetHosts => "8.8.8.8 Google, 1.1.1.1 Cloudflare";
+
     // ── Header / controls ──
     public static string Scan => S("▶ Scan", "▶ Scan");
     public static string Stop => S("■ Stopp", "■ Stop");

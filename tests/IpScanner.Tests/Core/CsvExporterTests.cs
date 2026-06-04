@@ -23,6 +23,20 @@ public class CsvExporterTests
     }
 
     [Fact]
+    public void Write_QuotesFieldsContainingDelimiters()
+    {
+        var d = new Device("192.168.1.5") { Hostname = "router, \"main\"" };
+        d.RecordPing(new PingResult(true, 2.0, 64));
+        var dir = Directory.CreateTempSubdirectory().FullName;
+
+        var path = CsvExporter.Write(new[] { d }, dir, "20260604_090000", "");
+
+        var lines = File.ReadAllLines(path);
+        // RFC 4180: field quoted, inner quotes doubled.
+        Assert.Contains("\"router, \"\"main\"\"\"", lines[1]);
+    }
+
+    [Fact]
     public void Write_SortsRowsByNumericIp()
     {
         Device D(string ip) { var d = new Device(ip); d.RecordPing(new PingResult(true, 1.0, 64)); return d; }

@@ -101,7 +101,7 @@ public sealed class KnownDevicesDb
     {
         using var src = new SqliteConnection($"Data Source={otherDbPath};Mode=ReadOnly");
         src.Open();
-        var read = src.CreateCommand(
+        using var read = src.CreateCommand(
             "SELECT network_mac, mac, ip, hostname, last_seen FROM known_devices");
         using var r = read.ExecuteReader();
 

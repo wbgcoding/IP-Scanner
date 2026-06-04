@@ -74,9 +74,15 @@ public static class MdnsHelper
             int an = (p[6] << 8) | p[7];
             if (an == 0) return null;
             int pos = 12;
-            for (int i = 0; i < qd; i++) { SkipName(p, ref pos); pos += 4; }
+            for (int i = 0; i < qd; i++)
+            {
+                SkipName(p, ref pos);
+                if (pos + 4 > p.Length) return null;        // qtype + qclass
+                pos += 4;
+            }
             for (int i = 0; i < an; i++)
             {
+                if (pos >= p.Length) return null;
                 SkipName(p, ref pos);
                 if (pos + 10 > p.Length) return null;       // type+class+ttl+rdlen
                 int type = (p[pos] << 8) | p[pos + 1];

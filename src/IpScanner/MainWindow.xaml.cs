@@ -60,7 +60,7 @@ public partial class MainWindow : Window
         ApplyUiScale();          // persisted text-scale takes effect at startup
         ApplyBarColors();        // persisted bar colors
         ApplyDefaultPingCount(); // persisted default ping count into the dropdown
-        LanguageBox.ItemsSource = new[] { Loc.LangAuto, "Deutsch", "English" };
+        LanguageBox.ItemsSource = new[] { Loc.LangAuto, Loc.LangDe, Loc.LangEn };
         InitColorPicker();
         LoadSettings(_config);   // fills all fields incl. export toggles once
 
@@ -353,7 +353,7 @@ public partial class MainWindow : Window
 
     private void OnMergeDb(object sender, RoutedEventArgs e)
     {
-        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Datenbank (*.db)|*.db|*.*|*.*" };
+        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = Loc.DbFileFilter };
         if (dlg.ShowDialog(this) != true) return;
         try
         {
@@ -368,7 +368,7 @@ public partial class MainWindow : Window
 
     /// <summary>Config file lives next to the database.</summary>
     private static string ConfPathFor(string dbPath)
-        => Path.Combine(Path.GetDirectoryName(Path.GetFullPath(dbPath)) ?? ".", "ip_scanner.conf");
+        => Path.Combine(Path.GetDirectoryName(Path.GetFullPath(dbPath)) ?? ".", ScanConfig.ConfigFileName);
 
     private static ScanConfig LoadPersistedConfig()
     {
@@ -442,8 +442,8 @@ public partial class MainWindow : Window
     {
         var dlg = new Microsoft.Win32.SaveFileDialog
         {
-            Filter = "Config (*.conf)|*.conf",
-            FileName = "ip_scanner.conf",
+            Filter = Loc.ConfFileFilter,
+            FileName = ScanConfig.ConfigFileName,
         };
         if (DirOf(_config.DatabasePath) is { } dir) dlg.InitialDirectory = dir;
         if (dlg.ShowDialog(this) != true) return;
@@ -453,7 +453,7 @@ public partial class MainWindow : Window
 
     private void OnImportConf(object sender, RoutedEventArgs e)
     {
-        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Config (*.conf)|*.conf|*.*|*.*" };
+        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = Loc.ConfFileFilter };
         if (DirOf(_config.DatabasePath) is { } dir) dlg.InitialDirectory = dir;
         if (dlg.ShowDialog(this) != true) return;
         try
@@ -589,7 +589,7 @@ public partial class MainWindow : Window
             InternetTimeoutMs = Math.Clamp(I(InternetTimeoutBox.Text, 1000), 100, 10_000),
             InternetHosts = Items(InternetHostsBox.Text),
             OutputDirectory = OutputDirBox.Text.Trim(),
-            DatabasePath = DbPathBox.Text.Trim().Length > 0 ? DbPathBox.Text.Trim() : "./Scans/scanner.db",
+            DatabasePath = DbPathBox.Text.Trim().Length > 0 ? DbPathBox.Text.Trim() : ScanConfig.DefaultDatabasePath,
             FileOutput = FileOutputBox.IsChecked == true,
             ExportCsv = ExportCsvBox.IsChecked == true,
             KnownDevicesDb = KnownDbBox.IsChecked == true,
@@ -621,8 +621,8 @@ public partial class MainWindow : Window
         var dlg = new Microsoft.Win32.SaveFileDialog
         {
             Title = Loc.DbFile,
-            Filter = "Datenbank (*.db)|*.db|*.*|*.*",
-            FileName = "scanner.db",
+            Filter = Loc.DbFileFilter,
+            FileName = ScanConfig.DefaultDatabaseFileName,
             OverwritePrompt = false,    // existing db is opened, not replaced
         };
         if (DirOf(DbPathBox.Text) is { } dir) dlg.InitialDirectory = dir;

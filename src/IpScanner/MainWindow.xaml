@@ -4,7 +4,7 @@
         xmlns:ctrl="clr-namespace:IpScanner.Views.Controls"
         xmlns:loc="clr-namespace:IpScanner.Core.Localization"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        Title="IP-Scanner" Height="720" Width="1320" MinWidth="700" MinHeight="480"
+        Title="{x:Static loc:Loc.AppTitle}" Height="720" Width="1320" MinWidth="700" MinHeight="480"
         Icon="Resources/network.ico" Background="{StaticResource Bg}"
         WindowStartupLocation="Manual">
     <Grid x:Name="RootLayout">
@@ -24,7 +24,7 @@
 
                 <!-- Title + logo -->
                 <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
-                    <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
+                    <TextBlock Text="{x:Static loc:Loc.AppTitle}" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="16" HorizontalAlignment="Center"/>
                     <Grid Width="42" Height="42" Margin="0,5,0,0" HorizontalAlignment="Center">
                         <Image x:Name="LogoImage" Source="/Resources/logo.png"
@@ -340,9 +340,9 @@
                         <Border Padding="13,12">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <ToggleButton x:Name="TxtToggle" Content="TXT Export" Style="{StaticResource PillToggle}"
+                                    <ToggleButton x:Name="TxtToggle" Content="{x:Static loc:Loc.TxtExport}" Style="{StaticResource PillToggle}"
                                                   Click="OnExportToggle" ToolTip="{x:Static loc:Loc.TipWriteTxt}"/>
-                                    <ToggleButton x:Name="CsvToggle" Content="CSV Export" Style="{StaticResource PillToggle}"
+                                    <ToggleButton x:Name="CsvToggle" Content="{x:Static loc:Loc.CsvExport}" Style="{StaticResource PillToggle}"
                                                   Click="OnExportToggle" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipExportCsv}"/>
                                 </StackPanel>
                                 <TextBlock Text="{Binding ExportInfo}" Foreground="{StaticResource MidGray}" FontSize="10"
@@ -366,7 +366,7 @@
                         <Border x:Name="HexPreview" Width="26" Height="26" CornerRadius="6"
                                 BorderBrush="{StaticResource Surface2}" BorderThickness="1"
                                 Background="{StaticResource Surface}" VerticalAlignment="Center"/>
-                        <Button x:Name="ApplyColorBtn" DockPanel.Dock="Right" Content="OK"
+                        <Button x:Name="ApplyColorBtn" DockPanel.Dock="Right" Content="{x:Static loc:Loc.Ok}"
                                 Style="{StaticResource AccentButton}" Padding="12,5" Margin="8,0,0,0"
                                 Click="OnHexColorApply"/>
                         <TextBox x:Name="HexBox" Margin="8,0,0,0" VerticalAlignment="Center"
@@ -401,7 +401,7 @@
                                 <TextBox x:Name="SubnetsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="120" FontSize="13"
                                          VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipSubnets}"
                                          TextChanged="OnSubnetsValidate"/>
-                                <TextBlock Text="192.168.2.0/24" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Static loc:Loc.ExampleSubnets}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetsBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>
@@ -411,7 +411,7 @@
                                 <TextBox x:Name="PinnedBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
                                          VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipPinnedIps}"
                                          TextChanged="OnPinnedValidate"/>
-                                <TextBlock Text="192.168.2.10, 192.168.2.20" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Static loc:Loc.ExamplePinnedIps}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>
@@ -481,7 +481,7 @@
                                 <TextBox x:Name="InternetHostsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
                                          VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipInternetHosts}"
                                          TextChanged="OnHostsValidate"/>
-                                <TextBlock Text="8.8.8.8 Google, 1.1.1.1 Cloudflare" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Static loc:Loc.ExampleInternetHosts}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=InternetHostsBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>

@@ -28,12 +28,10 @@ public sealed class InternetHostViewModel : ObservableObject
         Raise(nameof(AvgColor)); Raise(nameof(MinColor)); Raise(nameof(MaxColor)); Raise(nameof(LastColor));
     }
 
-    private static string Fmt(double? v) => v is null ? "—" : v.Value.ToString("F1") + " ms";
-
-    public string AvgDisplay => Fmt(Avg);
-    public string MinDisplay => Fmt(_min);
-    public string MaxDisplay => Fmt(_max);
-    public string LastDisplay => Fmt(_last);
+    public string AvgDisplay => Core.NumberFormat.Ms(Avg);
+    public string MinDisplay => Core.NumberFormat.Ms(_min);
+    public string MaxDisplay => Core.NumberFormat.Ms(_max);
+    public string LastDisplay => Core.NumberFormat.Ms(_last);
 
     public string AvgColor => Core.Palette.Heat(Avg);
     public string MinColor => Core.Palette.Heat(_min);

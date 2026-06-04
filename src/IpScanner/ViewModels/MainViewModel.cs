@@ -14,6 +14,12 @@ namespace IpScanner.ViewModels;
 
 public sealed class MainViewModel : ObservableObject
 {
+    // UI pacing: throttle the aggregate pass, debounce the O(n) grouping,
+    // and never ping public internet hosts faster than twice a second.
+    private const int AggregateThrottleMs = 100;
+    private const int GroupDebounceMs = 400;
+    private const int MinInternetIntervalMs = 500;
+
     private readonly Func<string, int, PingResult> _pingFunc;
     private readonly Func<NetworkInfo> _detectNetwork;
     private readonly Action<Action> _dispatch;
@@ -151,7 +157,7 @@ public sealed class MainViewModel : ObservableObject
         {
             long now = Environment.TickCount64;
             long last = Interlocked.Read(ref lastAggregate);
-            if (now - last < 100 ||
+            if (now - last < AggregateThrottleMs ||
                 Interlocked.CompareExchange(ref lastAggregate, now, last) != last) return;
             _dispatch(() => UpdateProgress(engine));
         };
@@ -233,8 +239,7 @@ public sealed class MainViewModel : ObservableObject
         });
 
         int target = pingCount == ScanConfig.InfinitePingCount ? int.MaxValue : Math.Max(1, pingCount);
-        // Don't hammer public hosts faster than twice a second.
-        int interval = Math.Max(Config.PingIntervalMs, 500);
+        int interval = Math.Max(Config.PingIntervalMs, MinInternetIntervalMs);
         int timeout = Math.Clamp(Config.InternetTimeoutMs, 100, 10_000);
 
         await Task.WhenAll(hosts.Select(host => Task.Run(async () =>
@@ -383,7 +388,7 @@ public sealed class MainViewModel : ObservableObject
         // Live grouping is O(n) — debounce it (≤ every 400 ms) so a fast ping
         // stream doesn't pin the UI thread; force a final pass at scan end.
         long now = Environment.TickCount64;
-        if (forceGroups || now - _lastGroupTick >= 400)
+        if (forceGroups || now - _lastGroupTick >= GroupDebounceMs)
         {
             _lastGroupTick = now;
             DeviceGrouper.AssignGroups(all, _gatewayIp);
@@ -444,15 +449,12 @@ public sealed class MainViewModel : ObservableObject
             var vals = l.Select(sel).Where(v => v is not null).Select(v => v!.Value).ToList();
             return vals.Count == 0 ? null : vals.Average();
         }
-        static string Fmt(double? v) => v is null ? "—"
-            : v.Value.ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) + " ms";
-
         double? avg = Avg(rows, v => v.AvgRaw), min = Avg(rows, v => v.MinRaw),
                 max = Avg(rows, v => v.MaxRaw), last = Avg(rows, v => v.LastRaw);
-        TotalAvg = Fmt(avg);   TotalAvgColor = Core.Palette.Heat(avg);
-        TotalMin = Fmt(min);   TotalMinColor = Core.Palette.Heat(min);
-        TotalMax = Fmt(max);   TotalMaxColor = Core.Palette.Heat(max);
-        TotalLast = Fmt(last); TotalLastColor = Core.Palette.Heat(last);
+        TotalAvg = Core.NumberFormat.Ms(avg);   TotalAvgColor = Core.Palette.Heat(avg);
+        TotalMin = Core.NumberFormat.Ms(min);   TotalMinColor = Core.Palette.Heat(min);
+        TotalMax = Core.NumberFormat.Ms(max);   TotalMaxColor = Core.Palette.Heat(max);
+        TotalLast = Core.NumberFormat.Ms(last); TotalLastColor = Core.Palette.Heat(last);
         Raise(nameof(TotalAvg)); Raise(nameof(TotalMin));
         Raise(nameof(TotalMax)); Raise(nameof(TotalLast));
         Raise(nameof(TotalAvgColor)); Raise(nameof(TotalMinColor));

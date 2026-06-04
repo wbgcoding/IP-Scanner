@@ -13,6 +13,11 @@ public sealed class ScanEngine
     private readonly Func<string, int, PingResult> _ping;
     private readonly IReadOnlyList<Func<string, (string? mac, string? host)>>? _enrichers;
     private const int IcmpTimeoutMs = 1000;
+    private const int EnrichRetryDelayMs = 4000;    // pause between enrichment retry sweeps
+    private const int MaxEnrichRetries = 5;         // retry budget per device
+    private const int EnrichGateTimeoutMs = 30_000; // max wait for a free enrichment slot
+    private const int EnrichJoinTimeoutMs = 8000;   // max wait per resolver thread
+    private const int EnrichGateSize = 24;          // concurrent enrichment batches
 
     /// <param name="ping">Ping function (injected for tests).</param>
     /// <param name="enrichers">Optional MAC/hostname techniques, ordered best-first
@@ -152,13 +157,13 @@ public sealed class ScanEngine
         var attempts = new Dictionary<string, int>();
         while (!ct.IsCancellationRequested)
         {
-            try { await Task.Delay(4000, ct).ConfigureAwait(false); }
+            try { await Task.Delay(EnrichRetryDelayMs, ct).ConfigureAwait(false); }
             catch (OperationCanceledException) { return; }
             foreach (var d in _devices.Values)
             {
                 if (!d.IsOnline || (d.Mac is not null && d.Hostname is not null)) continue;
                 int n = attempts.GetValueOrDefault(d.Ip);
-                if (n >= 5) continue;
+                if (n >= MaxEnrichRetries) continue;
                 attempts[d.Ip] = n + 1;
                 TryEnrich(d);
             }
@@ -251,7 +256,7 @@ public sealed class ScanEngine
 
     // At most N devices enrich at once — hundreds in parallel exhaust sockets
     // and nbtstat processes, and every lookup then dies in its timeout.
-    private static readonly SemaphoreSlim EnrichGate = new(24);
+    private static readonly SemaphoreSlim EnrichGate = new(EnrichGateSize);
     private readonly ConcurrentDictionary<string, byte> _enriching = new();
 
     /// <summary>Fire-and-forget MAC/hostname resolution. Every technique runs on
@@ -264,7 +269,7 @@ public sealed class ScanEngine
         if (!_enriching.TryAdd(device.Ip, 0)) return;   // batch already running
         _ = Task.Factory.StartNew(() =>
         {
-            if (!EnrichGate.Wait(30000)) { _enriching.TryRemove(device.Ip, out _); return; }
+            if (!EnrichGate.Wait(EnrichGateTimeoutMs)) { _enriching.TryRemove(device.Ip, out _); return; }
             try
             {
                 var threads = new List<Thread>();
@@ -276,7 +281,7 @@ public sealed class ScanEngine
                     t.Start();
                     threads.Add(t);
                 }
-                foreach (var t in threads) t.Join(8000);
+                foreach (var t in threads) t.Join(EnrichJoinTimeoutMs);
             }
             finally
             {

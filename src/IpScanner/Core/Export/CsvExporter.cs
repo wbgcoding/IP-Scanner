@@ -31,9 +31,9 @@ public static class CsvExporter
             {
                 d.Ip,
                 d.IsOnline ? "ONLINE" : "OFFLINE",
-                d.Hostname == Device.Unknown ? "" : d.Hostname ?? "",
+                Esc(d.Hostname == Device.Unknown ? "" : d.Hostname ?? ""),
                 ExportGroup(d.GroupId),
-                MacVendorLookup.Instance.Lookup(d.Mac) ?? "",
+                Esc(MacVendorLookup.Instance.Lookup(d.Mac) ?? ""),
                 d.Mac == Device.Unknown ? "" : d.Mac ?? "",
                 Num(d.AvgMs), Num(d.MinMs), Num(d.MaxMs), Num(d.LastMs),
                 d.CurrentPings.ToString(), target, d.FromDb ? "1" : "0",
@@ -45,4 +45,10 @@ public static class CsvExporter
 
     /// <summary>Group numbering in exports starts at 0 = ungrouped, 1 = gateway, ...</summary>
     internal static string ExportGroup(int groupId) => groupId <= 1 ? "0" : (groupId - 1).ToString();
+
+    /// <summary>RFC 4180: quote fields containing delimiter, quote or newline.</summary>
+    internal static string Esc(string field) =>
+        field.IndexOfAny(new[] { ',', '"', '\n', '\r' }) < 0
+            ? field
+            : "\"" + field.Replace("\"", "\"\"") + "\"";
 }

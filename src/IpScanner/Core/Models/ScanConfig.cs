@@ -21,7 +21,7 @@ public sealed class ScanConfig
         new() { "8.8.8.8 Google 1", "8.8.4.4 Google 2", "1.1.1.1 Cloudflare", "9.9.9.9 Quad9" };
     public bool KnownDevicesDb { get; set; } = true;
     /// <summary>Known-devices database file (lives in the scans folder by default).</summary>
-    public string DatabasePath { get; set; } = "./Scans/scanner.db";
+    public string DatabasePath { get; set; } = DefaultDatabasePath;
     public string OutputDirectory { get; set; } = "./Scans";
     public bool FileOutput { get; set; }          // TXT report off by default
     public bool ExportCsv { get; set; }
@@ -40,6 +40,9 @@ public sealed class ScanConfig
     public string ColorSkipped { get; set; } = Palette.MidGray;
 
     public const int InfinitePingCount = -1;
+    public const string DefaultDatabasePath = "./Scans/scanner.db";
+    public const string DefaultDatabaseFileName = "scanner.db";
+    public const string ConfigFileName = "ip_scanner.conf";
 
     /// <summary>Copy with a different ping count (lists shared, read-only use).</summary>
     public ScanConfig CloneWith(int pingCount) => new()

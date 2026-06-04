@@ -49,7 +49,8 @@ public static class ConfigManager
                 case "color_skipped":               cfg.ColorSkipped = ParseColor(value, cfg.ColorSkipped); break;
                 default:
                     var m = Regex.Match(key, @"^subnet(?:_(\d+))?$");
-                    if (m.Success && value.Length > 0)
+                    if (m.Success && value.Length > 0 &&
+                        (!m.Groups[1].Success || int.TryParse(m.Groups[1].Value, out _)))
                         subnets[m.Groups[1].Success ? int.Parse(m.Groups[1].Value) : 0] = value;
                     break;
             }

@@ -1,4 +1,4 @@
-using System.Globalization;
+using IpScanner.Core.Localization;
 using IpScanner.Core.Models;
 using IpScanner.Core.Scanner;
 
@@ -6,7 +6,6 @@ namespace IpScanner.ViewModels;
 
 public sealed class DeviceViewModel : ObservableObject
 {
-    private static readonly CultureInfo De = CultureInfo.GetCultureInfo("de-DE");
     private readonly Device _device;
 
     public DeviceViewModel(Device device, bool isSelf = false, bool isPinned = false)
@@ -28,7 +27,7 @@ public sealed class DeviceViewModel : ObservableObject
     public long IpSortKey { get; }
 
     public string Ip => _device.Ip;
-    public string Status => _device.IsOnline ? "ONLINE" : "OFFLINE";
+    public string Status => _device.IsOnline ? Loc.StatusOnline : Loc.StatusOffline;
     public string StatusColor => _device.IsOnline ? Core.Palette.Green : Core.Palette.Red;
     public bool IsOnline => _device.IsOnline;
     public string Hostname => _device.Hostname is null or Device.Unknown ? "—" : _device.Hostname;
@@ -53,10 +52,10 @@ public sealed class DeviceViewModel : ObservableObject
         return Core.Palette.Mauve;
     }
 
-    public string AvgDisplay => Fmt(_device.AvgMs);
-    public string MinDisplay => Fmt(_device.MinMs);
-    public string MaxDisplay => Fmt(_device.MaxMs);
-    public string LastDisplay => _device.LastFailed ? "N/A" : Fmt(_device.LastMs);
+    public string AvgDisplay => Core.NumberFormat.Ms(_device.AvgMs);
+    public string MinDisplay => Core.NumberFormat.Ms(_device.MinMs);
+    public string MaxDisplay => Core.NumberFormat.Ms(_device.MaxMs);
+    public string LastDisplay => _device.LastFailed ? Loc.NotAvailable : Core.NumberFormat.Ms(_device.LastMs);
 
     // Raw latency values (for cross-row best/worst comparison).
     public double? AvgRaw => _device.AvgMs;
@@ -96,8 +95,6 @@ public sealed class DeviceViewModel : ObservableObject
         _device.TargetPings == ScanConfig.InfinitePingCount
             ? $"{Core.NumberFormat.Short(_device.CurrentPings)}/∞"
             : $"{Core.NumberFormat.Short(_device.CurrentPings)}/{Core.NumberFormat.Short(_device.TargetPings)}";
-
-    private static string Fmt(double? v) => v is null ? "—" : v.Value.ToString("F1", De) + " ms";
 
     /// <summary>Push the underlying device's latest values to the UI.</summary>
     public void Refresh()

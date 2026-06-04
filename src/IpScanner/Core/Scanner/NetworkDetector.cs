@@ -11,13 +11,17 @@ namespace IpScanner.Core.Scanner;
 /// </summary>
 public static class NetworkDetector
 {
+    // Any public IP works for the UDP-connect trick — no packet is sent.
+    private const string RouteProbeIp = "8.8.8.8";
+    private const int RouteProbePort = 80;
+
     public static string? GetLocalIpFast()
     {
         // 1. UDP-connect trick (no packet sent): resolves the routed source IP.
         try
         {
             using var s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            s.Connect("8.8.8.8", 80);
+            s.Connect(RouteProbeIp, RouteProbePort);
             var ip = ((IPEndPoint)s.LocalEndPoint!).Address.ToString();
             if (ip != "0.0.0.0" && !ip.StartsWith("169.254.")) return ip;
         }
