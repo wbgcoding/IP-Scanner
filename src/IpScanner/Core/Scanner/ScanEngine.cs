@@ -20,6 +20,8 @@ public sealed class ScanEngine
     private const int EnrichGateSize = 24;          // concurrent enrichment batches
     private const int FastRecheckWindowMs = 10_000; // burst window after a device drops
     private const int FastRecheckIntervalMs = 1000; // probe cadence inside the window
+    private const int ThreadPoolHeadroom = 16;      // extra pool threads beyond the workers
+    private const int MaxPoolMinimum = 1024;
 
     /// <param name="ping">Ping function (injected for tests).</param>
     /// <param name="enrichers">Optional MAC/hostname techniques, ordered best-first
@@ -74,12 +76,10 @@ public sealed class ScanEngine
         // 0 = one worker per device (max parallelism).
         int workers = cfg.ScanThreads <= 0 ? ips.Count : cfg.ScanThreads;
 
-        // Discovery + analysis block up to 2×workers pool threads with ICMP
-        // waits. The pool only grows ~1 thread/s past its minimum, so without
-        // this, early devices appear instantly and the rest trickle in —
+        // ICMP waits block pool threads and the pool grows only ~1 thread/s —
         // raise the minimum so all workers run from the start.
         ThreadPool.GetMinThreads(out int minWorker, out int minIo);
-        int wanted = Math.Min(workers * 2 + 16, 1024);
+        int wanted = Math.Min(workers * 2 + ThreadPoolHeadroom, MaxPoolMinimum);
         if (minWorker < wanted) ThreadPool.SetMinThreads(wanted, minIo);
 
         using var analysisSem = new SemaphoreSlim(Math.Max(1, workers));
@@ -295,10 +295,8 @@ public sealed class ScanEngine
     private static readonly SemaphoreSlim EnrichGate = new(EnrichGateSize);
     private readonly ConcurrentDictionary<string, byte> _enriching = new();
 
-    /// <summary>Fire-and-forget MAC/hostname resolution. Every technique runs on
-    /// its own dedicated thread (the pool is saturated with blocking pings, queued
-    /// work would die in its timeout). Each partial result lands immediately;
-    /// better-ranked results replace worse ones.</summary>
+    /// <summary>Fire-and-forget MAC/hostname resolution on dedicated threads
+    /// (the pool is saturated with pings); better-ranked results replace worse ones.</summary>
     private void TryEnrich(Device device)
     {
         if (_enrichers is null || _enrichers.Count == 0) return;

@@ -15,11 +15,12 @@ public sealed class Device
     public int HostnameRank { get; set; } = int.MaxValue;
     public int MacRank { get; set; } = int.MaxValue;
     public int GroupId { get; set; }
-    // Snapshot of the automatically determined values, kept while a manual
-    // override is active so the X button can restore them instantly.
+    // Snapshot of the automatic hostname, kept while a manual override is
+    // active so the reset button can restore it instantly.
     public string? AutoHostname { get; set; }
     public int AutoHostnameRank { get; set; } = int.MaxValue;
-    public int AutoGroupId { get; set; }
+    /// <summary>Manual group-square color (hex), null = automatic group color.</summary>
+    public string? GroupColorOverride { get; set; }
     public bool FromDb { get; set; }
     public bool Seen { get; private set; }
     public int CurrentPings { get; private set; }

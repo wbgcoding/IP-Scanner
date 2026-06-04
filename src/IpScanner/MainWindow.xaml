@@ -442,6 +442,10 @@
                         <Button x:Name="ApplyColorBtn" DockPanel.Dock="Right" Content="{x:Static loc:Loc.Ok}"
                                 Style="{StaticResource AccentButton}" Padding="12,5" Margin="8,0,0,0"
                                 Click="OnHexColorApply"/>
+                        <Button x:Name="PickerResetBtn" DockPanel.Dock="Right" Content="✕"
+                                Style="{StaticResource GhostButton}" Padding="10,5" Margin="8,0,0,0"
+                                Click="OnPickerReset" Visibility="Collapsed"
+                                ToolTip="{x:Static loc:Loc.TipResetValue}"/>
                         <TextBox x:Name="HexBox" Margin="8,0,0,0" VerticalAlignment="Center"
                                  FontSize="12" MaxLength="7" TextChanged="OnHexColorChanged"
                                  KeyDown="OnHexColorKeyDown"/>
@@ -533,7 +537,7 @@
                                 </Grid>
                                 <Grid>
                                     <TextBox x:Name="PinnedIpBox" FontSize="13" KeyDown="OnPinnedInputKey"/>
-                                    <TextBlock Text="192.168.2.10" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Static loc:Loc.ExamplePinnedIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                         <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                     </TextBlock>
                                 </Grid>
@@ -614,7 +618,7 @@
                                 </Grid>
                                 <Grid>
                                     <TextBox x:Name="HostIpBox" FontSize="13" KeyDown="OnHostInputKey"/>
-                                    <TextBlock Text="8.8.8.8" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Static loc:Loc.ExampleHostIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                         <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=HostIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                     </TextBlock>
                                 </Grid>

@@ -25,18 +25,18 @@ public class OverrideStoreTests
     }
 
     [Fact]
-    public void Reset_RemovesEntry_GroupAndHostnameIndependent()
+    public void Reset_RemovesEntry_ColorAndHostnameIndependent()
     {
         var s = new OverrideStore();
         s.Load(TempPath());
 
         s.SetHostname(null, "192.168.1.7", "nas");
-        s.SetGroup(null, "192.168.1.7", 3);
+        s.SetColor(null, "192.168.1.7", "#A6E3A1");
         s.SetHostname(null, "192.168.1.7", null);    // reset hostname only
         Assert.Null(s.Get(null, "192.168.1.7")?.Hostname);
-        Assert.Equal(3, s.Get(null, "192.168.1.7")?.Group);
+        Assert.Equal("#A6E3A1", s.Get(null, "192.168.1.7")?.Color);
 
-        s.SetGroup(null, "192.168.1.7", null);       // reset group -> entry gone
+        s.SetColor(null, "192.168.1.7", null);       // reset color -> entry gone
         Assert.Null(s.Get(null, "192.168.1.7"));
     }
 
@@ -47,12 +47,12 @@ public class OverrideStoreTests
         var a = new OverrideStore();
         a.Load(path);
         a.SetHostname("AA:BB:CC:00:11:22", "192.168.1.9", "cam");
-        a.SetGroup("AA:BB:CC:00:11:22", "192.168.1.9", 2);
+        a.SetColor("AA:BB:CC:00:11:22", "192.168.1.9", "#89B4FA");
 
         var b = new OverrideStore();
         b.Load(path);
         var e = b.Get("AA:BB:CC:00:11:22", "192.168.1.9");
         Assert.Equal("cam", e?.Hostname);
-        Assert.Equal(2, e?.Group);
+        Assert.Equal("#89B4FA", e?.Color);
     }
 }

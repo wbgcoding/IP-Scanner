@@ -118,17 +118,20 @@ public sealed class MainViewModel : ObservableObject
         vm.Refresh();
     }
 
-    /// <summary>Set (or clear with null) the manual group number of a row.</summary>
-    public void SetGroupOverride(DeviceViewModel vm, int? group)
+    /// <summary>Set (or clear with null) the manual group-square color of a row.</summary>
+    public void SetColorOverride(DeviceViewModel vm, string? color)
     {
         var d = vm.Model;
-        _overrides.SetGroup(StableMac(d), d.Ip, group);
-        d.GroupId = group is { } g ? DisplayToGroupId(g) : d.AutoGroupId;
+        _overrides.SetColor(StableMac(d), d.Ip, color);
+        d.GroupColorOverride = color;
         vm.Refresh();
     }
 
-    // Display/export numbering: 0 = ungrouped, 1 = gateway, 2+ = dynamic groups.
-    private static int DisplayToGroupId(int display) => display <= 0 ? 0 : display + 1;
+    private void ApplyColorOverride(Device d)
+    {
+        if (_overrides.Get(StableMac(d), d.Ip)?.Color is { } color)
+            d.GroupColorOverride = color;
+    }
 
     /// <summary>Full scan using the configured ping count; writes report/DB.</summary>
     public Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
@@ -393,6 +396,7 @@ public sealed class MainViewModel : ObservableObject
         ApplySelfInfo(d);
         ApplyPinnedName(d);
         ApplyHostnameOverride(d);
+        ApplyColorOverride(d);
         if (!d.IsOnline && !d.Seen) return;
 
         // Known rows are only marked dirty (flushed by the throttled aggregate
@@ -431,6 +435,7 @@ public sealed class MainViewModel : ObservableObject
             {
                 ApplyPinnedName(dev);
                 ApplyHostnameOverride(dev);
+                ApplyColorOverride(dev);
                 if (!_byIp.ContainsKey(dev.Ip))
                 {
                     var vm = new DeviceViewModel(dev, dev.Ip == _selfIp, _pinned.Contains(dev.Ip));
@@ -473,14 +478,6 @@ public sealed class MainViewModel : ObservableObject
         {
             _lastGroupTick = now;
             DeviceGrouper.AssignGroups(all, _gatewayIp);
-            // Manual group assignments win over the automatic grouping; the
-            // automatic result is kept so the X button can restore it.
-            foreach (var d in all)
-            {
-                d.AutoGroupId = d.GroupId;
-                if (_overrides.Get(StableMac(d), d.Ip)?.Group is { } g)
-                    d.GroupId = DisplayToGroupId(g);
-            }
             // Groups may have shifted: refresh every row.
             lock (_byIpLock) { foreach (var vm in Devices) vm.Refresh(); }
             _dirty.Clear();
@@ -569,11 +566,17 @@ public sealed class MainViewModel : ObservableObject
     private static (DeviceViewModel? best, DeviceViewModel? worst) Extremes(
         List<DeviceViewModel> list, Func<DeviceViewModel, double?> sel)
     {
-        var withVal = list.Where(v => sel(v) is not null).ToList();
-        if (withVal.Count < 2) return (null, null);
-        var best = withVal.OrderBy(v => sel(v)!.Value).First();
-        var worst = withVal.OrderByDescending(v => sel(v)!.Value).First();
-        return sel(best)!.Value == sel(worst)!.Value ? (null, null) : (best, worst);
+        DeviceViewModel? best = null, worst = null;
+        double min = double.MaxValue, max = double.MinValue;
+        int count = 0;
+        foreach (var vm in list)
+        {
+            if (sel(vm) is not { } v) continue;
+            count++;
+            if (v < min) { min = v; best = vm; }
+            if (v > max) { max = v; worst = vm; }
+        }
+        return count < 2 || min == max ? (null, null) : (best, worst);
     }
 
     // ── Internet totals row (after the last host): Ø/Letzter = averages,

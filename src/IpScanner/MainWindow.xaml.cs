@@ -202,12 +202,23 @@ public partial class MainWindow : Window
         });
     }
 
-    private void OpenColorPicker(UIElement target, string currentHex, Action<string> apply)
+    private Action? _pickerReset;
+
+    private void OpenColorPicker(UIElement target, string currentHex, Action<string> apply,
+                                 Action? reset = null)
     {
         _pickerApply = apply;
+        _pickerReset = reset;
+        PickerResetBtn.Visibility = reset is null ? Visibility.Collapsed : Visibility.Visible;
         HexBox.Text = currentHex;
         ColorPickerPopup.PlacementTarget = target;
         ColorPickerPopup.IsOpen = true;
+    }
+
+    private void OnPickerReset(object sender, RoutedEventArgs e)
+    {
+        _pickerReset?.Invoke();
+        ColorPickerPopup.IsOpen = false;
     }
 
     private void OnSwatchPick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -308,7 +319,22 @@ public partial class MainWindow : Window
         {
             _w = w; _target = target; _name = name; _colorBtn = colorBtn;
             _deleteBtn = deleteBtn; _error = error; _panel = panel; _isValid = isValid;
+            _target.TextChanged += (_, _) => LiveValidate();
             RandomColor();
+        }
+
+        private void LiveValidate()
+        {
+            var t = _target.Text.Trim();
+            if (t.Length == 0 || _isValid(t))
+            {
+                _error.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                _error.Text = Loc.InvalidEntry(t);
+                _error.Visibility = Visibility.Visible;
+            }
         }
 
         public void Load(IEnumerable<string> raw)
@@ -415,9 +441,8 @@ public partial class MainWindow : Window
         }
     }
 
-    // ── Cell editing: hostname & group via popup (double-click; ✕ = back to auto) ──
+    // ── Cell editing: hostname popup, group-square color picker (double-click) ──
     private DeviceViewModel? _cellEditVm;
-    private bool _cellEditIsGroup;
 
     private static DeviceViewModel? RowVm(object sender) =>
         (sender as FrameworkElement)?.DataContext as DeviceViewModel;
@@ -426,30 +451,28 @@ public partial class MainWindow : Window
     {
         if (e.ClickCount != 2 || RowVm(sender) is not { } vm) return;
         var h = vm.Model.Hostname;
-        OpenCellEdit(vm, isGroup: false, h is null or Device.Unknown ? "" : h,
-                     (UIElement)sender, (sender as FrameworkElement)?.ActualWidth ?? 0);
+        _cellEditVm = vm;
+        CellEditBox.Text = h is null or Device.Unknown ? "" : h;
+        CellEditBox.MinWidth = Math.Max(170, (sender as FrameworkElement)?.ActualWidth ?? 0);
+        CellEditPopup.PlacementTarget = (UIElement)sender;
+        CellEditPopup.IsOpen = true;
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
+        {
+            CellEditBox.Focus();
+            System.Windows.Input.Keyboard.Focus(CellEditBox);
+            CellEditBox.SelectAll();
+        });
         e.Handled = true;
     }
 
+    /// <summary>Group square: pick a fixed color for this device (✕ = automatic).</summary>
     private void OnGroupCellClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (e.ClickCount != 2 || RowVm(sender) is not { } vm) return;
-        OpenCellEdit(vm, isGroup: true, Core.Export.CsvExporter.ExportGroup(vm.GroupId),
-                     (UIElement)sender, 0);
+        OpenColorPicker((UIElement)sender, vm.GroupColor,
+                        hex => _vm.SetColorOverride(vm, hex),
+                        () => _vm.SetColorOverride(vm, null));
         e.Handled = true;
-    }
-
-    private void OpenCellEdit(DeviceViewModel vm, bool isGroup, string text,
-                              UIElement target, double cellWidth)
-    {
-        _cellEditVm = vm;
-        _cellEditIsGroup = isGroup;
-        CellEditBox.Text = text;
-        CellEditBox.MinWidth = Math.Max(170, cellWidth);   // span the column width
-        CellEditPopup.PlacementTarget = target;
-        CellEditPopup.IsOpen = true;
-        CellEditBox.Focus();
-        CellEditBox.SelectAll();
     }
 
     private void OnCellEditKey(object sender, System.Windows.Input.KeyEventArgs e)
@@ -462,29 +485,14 @@ public partial class MainWindow : Window
 
     private void CommitCellEdit()
     {
-        if (_cellEditVm is { } vm)
-        {
-            if (_cellEditIsGroup)
-            {
-                if (int.TryParse(CellEditBox.Text.Trim(), out var g) && g >= 0)
-                    _vm.SetGroupOverride(vm, g);
-            }
-            else
-            {
-                _vm.SetHostnameOverride(vm, CellEditBox.Text);
-            }
-        }
+        if (_cellEditVm is { } vm) _vm.SetHostnameOverride(vm, CellEditBox.Text);
         CellEditPopup.IsOpen = false;
     }
 
     /// <summary>✕ in the popup: drop the manual value, back to the automatic one.</summary>
     private void OnCellEditReset(object sender, RoutedEventArgs e)
     {
-        if (_cellEditVm is { } vm)
-        {
-            if (_cellEditIsGroup) _vm.SetGroupOverride(vm, null);
-            else _vm.SetHostnameOverride(vm, null);
-        }
+        if (_cellEditVm is { } vm) _vm.SetHostnameOverride(vm, null);
         CellEditPopup.IsOpen = false;
     }
 

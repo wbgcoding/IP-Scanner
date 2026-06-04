@@ -39,7 +39,7 @@ public sealed class DeviceViewModel : ObservableObject
 
     // 0/1 = none/unknown -> gray, 2 = gateway group -> fixed brand color,
     // >=3 -> diverse palette (shuffled per scan).
-    public string GroupColor => _device.GroupId switch
+    public string GroupColor => _device.GroupColorOverride ?? _device.GroupId switch
     {
         <= 1 => Core.Palette.Surface2,
         2 => GatewayColor(_device.Hostname),

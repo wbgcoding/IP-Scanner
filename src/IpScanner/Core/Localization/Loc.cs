@@ -71,8 +71,8 @@ public static class Loc
         "Ordner wählen, in dem die ip_scanner.conf gespeichert wird (leer = neben der Datenbank).",
         "Choose the folder where ip_scanner.conf is stored (empty = next to the database).");
     public static string ExampleSubnets => "192.168.2.0/24";
-    public static string ExamplePinnedIps => "192.168.2.10, 192.168.2.20";
-    public static string ExampleInternetHosts => "8.8.8.8 Google, 1.1.1.1 Cloudflare";
+    public static string ExamplePinnedIp => "192.168.2.10";
+    public static string ExampleHostIp => "8.8.8.8";
 
     // ── Header / controls ──
     public static string Scan => S("▶ Scan", "▶ Scan");

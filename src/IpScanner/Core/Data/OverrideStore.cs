@@ -9,7 +9,10 @@ namespace IpScanner.Core.Data;
 /// </summary>
 public sealed class OverrideStore
 {
-    public sealed record Entry(string? Hostname, int? Group);
+    public sealed record Entry(string? Hostname, string? Color);
+
+    private static readonly System.Text.RegularExpressions.Regex HexColor =
+        new("^#[0-9A-Fa-f]{6}$", System.Text.RegularExpressions.RegexOptions.Compiled);
 
     private readonly Dictionary<string, Entry> _entries = new();
     private string? _path;
@@ -26,9 +29,9 @@ public sealed class OverrideStore
                 var p = line.Split('\t');
                 if (p.Length < 3 || p[0].Length == 0) continue;
                 var host = p[1].Length > 0 ? p[1] : null;
-                int? group = int.TryParse(p[2], out var g) && g >= 0 ? g : null;
-                if (host is not null || group is not null)
-                    _entries[p[0]] = new Entry(host, group);
+                var color = HexColor.IsMatch(p[2]) ? p[2].ToUpperInvariant() : null;
+                if (host is not null || color is not null)
+                    _entries[p[0]] = new Entry(host, color);
             }
         }
         catch { /* unreadable -> start empty */ }
@@ -41,8 +44,8 @@ public sealed class OverrideStore
     public void SetHostname(string? mac, string ip, string? hostname) =>
         Update(mac, ip, e => e with { Hostname = hostname });
 
-    public void SetGroup(string? mac, string ip, int? group) =>
-        Update(mac, ip, e => e with { Group = group });
+    public void SetColor(string? mac, string ip, string? color) =>
+        Update(mac, ip, e => e with { Color = color });
 
     private void Update(string? mac, string ip, Func<Entry, Entry> change)
     {
@@ -51,7 +54,7 @@ public sealed class OverrideStore
         // was known — drop both representations, then store the current one.
         _entries.Remove(ip);
         if (mac is not null) _entries.Remove(Key(mac));
-        if (next.Hostname is not null || next.Group is not null)
+        if (next.Hostname is not null || next.Color is not null)
             _entries[mac is not null ? Key(mac) : ip] = next;
         Save();
     }
@@ -64,9 +67,9 @@ public sealed class OverrideStore
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_path) ?? ".");
-            // "N/A" marks a group that was never set manually (reads back as null).
+            // "N/A" = no manual color set (reads back as null).
             File.WriteAllLines(_path, _entries.Select(kv =>
-                $"{kv.Key}\t{kv.Value.Hostname ?? ""}\t{kv.Value.Group?.ToString() ?? "N/A"}"));
+                $"{kv.Key}\t{kv.Value.Hostname ?? ""}\t{kv.Value.Color ?? "N/A"}"));
         }
         catch { /* best-effort */ }
     }
