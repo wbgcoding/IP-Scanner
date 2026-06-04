@@ -358,6 +358,28 @@
             </Border>
         </Grid>
 
+        <!-- ══ Color picker for the legend squares ══ -->
+        <Popup x:Name="ColorPickerPopup" StaysOpen="False" AllowsTransparency="True"
+               Placement="Bottom" VerticalOffset="6" PopupAnimation="Fade">
+            <Border Background="{StaticResource BgDark}" BorderBrush="{StaticResource Surface}"
+                    BorderThickness="1" CornerRadius="9" Padding="12">
+                <StackPanel>
+                    <UniformGrid x:Name="SwatchPanel" Columns="5"/>
+                    <DockPanel Margin="0,10,0,0">
+                        <Border x:Name="HexPreview" Width="26" Height="26" CornerRadius="6"
+                                BorderBrush="{StaticResource Surface2}" BorderThickness="1"
+                                Background="{StaticResource Surface}" VerticalAlignment="Center"/>
+                        <Button x:Name="ApplyColorBtn" DockPanel.Dock="Right" Content="OK"
+                                Style="{StaticResource AccentButton}" Padding="12,5" Margin="8,0,0,0"
+                                Click="OnHexColorApply"/>
+                        <TextBox x:Name="HexBox" Margin="8,0,0,0" VerticalAlignment="Center"
+                                 FontSize="12" MaxLength="7" TextChanged="OnHexColorChanged"
+                                 KeyDown="OnHexColorKeyDown"/>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
         <!-- ══ Embedded settings overlay (single page) ══ -->
         <Grid x:Name="SettingsOverlay" Grid.Row="0" Grid.RowSpan="2" Visibility="Collapsed"
               Background="#CC101018" MouseLeftButtonDown="OnOverlayBackgroundClick">

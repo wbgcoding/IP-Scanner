@@ -61,6 +61,7 @@ public partial class MainWindow : Window
         ApplyBarColors();        // persisted bar colors
         ApplyDefaultPingCount(); // persisted default ping count into the dropdown
         LanguageBox.ItemsSource = new[] { Loc.LangAuto, "Deutsch", "English" };
+        InitColorPicker();
         LoadSettings(_config);   // fills all fields incl. export toggles once
 
         // On startup, immediately run a discovery sweep of the local network so
@@ -131,20 +132,75 @@ public partial class MainWindow : Window
         PingBar.Color3 = B(_config.ColorSkipped); LegSkipped.Background = B(_config.ColorSkipped);
     }
 
+    // ── Themed color picker (popup with palette swatches + hex field) ──
+    private string _pickerKey = "";
+
+    private static readonly string[] SwatchColors =
+    {
+        "#F5E0DC", "#F2CDCD", "#F5C2E7", "#CBA6F7", "#F38BA8",
+        "#EBA0AC", "#FAB387", "#F9E2AF", "#A6E3A1", "#94E2D5",
+        "#89DCEB", "#74C7EC", "#89B4FA", "#B4BEFE", "#CDD6F4",
+        "#A6ADC8", "#6C7086", "#585B70", "#45475A", "#313244",
+    };
+
+    private void InitColorPicker()
+    {
+        foreach (var hex in SwatchColors)
+        {
+            var swatch = new System.Windows.Controls.Border
+            {
+                Width = 24, Height = 24, CornerRadius = new CornerRadius(6),
+                Margin = new Thickness(3), Cursor = System.Windows.Input.Cursors.Hand,
+                Background = BrushFor(hex), Tag = hex, ToolTip = hex,
+            };
+            swatch.MouseLeftButtonDown += OnSwatchPick;
+            SwatchPanel.Children.Add(swatch);
+        }
+    }
+
+    private static System.Windows.Media.SolidColorBrush BrushFor(string hex) =>
+        new((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex));
+
     private void OnLegendColorClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (sender is not System.Windows.Controls.Border { Tag: string key }) return;
-        string current = GetBarColor(key);
-        var c = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(current);
-        using var dlg = new System.Windows.Forms.ColorDialog
-        {
-            FullOpen = true,
-            Color = System.Drawing.Color.FromArgb(c.R, c.G, c.B),
-        };
-        if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-        SetBarColor(key, $"#{dlg.Color.R:X2}{dlg.Color.G:X2}{dlg.Color.B:X2}");
+        if (sender is not System.Windows.Controls.Border { Tag: string key } square) return;
+        _pickerKey = key;
+        HexBox.Text = GetBarColor(key);
+        ColorPickerPopup.PlacementTarget = square;
+        ColorPickerPopup.IsOpen = true;
+    }
+
+    private void OnSwatchPick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Border { Tag: string hex })
+            ApplyPickedColor(hex);
+    }
+
+    private static bool IsHexColor(string s) =>
+        System.Text.RegularExpressions.Regex.IsMatch(s.Trim(), "^#[0-9A-Fa-f]{6}$");
+
+    private void OnHexColorChanged(object sender, TextChangedEventArgs e)
+    {
+        if (IsHexColor(HexBox.Text)) HexPreview.Background = BrushFor(HexBox.Text.Trim());
+    }
+
+    private void OnHexColorKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.Enter) OnHexColorApply(sender, e);
+    }
+
+    private void OnHexColorApply(object sender, RoutedEventArgs e)
+    {
+        if (IsHexColor(HexBox.Text)) ApplyPickedColor(HexBox.Text.Trim().ToUpperInvariant());
+    }
+
+    private void ApplyPickedColor(string hex)
+    {
+        if (_pickerKey.Length == 0) return;
+        SetBarColor(_pickerKey, hex);
         ApplyBarColors();
         PersistConfig();
+        ColorPickerPopup.IsOpen = false;
     }
 
     private string GetBarColor(string key) => key switch
