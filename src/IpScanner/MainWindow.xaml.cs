@@ -59,7 +59,15 @@ public partial class MainWindow : Window
         // the sidebar network info and online devices show up without a manual scan.
         Loaded += async (_, _) =>
         {
-            try { await _vm.RunInitScanAsync(); } catch { /* best-effort */ }
+            try
+            {
+                await _vm.RunInitScanAsync();
+                // Auto-detect: fill the subnet field from the discovered network
+                // if the user hasn't typed anything yet.
+                if (SubnetBox.Text.Trim().Length == 0 && _vm.Networks.Count > 0)
+                    SubnetBox.Text = _vm.Networks[0].Cidr.Split('/')[0];
+            }
+            catch { /* best-effort */ }
         };
     }
 
@@ -101,19 +109,25 @@ public partial class MainWindow : Window
             : new System.Windows.Media.ScaleTransform(f, f);
     }
 
-    // Resolve MAC + hostname for an online device. Hostname chain:
-    // reverse DNS -> mDNS (.local, covers IoT/Android/Linux/Apple) -> NetBIOS.
+    // Resolve MAC + hostname for an online device. All techniques run in
+    // PARALLEL (reverse DNS, mDNS, NetBIOS, ARP) — a sequential chain takes up
+    // to ~9s per device and starves the lookups under load.
+    // Hostname preference: DNS > mDNS > NetBIOS; MAC: ARP > NetBIOS.
     private static (string? mac, string? host) Enrich(string ip)
     {
-        var host = HostnameResolver.Resolve(ip);
-        var mac = ArpHelper.Resolve(ip);
-        host ??= MdnsHelper.Resolve(ip, 1200);
-        if (host is null || mac is null)
-        {
-            var (nbName, nbMac) = NetBiosHelper.Lookup(ip);
-            host ??= nbName;
-            mac ??= nbMac;
-        }
+        var dns  = Task.Run(() => HostnameResolver.Resolve(ip));
+        var mdns = Task.Run(() => MdnsHelper.Resolve(ip, 1500));
+        var nbt  = Task.Run(() => NetBiosHelper.Lookup(ip));
+        var arp  = Task.Run(() => ArpHelper.Resolve(ip));
+
+        try { Task.WaitAll(new Task[] { dns, mdns, nbt, arp }, 4000); }
+        catch { /* individual lookups are best-effort */ }
+
+        static string? R(Task<string?> t) => t.IsCompletedSuccessfully ? t.Result : null;
+        var nb = nbt.IsCompletedSuccessfully ? nbt.Result : ((string?)null, (string?)null);
+
+        var host = R(dns) ?? R(mdns) ?? nb.Item1;
+        var mac = R(arp) ?? nb.Item2;
         return (mac, host);
     }
 

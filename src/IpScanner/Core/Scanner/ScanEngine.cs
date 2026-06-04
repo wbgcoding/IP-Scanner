@@ -208,6 +208,10 @@ public sealed class ScanEngine
         catch (OperationCanceledException) { }
     }
 
+    // At most N devices enrich at once — hundreds in parallel exhaust sockets
+    // and nbtstat processes, and every lookup then dies in its timeout.
+    private static readonly SemaphoreSlim EnrichGate = new(12);
+
     /// <summary>Fire-and-forget MAC/hostname resolution; never blocks the ping path.
     /// LongRunning = dedicated thread, so enrichment isn't starved while the
     /// thread pool is saturated with blocking ping loops.</summary>
@@ -216,6 +220,7 @@ public sealed class ScanEngine
         if (_enrich is null) return;
         _ = Task.Factory.StartNew(() =>
         {
+            if (!EnrichGate.Wait(30000)) return;   // give up quietly under extreme load
             try
             {
                 var (mac, host) = _enrich(device.Ip);
@@ -224,6 +229,7 @@ public sealed class ScanEngine
                 DeviceUpdated?.Invoke(device);
             }
             catch { /* enrichment is best-effort */ }
+            finally { EnrichGate.Release(); }
         }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
