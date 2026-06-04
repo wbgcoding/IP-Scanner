@@ -17,7 +17,7 @@ public class ScanEngineTests
             ip.EndsWith(".1") ? new PingResult(true, 1.0, 64) : new PingResult(false, null, null);
 
         var engine = new ScanEngine(Fake);
-        var cfg = new ScanConfig { PingCount = 2, PingIntervalMs = 0, InitPingThreads = 16, PingThreads = 16 };
+        var cfg = new ScanConfig { PingCount = 2, PingIntervalMs = 0, ScanThreads = 16 };
         var devices = new List<Device>();
         engine.DeviceUpdated += d => { lock (devices) { if (!devices.Contains(d)) devices.Add(d); } };
 

@@ -7,9 +7,6 @@ public sealed class ProgressViewModel : ObservableObject
 {
     private int _online, _offline, _unknown, _deviceTotal;
     private long _success, _failed, _skipped, _pingTotal;
-    private string _phase = Loc.PhaseReady;
-
-    public string Phase { get => _phase; set => SetProperty(ref _phase, value); }
 
     public void SetDevices(int online, int offline, int unknown, int total)
     {

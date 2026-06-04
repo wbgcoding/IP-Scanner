@@ -1,6 +1,6 @@
 namespace IpScanner.Core.Models;
 
-/// <summary>All scan options. Mirrors network_scanner.conf keys.</summary>
+/// <summary>All scan options. Mirrors the exported .conf keys.</summary>
 public sealed class ScanConfig
 {
     public List<string> Subnets { get; set; } = new();
@@ -9,7 +9,6 @@ public sealed class ScanConfig
     public int PingIntervalMs { get; set; } = 100;
     public int OfflineAfterFailedPings { get; set; } = 5;
     public int InitPingCount { get; set; } = 1;
-    public bool HighPressureMode { get; set; }
     public bool EnableInternetPing { get; set; } = true;
     public List<string> InternetHosts { get; set; } =
         new() { "8.8.8.8", "8.8.4.4", "1.1.1.1", "9.9.9.9" };
@@ -17,8 +16,8 @@ public sealed class ScanConfig
     public string OutputDirectory { get; set; } = "./Scans";
     public bool FileOutput { get; set; }          // TXT report off by default
     public bool ExportCsv { get; set; }
-    public int PingThreads { get; set; } = 100;
-    public int InitPingThreads { get; set; } = 254;
+    /// <summary>Parallel ping workers per scan. 0 = one thread per device (max).</summary>
+    public int ScanThreads { get; set; } = 50;
 
     public const int InfinitePingCount = -1;
 
@@ -27,10 +26,9 @@ public sealed class ScanConfig
     {
         Subnets = Subnets, PinnedIps = PinnedIps, PingCount = pingCount,
         PingIntervalMs = PingIntervalMs, OfflineAfterFailedPings = OfflineAfterFailedPings,
-        InitPingCount = InitPingCount, HighPressureMode = HighPressureMode,
-        EnableInternetPing = EnableInternetPing, InternetHosts = InternetHosts,
-        KnownDevicesDb = KnownDevicesDb, OutputDirectory = OutputDirectory,
-        FileOutput = FileOutput, ExportCsv = ExportCsv, PingThreads = PingThreads,
-        InitPingThreads = InitPingThreads,
+        InitPingCount = InitPingCount, EnableInternetPing = EnableInternetPing,
+        InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb,
+        OutputDirectory = OutputDirectory, FileOutput = FileOutput,
+        ExportCsv = ExportCsv, ScanThreads = ScanThreads,
     };
 }

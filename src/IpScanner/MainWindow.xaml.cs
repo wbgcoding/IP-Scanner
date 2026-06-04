@@ -1,4 +1,3 @@
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using IpScanner.Core.Data;
@@ -14,18 +13,15 @@ public partial class MainWindow : Window
 {
     private readonly MainViewModel _vm;
     private ScanConfig _config;
-    private const string ConfigPath = "ip_scanner.conf";
 
     public MainWindow()
     {
         InitializeComponent();
         WindowTheme.ApplyDark(this);
 
-        // Seed a default config file on first run (acts as the template).
-        if (!File.Exists(ConfigPath))
-            ConfigManager.Save(ConfigPath, new ScanConfig());
-
-        _config = ConfigManager.Load(ConfigPath);
+        // Settings live in memory only; .conf is written/read solely via the
+        // explicit export/import buttons in the settings panel.
+        _config = new ScanConfig();
         _vm = new MainViewModel(
             pingFunc: IcmpPinger.Ping,
             detectNetwork: NetworkDetector.DetectFast,
@@ -151,28 +147,44 @@ public partial class MainWindow : Window
     private void OnSettingsSave(object sender, RoutedEventArgs e)
     {
         _config = ReadSettings();
-        ConfigManager.Save(ConfigPath, _config);
         _vm.Config = _config;
         SettingsOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnExportConf(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.SaveFileDialog
+        {
+            Filter = "Config (*.conf)|*.conf",
+            FileName = "ip_scanner.conf",
+        };
+        if (dlg.ShowDialog(this) != true) return;
+        try { ConfigManager.Save(dlg.FileName, ReadSettings()); }
+        catch (Exception ex) { MessageBox.Show(this, ex.Message, Loc.ScanError, MessageBoxButton.OK, MessageBoxImage.Error); }
+    }
+
+    private void OnImportConf(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Config (*.conf)|*.conf|*.*|*.*" };
+        if (dlg.ShowDialog(this) != true) return;
+        try { LoadSettings(ConfigManager.Load(dlg.FileName)); }
+        catch (Exception ex) { MessageBox.Show(this, ex.Message, Loc.ScanError, MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
     private void LoadSettings(ScanConfig c)
     {
         SubnetsBox.Text = string.Join(Environment.NewLine, c.Subnets);
         PinnedBox.Text = string.Join(Environment.NewLine, c.PinnedIps);
-        SetPingCountBox.Text = c.PingCount.ToString();
+        ScanThreadsBox.Text = c.ScanThreads.ToString();
         IntervalBox.Text = c.PingIntervalMs.ToString();
         OfflineAfterBox.Text = c.OfflineAfterFailedPings.ToString();
         InitPingCountBox.Text = c.InitPingCount.ToString();
-        HighPressureBox.IsChecked = c.HighPressureMode;
         EnableInternetBox.IsChecked = c.EnableInternetPing;
         InternetHostsBox.Text = string.Join(Environment.NewLine, c.InternetHosts);
         OutputDirBox.Text = c.OutputDirectory;
         FileOutputBox.IsChecked = c.FileOutput;
         ExportCsvBox.IsChecked = c.ExportCsv;
         KnownDbBox.IsChecked = c.KnownDevicesDb;
-        PingThreadsBox.Text = c.PingThreads.ToString();
-        InitThreadsBox.Text = c.InitPingThreads.ToString();
     }
 
     private ScanConfig ReadSettings()
@@ -187,19 +199,17 @@ public partial class MainWindow : Window
         {
             Subnets = Items(SubnetsBox.Text),
             PinnedIps = Items(PinnedBox.Text),
-            PingCount = I(SetPingCountBox.Text, 10),
+            PingCount = _config.PingCount,        // chosen in the main header
+            ScanThreads = I(ScanThreadsBox.Text, 50),
             PingIntervalMs = I(IntervalBox.Text, 100),
             OfflineAfterFailedPings = I(OfflineAfterBox.Text, 5),
             InitPingCount = I(InitPingCountBox.Text, 1),
-            HighPressureMode = HighPressureBox.IsChecked == true,
             EnableInternetPing = EnableInternetBox.IsChecked == true,
             InternetHosts = Items(InternetHostsBox.Text),
             OutputDirectory = OutputDirBox.Text.Trim(),
             FileOutput = FileOutputBox.IsChecked == true,
             ExportCsv = ExportCsvBox.IsChecked == true,
             KnownDevicesDb = KnownDbBox.IsChecked == true,
-            PingThreads = I(PingThreadsBox.Text, 100),
-            InitPingThreads = I(InitThreadsBox.Text, 254),
         };
     }
 

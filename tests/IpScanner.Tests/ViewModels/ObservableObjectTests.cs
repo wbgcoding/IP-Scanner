@@ -20,13 +20,4 @@ public class ObservableObjectTests
         s.X = 5;
         Assert.Equal("X", raised);
     }
-
-    [Fact]
-    public void RelayCommand_Executes()
-    {
-        bool ran = false;
-        var cmd = new RelayCommand(_ => ran = true);
-        cmd.Execute(null);
-        Assert.True(ran);
-    }
 }

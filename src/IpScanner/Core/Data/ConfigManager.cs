@@ -8,7 +8,6 @@ namespace IpScanner.Core.Data;
 public static class ConfigManager
 {
     private static int Clamp(int v, int lo, int hi) => Math.Max(lo, Math.Min(hi, v));
-    private static double Clamp(double v, double lo, double hi) => Math.Max(lo, Math.Min(hi, v));
 
     public static ScanConfig Load(string path)
     {
@@ -26,15 +25,13 @@ public static class ConfigManager
                 case "ping_interval_ms":            cfg.PingIntervalMs = ParseInt(value, 0, 10_000, 100); break;
                 case "offline_after_failed_pings":  cfg.OfflineAfterFailedPings = ParseInt(value, 1, 100, 5); break;
                 case "init_ping_count":             cfg.InitPingCount = ParseInt(value, 1, 100, 1); break;
-                case "high_pressure_mode":          cfg.HighPressureMode = ParseBool(value); break;
                 case "enable_internet_ping":        cfg.EnableInternetPing = ParseBool(value); break;
                 case "internet_hosts":              cfg.InternetHosts = ParseIpList(value); break;
                 case "known_devices_db":            cfg.KnownDevicesDb = ParseBool(value); break;
                 case "output_directory":            cfg.OutputDirectory = value; break;
                 case "file_output":                 cfg.FileOutput = ParseBool(value); break;
                 case "export_csv":                  cfg.ExportCsv = ParseBool(value); break;
-                case "ping_threads":                cfg.PingThreads = ParseInt(value, 1, 1000, 100); break;
-                case "init_ping_threads":           cfg.InitPingThreads = ParseInt(value, 0, 1000, 254); break;
+                case "scan_threads":                cfg.ScanThreads = ParseInt(value, 0, 1000, 50); break;
                 case "pinned_ips":                  cfg.PinnedIps = ParseIpList(value); break;
                 default:
                     var m = Regex.Match(key, @"^subnet(?:_(\d+))?$");
@@ -78,8 +75,6 @@ public static class ConfigManager
         sb.AppendLine($"offline_after_failed_pings = {c.OfflineAfterFailedPings}");
         sb.AppendLine("# init_ping_count  Pings in der Suchphase je IP (1-100). Standard 1.");
         sb.AppendLine($"init_ping_count = {c.InitPingCount}");
-        sb.AppendLine("# high_pressure_mode  Alle Gerate gleichzeitig, mehr Last. Standard false.");
-        sb.AppendLine($"high_pressure_mode = {B(c.HighPressureMode)}");
         sb.AppendLine();
 
         sb.AppendLine("# -- Internet-Latenz -----------------------------------------");
@@ -104,10 +99,8 @@ public static class ConfigManager
         sb.AppendLine();
 
         sb.AppendLine("# -- Performance ---------------------------------------------");
-        sb.AppendLine("# ping_threads  Worker-Threads in der Analysephase (1-1000). Standard 100.");
-        sb.AppendLine($"ping_threads = {c.PingThreads}");
-        sb.AppendLine("# init_ping_threads  Worker-Threads in der Suchphase (0-1000, 0=einer je IP). Standard 254.");
-        sb.AppendLine($"init_ping_threads = {c.InitPingThreads}");
+        sb.AppendLine("# scan_threads  Parallele Ping-Worker je Scan (0-1000, 0=einer je Geraet). Standard 50.");
+        sb.AppendLine($"scan_threads = {c.ScanThreads}");
 
         File.WriteAllText(path, sb.ToString());
     }
@@ -133,13 +126,6 @@ public static class ConfigManager
 
     private static int ParseInt(string s, int lo, int hi, int fallback)
         => int.TryParse(s.Trim(), out var v) ? Clamp(v, lo, hi) : fallback;
-
-    private static double ParseDouble(string s, double lo, double hi, double fallback)
-        => double.TryParse(s.Trim().Replace(',', '.'),
-               System.Globalization.NumberStyles.Float,
-               System.Globalization.CultureInfo.InvariantCulture,
-               out var v)
-           ? Clamp(v, lo, hi) : fallback;
 
     private static bool ParseBool(string s)
         => s.Trim().ToLowerInvariant() is "true" or "yes" or "1" or "on" or "enabled";

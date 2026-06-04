@@ -32,7 +32,7 @@ public static class CsvExporter
                 d.Ip,
                 d.IsOnline ? "ONLINE" : "OFFLINE",
                 d.Hostname == Device.Unknown ? "" : d.Hostname ?? "",
-                d.GroupId > 0 ? d.GroupId.ToString() : "",
+                ExportGroup(d.GroupId),
                 MacVendorLookup.Instance.Lookup(d.Mac) ?? "",
                 d.Mac == Device.Unknown ? "" : d.Mac ?? "",
                 Num(d.AvgMs), Num(d.MinMs), Num(d.MaxMs), Num(d.LastMs),
@@ -42,4 +42,7 @@ public static class CsvExporter
         File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
         return path;
     }
+
+    /// <summary>Group numbering in exports starts at 0 = ungrouped, 1 = gateway, ...</summary>
+    internal static string ExportGroup(int groupId) => groupId <= 1 ? "0" : (groupId - 1).ToString();
 }

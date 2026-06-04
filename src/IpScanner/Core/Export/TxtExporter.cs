@@ -40,7 +40,7 @@ public static class TxtExporter
             var target = d.TargetPings == ScanConfig.InfinitePingCount ? "∞" : d.TargetPings.ToString();
             sb.AppendLine(
                 $"{d.Ip,-16}{(d.IsOnline ? "ONLINE" : "OFFLINE"),-9}" +
-                $"{(d.Hostname ?? "-"),-24}{(d.GroupId > 0 ? d.GroupId.ToString() : "-"),-7}" +
+                $"{(d.Hostname ?? "-"),-24}{CsvExporter.ExportGroup(d.GroupId),-7}" +
                 $"{Ms(d.AvgMs),-10}{Ms(d.MinMs),-10}{Ms(d.MaxMs),-10}{Ms(d.LastMs),-10}" +
                 $"{$"{d.CurrentPings}/{target}",-12}{d.Mac ?? "-",-18}");
         }

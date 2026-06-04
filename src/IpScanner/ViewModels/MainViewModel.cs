@@ -123,7 +123,6 @@ public sealed class MainViewModel : ObservableObject
                 Networks.Add(new NetworkInfoViewModel(i + 1, ni, GroupColorPalette.ColorForIndex(i),
                                                       primary: i == 0));
             }
-            Progress.Phase = Loc.PhaseSearching;
         });
 
         // Internet latency runs alongside the scan with the same ping count as
@@ -186,7 +185,6 @@ public sealed class MainViewModel : ObservableObject
             SyncDevices(engine);
             RefreshAll();
             UpdateProgress(engine, forceGroups: true);
-            Progress.Phase = Loc.PhaseReady;
         });
     }
 

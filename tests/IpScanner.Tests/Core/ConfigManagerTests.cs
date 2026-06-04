@@ -19,16 +19,14 @@ public class ConfigManagerTests
     {
         var path = WriteTemp("""
             ping_count = 50
-            ping_threads = 5000
-            high_pressure_mode = true
+            scan_threads = 5000
             subnet = 192.168.1.0/24
             subnet_2 = 10.0.0.0/24
             pinned_ips = 192.168.1.1, 192.168.1.10
             """);
         var cfg = ConfigManager.Load(path);
         Assert.Equal(50, cfg.PingCount);
-        Assert.Equal(1000, cfg.PingThreads);          // clamped to max 1000
-        Assert.True(cfg.HighPressureMode);
+        Assert.Equal(1000, cfg.ScanThreads);          // clamped to max 1000
         Assert.Equal(new[] { "192.168.1.0/24", "10.0.0.0/24" }, cfg.Subnets);
         Assert.Equal(new[] { "192.168.1.1", "192.168.1.10" }, cfg.PinnedIps);
     }

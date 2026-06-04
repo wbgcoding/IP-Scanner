@@ -60,11 +60,6 @@ public static class Loc
 
     public static string TotalRow => S("Ø Gesamt", "Ø Total");
 
-    // ── Phases ──
-    public static string PhaseReady => S("Bereit", "Ready");
-    public static string PhaseSearching => S("Suche Geräte …", "Discovering …");
-    public static string PhaseAnalysis => S("Analyse …", "Analysis …");
-
     // ── Settings ──
     public static string Settings => S("Einstellungen", "Settings");
     public static string Save => S("Speichern", "Save");
@@ -73,23 +68,22 @@ public static class Loc
     public static string TabPing => S("Ping", "Ping");
     public static string TabInternet => S("Internet", "Internet");
     public static string TabOutput => S("Ausgabe", "Output");
-    public static string TabPerformance => S("Performance", "Performance");
     public static string TabDatabase => S("Datenbank", "Database");
     public static string Subnets => S("Subnetze (eine pro Zeile)", "Subnets (one per line)");
     public static string PinnedIps => S("Angeheftete IPs (eine pro Zeile)", "Pinned IPs (one per line)");
-    public static string PingCount => S("Ping-Anzahl", "Ping count");
     public static string PingInterval => S("Ping-Intervall (ms)", "Ping interval (ms)");
     public static string OfflineAfter => S("Offline nach N Fehlversuchen", "Offline after N failures");
     public static string InitPings => S("Such-Pings je IP", "Discovery pings per IP");
-    public static string HighPressure => S("High-Pressure-Modus", "High-pressure mode");
+    public static string ScanThreads => S("Threads pro Scan (0 = max)", "Threads per scan (0 = max)");
+    public static string ExportConf => S("Einstellungen exportieren …", "Export settings …");
+    public static string ImportConf => S("Einstellungen importieren …", "Import settings …");
+    public static string TabConfig => S("Konfigurationsdatei", "Configuration file");
     public static string EnableInternet => S("Internet-Ping aktivieren", "Enable internet ping");
     public static string InternetHosts => S("Internet-Hosts (einer pro Zeile)", "Internet hosts (one per line)");
     public static string OutputDir => S("Ausgabeverzeichnis", "Output directory");
     public static string Browse => S("Durchsuchen …", "Browse …");
     public static string WriteTxt => S("TXT-Bericht schreiben", "Write TXT report");
     public static string ExportCsv => S("CSV exportieren", "Export CSV");
-    public static string AnalysisThreads => S("Analyse-Threads", "Analysis threads");
-    public static string DiscoveryThreads => S("Such-Threads", "Discovery threads");
     public static string KnownDb => S("Known-Devices-Datenbank aktivieren", "Enable known-devices database");
     public static string ClearDb => S("Datenbank leeren", "Clear database");
     public static string ClearDbConfirm => S("Known-Devices-Datenbank wirklich leeren?", "Really clear the known-devices database?");
@@ -102,9 +96,15 @@ public static class Loc
     public static string TipPinnedIps => S(
         "Diese IPs werden immer mitgepingt (auch außerhalb der Subnetze) und stehen ganz oben in der Tabelle.",
         "These IPs are always pinged (even outside the subnets) and stay at the top of the table.");
-    public static string TipPingCount => S(
-        "Wie oft jedes gefundene Gerät in der Analysephase gepingt wird. -1 = endlos bis Stopp.",
-        "How many times each discovered device is pinged during analysis. -1 = endless until stopped.");
+    public static string TipScanThreads => S(
+        "Parallele Ping-Worker für Suche und Analyse. 0 = ein Thread pro Gerät (maximale Geschwindigkeit, mehr Last). Standard 50.",
+        "Parallel ping workers for discovery and analysis. 0 = one thread per device (max speed, more load). Default 50.");
+    public static string TipExportConf => S(
+        "Speichert alle aktuellen Einstellungen in eine .conf-Datei.",
+        "Saves all current settings to a .conf file.");
+    public static string TipImportConf => S(
+        "Lädt Einstellungen aus einer zuvor exportierten .conf-Datei.",
+        "Loads settings from a previously exported .conf file.");
     public static string TipPingInterval => S(
         "Pause in Millisekunden zwischen zwei Pings an dasselbe Gerät. Kleinere Werte = schneller, mehr Netzlast.",
         "Pause in milliseconds between two pings to the same device. Lower = faster, more network load.");
@@ -114,9 +114,6 @@ public static class Loc
     public static string TipInitPings => S(
         "Such-Versuche pro IP in der Discovery-Phase (stoppt bei der ersten Antwort). Höher = zuverlässiger bei trägen Geräten, langsamer.",
         "Discovery attempts per IP (stops at the first reply). Higher = more reliable for slow devices, but slower.");
-    public static string TipHighPressure => S(
-        "Pingt alle Geräte gleichzeitig statt gedrosselt. Schneller, erzeugt aber deutlich mehr Netzlast.",
-        "Pings all devices at once instead of throttled. Faster, but creates much more network load.");
     public static string TipEnableInternet => S(
         "Misst nebenbei die Latenz zu öffentlichen Hosts (Sidebar) — zeigt, ob die Internetverbindung steht.",
         "Also measures latency to public hosts (sidebar) — shows whether the internet connection is up.");
@@ -138,12 +135,6 @@ public static class Loc
     public static string TipClearDb => S(
         "Löscht alle gespeicherten Geräte aus der Datenbank. Kann nicht rückgängig gemacht werden.",
         "Deletes all stored devices from the database. Cannot be undone.");
-    public static string TipAnalysisThreads => S(
-        "Wie viele Geräte gleichzeitig in der Analysephase gepingt werden.",
-        "How many devices are pinged in parallel during the analysis phase.");
-    public static string TipDiscoveryThreads => S(
-        "Parallele Pings in der Suchphase. 0 = ein Thread pro IP (schnellste Suche).",
-        "Parallel pings during discovery. 0 = one thread per IP (fastest discovery).");
     public static string ScanError => S("Scan-Fehler", "Scan error");
     public static string LargeRange => S("Großer Bereich", "Large range");
     public static string LargeRangeMsg(int cidr, int subnets, long hosts) => German

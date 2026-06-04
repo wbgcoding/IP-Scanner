@@ -45,12 +45,13 @@ public sealed class ScanEngine
         int analysisPerIp = infinite ? 0 : Math.Max(0, cfg.PingCount - 1);
 
         // Analysis runs per device as soon as its discovery ping answers —
-        // no barrier between the two phases. Own semaphore keeps the
-        // configured analysis parallelism independent of discovery threads.
-        using var analysisSem = new SemaphoreSlim(Math.Max(1, cfg.PingThreads));
+        // no barrier between the two phases. ScanThreads caps both phases;
+        // 0 = one worker per device (max parallelism).
+        int workers = cfg.ScanThreads <= 0 ? ips.Count : cfg.ScanThreads;
+        using var analysisSem = new SemaphoreSlim(Math.Max(1, workers));
         var analysisTasks = new ConcurrentBag<Task>();
 
-        await RunParallel(ips, cfg.InitPingThreads <= 0 ? ips.Count : cfg.InitPingThreads, ct,
+        await RunParallel(ips, workers, ct,
             ip =>
             {
                 if (ct.IsCancellationRequested) return;
