@@ -59,6 +59,15 @@ public sealed class ScanEngine
         // no barrier between the two phases. ScanThreads caps both phases;
         // 0 = one worker per device (max parallelism).
         int workers = cfg.ScanThreads <= 0 ? ips.Count : cfg.ScanThreads;
+
+        // Discovery + analysis block up to 2×workers pool threads with ICMP
+        // waits. The pool only grows ~1 thread/s past its minimum, so without
+        // this, early devices appear instantly and the rest trickle in —
+        // raise the minimum so all workers run from the start.
+        ThreadPool.GetMinThreads(out int minWorker, out int minIo);
+        int wanted = Math.Min(workers * 2 + 16, 1024);
+        if (minWorker < wanted) ThreadPool.SetMinThreads(wanted, minIo);
+
         using var analysisSem = new SemaphoreSlim(Math.Max(1, workers));
         var analysisTasks = new ConcurrentBag<Task>();
         // IPs whose analysis loop has started (prevents double-starts from rechecks).
