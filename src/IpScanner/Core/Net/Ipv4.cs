@@ -19,7 +19,10 @@ public static class Ipv4
     }
 
     public static string SubnetPrefix(string ip)
-        => string.Join('.', ip.Split('.')[..3]);
+    {
+        var parts = ip.Split('.');
+        return parts.Length >= 3 ? string.Join('.', parts[..3]) : ip;
+    }
 
     /// <summary>Numeric sort key for an IPv4 string (0 when unparseable).</summary>
     public static long SortKey(string ip)

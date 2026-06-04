@@ -7,8 +7,6 @@ self-contained exe.
 
 ![IP-Scanner](docs/screenshot.png)
 
-*The screenshot shows synthetic sample data (TEST-NET addresses), not a real network.*
-
 ## Features
 
 - Two-phase scan: fast discovery sweep, then a configurable number of analysis
