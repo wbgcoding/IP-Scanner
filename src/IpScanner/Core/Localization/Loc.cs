@@ -92,6 +92,56 @@ public static class Loc
     public static string ClearDb => S("Datenbank leeren", "Clear database");
     public static string ClearDbConfirm => S("Known-Devices-Datenbank wirklich leeren?", "Really clear the known-devices database?");
     public static string Confirm => S("Bestätigen", "Confirm");
+
+    // ── Settings tooltips ──
+    public static string TipSubnets => S(
+        "Diese Netze werden bei jedem Scan zusätzlich zum oben eingegebenen Netz gepingt. Format: 192.168.2.0/24 — mehrere per Zeile oder Komma.",
+        "These networks are pinged on every scan in addition to the one entered at the top. Format: 192.168.2.0/24 — multiple per line or comma.");
+    public static string TipPinnedIps => S(
+        "Diese IPs werden immer mitgepingt (auch außerhalb der Subnetze) und stehen ganz oben in der Tabelle.",
+        "These IPs are always pinged (even outside the subnets) and stay at the top of the table.");
+    public static string TipPingCount => S(
+        "Wie oft jedes gefundene Gerät in der Analysephase gepingt wird. -1 = endlos bis Stopp.",
+        "How many times each discovered device is pinged during analysis. -1 = endless until stopped.");
+    public static string TipPingInterval => S(
+        "Pause in Millisekunden zwischen zwei Pings an dasselbe Gerät. Kleinere Werte = schneller, mehr Netzlast.",
+        "Pause in milliseconds between two pings to the same device. Lower = faster, more network load.");
+    public static string TipOfflineAfter => S(
+        "Nach so vielen Fehlpings in Folge gilt ein Gerät als offline und verschwindet aus der Tabelle.",
+        "After this many consecutive failed pings a device counts as offline and leaves the table.");
+    public static string TipInitPings => S(
+        "Such-Versuche pro IP in der Discovery-Phase (stoppt bei der ersten Antwort). Höher = zuverlässiger bei trägen Geräten, langsamer.",
+        "Discovery attempts per IP (stops at the first reply). Higher = more reliable for slow devices, but slower.");
+    public static string TipHighPressure => S(
+        "Pingt alle Geräte gleichzeitig statt gedrosselt. Schneller, erzeugt aber deutlich mehr Netzlast.",
+        "Pings all devices at once instead of throttled. Faster, but creates much more network load.");
+    public static string TipEnableInternet => S(
+        "Misst nebenbei die Latenz zu öffentlichen Hosts (Sidebar) — zeigt, ob die Internetverbindung steht.",
+        "Also measures latency to public hosts (sidebar) — shows whether the internet connection is up.");
+    public static string TipInternetHosts => S(
+        "Öffentliche IPs für die Internet-Latenzmessung, z.B. 8.8.8.8 (Google) oder 1.1.1.1 (Cloudflare).",
+        "Public IPs used for the internet latency check, e.g. 8.8.8.8 (Google) or 1.1.1.1 (Cloudflare).");
+    public static string TipOutputDir => S(
+        "Ordner, in dem TXT-/CSV-Berichte nach einem Scan gespeichert werden.",
+        "Folder where TXT/CSV reports are written after a scan.");
+    public static string TipWriteTxt => S(
+        "Schreibt nach jedem Scan einen lesbaren Textbericht mit allen Tabellenwerten.",
+        "Writes a readable text report with all table values after each scan.");
+    public static string TipExportCsv => S(
+        "Exportiert die Ergebnisse zusätzlich als CSV — praktisch für Excel oder Skripte.",
+        "Additionally exports the results as CSV — handy for Excel or scripts.");
+    public static string TipKnownDb => S(
+        "Merkt sich gefundene Geräte je Netzwerk in scanner.db, damit bekannte Geräte beim nächsten Scan wiedererkannt werden.",
+        "Remembers discovered devices per network in scanner.db so known devices are recognized on the next scan.");
+    public static string TipClearDb => S(
+        "Löscht alle gespeicherten Geräte aus der Datenbank. Kann nicht rückgängig gemacht werden.",
+        "Deletes all stored devices from the database. Cannot be undone.");
+    public static string TipAnalysisThreads => S(
+        "Wie viele Geräte gleichzeitig in der Analysephase gepingt werden.",
+        "How many devices are pinged in parallel during the analysis phase.");
+    public static string TipDiscoveryThreads => S(
+        "Parallele Pings in der Suchphase. 0 = ein Thread pro IP (schnellste Suche).",
+        "Parallel pings during discovery. 0 = one thread per IP (fastest discovery).");
     public static string ScanError => S("Scan-Fehler", "Scan error");
     public static string LargeRange => S("Großer Bereich", "Large range");
     public static string LargeRangeMsg(int cidr, int subnets, long hosts) => German

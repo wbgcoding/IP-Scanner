@@ -42,6 +42,13 @@ public sealed class ScanEngine
         foreach (var pin in cfg.PinnedIps)
             if (Ipv4.IsValid(pin) && seen.Add(pin)) ips.Add(pin);
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
+        int analysisPerIp = infinite ? 0 : Math.Max(0, cfg.PingCount - 1);
+
+        // Analysis runs per device as soon as its discovery ping answers —
+        // no barrier between the two phases. Own semaphore keeps the
+        // configured analysis parallelism independent of discovery threads.
+        using var analysisSem = new SemaphoreSlim(Math.Max(1, cfg.PingThreads));
+        var analysisTasks = new ConcurrentBag<Task>();
 
         await RunParallel(ips, cfg.InitPingThreads <= 0 ? ips.Count : cfg.InitPingThreads, ct,
             ip =>
@@ -52,59 +59,78 @@ public sealed class ScanEngine
                     TargetPings = cfg.PingCount == 0 ? 1 : cfg.PingCount,
                     OfflineAfterFailures = cfg.OfflineAfterFailedPings,
                 });
-                var r = _ping(ip, IcmpTimeoutMs);
-                device.RecordPing(r);
-                if (r.Success) Progress.AddSuccess(); else Progress.AddFailed();
+                // Discovery: up to InitPingCount attempts, stop at first reply.
+                var r = new PingResult(false, null, null);
+                int tries = Math.Max(1, cfg.InitPingCount);
+                for (int t = 0; t < tries && !ct.IsCancellationRequested; t++)
+                {
+                    r = _ping(ip, IcmpTimeoutMs);
+                    device.RecordPing(r);
+                    if (r.Success) Progress.AddSuccess(); else Progress.AddFailed();
+                    if (r.Success) break;
+                }
                 Progress.AddProcessed();
                 Progress.NotifyChanged();
                 DeviceUpdated?.Invoke(device);
-                // First reply: resolve MAC + hostname OFF the critical path so
-                // discovery finishes fast and analysis pings start without delay.
-                if (r.Success && device.SuccessCount == 1 && _enrich is not null)
+                if (r.Success)
                 {
-                    var d = device;
-                    var addr = ip;
-                    _ = Task.Run(() =>
+                    // First reply: resolve MAC + hostname OFF the critical path so
+                    // discovery finishes fast and analysis pings start without delay.
+                    if (_enrich is not null)
                     {
-                        try
+                        var d = device;
+                        var addr = ip;
+                        _ = Task.Run(() =>
                         {
-                            var (mac, host) = _enrich(addr);
-                            if (!string.IsNullOrEmpty(mac)) d.Mac = mac;
-                            if (!string.IsNullOrEmpty(host)) d.Hostname = host;
-                            DeviceUpdated?.Invoke(d);
-                        }
-                        catch { /* enrichment is best-effort */ }
-                    });
+                            try
+                            {
+                                var (mac, host) = _enrich(addr);
+                                if (!string.IsNullOrEmpty(mac)) d.Mac = mac;
+                                if (!string.IsNullOrEmpty(host)) d.Hostname = host;
+                                DeviceUpdated?.Invoke(d);
+                            }
+                            catch { /* enrichment is best-effort */ }
+                        });
+                    }
+                    if (infinite || analysisPerIp > 0)
+                        analysisTasks.Add(AnalyzeDeviceAsync(device, cfg, infinite, analysisSem, ct));
+                }
+                else if (analysisPerIp > 0)
+                {
+                    // Offline at discovery: its analysis pings are skipped.
+                    Progress.AddSkipped(analysisPerIp);
+                    Progress.NotifyChanged();
                 }
             });
 
-        if (cfg.PingCount == 0) return;
+        await Task.WhenAll(analysisTasks).ConfigureAwait(false);
+    }
 
-        var online = _devices.Values.Where(d => d.IsOnline).Select(d => d.Ip).ToList();
-
-        int analysisPerIp = infinite ? 0 : Math.Max(0, cfg.PingCount - 1);
-        int offlineCount = _devices.Count - online.Count;
-        if (analysisPerIp > 0 && offlineCount > 0)
+    /// <summary>N analysis pings for one device, gated by the analysis semaphore.</summary>
+    private async Task AnalyzeDeviceAsync(Device device, ScanConfig cfg, bool infinite,
+                                          SemaphoreSlim sem, CancellationToken ct)
+    {
+        try { await sem.WaitAsync(ct).ConfigureAwait(false); }
+        catch (OperationCanceledException) { return; }
+        try
         {
-            Progress.AddSkipped((long)offlineCount * analysisPerIp);
-            Progress.NotifyChanged();
-        }
-
-        await RunParallel(online, cfg.PingThreads, ct, ip =>
-        {
-            var device = _devices[ip];
-            int target = infinite ? int.MaxValue : cfg.PingCount;
-            for (int i = 1; i < target && !ct.IsCancellationRequested; i++)
+            await Task.Run(() =>
             {
-                if (cfg.PingIntervalMs > 0) InterruptibleSleep(cfg.PingIntervalMs, ct);
-                if (ct.IsCancellationRequested) break;
-                var ar = _ping(ip, IcmpTimeoutMs);
-                device.RecordPing(ar);
-                if (ar.Success) Progress.AddSuccess(); else Progress.AddFailed();
-                Progress.NotifyChanged();
-                DeviceUpdated?.Invoke(device);
-            }
-        });
+                int target = infinite ? int.MaxValue : cfg.PingCount;
+                for (int i = 1; i < target && !ct.IsCancellationRequested; i++)
+                {
+                    if (cfg.PingIntervalMs > 0) InterruptibleSleep(cfg.PingIntervalMs, ct);
+                    if (ct.IsCancellationRequested) break;
+                    var ar = _ping(device.Ip, IcmpTimeoutMs);
+                    device.RecordPing(ar);
+                    if (ar.Success) Progress.AddSuccess(); else Progress.AddFailed();
+                    Progress.NotifyChanged();
+                    DeviceUpdated?.Invoke(device);
+                }
+            }, ct).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) { }
+        finally { sem.Release(); }
     }
 
     private static async Task RunParallel(IReadOnlyList<string> items, int maxParallel,

@@ -9,7 +9,7 @@ public static class CsvExporter
 {
     private static readonly string[] Columns =
     {
-        "ip","status","hostname","vendor","mac","ping_avg_ms","ping_min_ms",
+        "ip","status","hostname","group","vendor","mac","ping_avg_ms","ping_min_ms",
         "ping_max_ms","last_ping_ms","pings_done","pings_target","from_db"
     };
 
@@ -22,7 +22,7 @@ public static class CsvExporter
 
         var sb = new StringBuilder();
         sb.AppendLine(string.Join(',', Columns));
-        foreach (var d in devices)
+        foreach (var d in devices.OrderBy(d => Net.Ipv4.SortKey(d.Ip)))
         {
             if (!d.IsOnline && !d.FromDb && !d.Seen) continue;
             string Num(double? v) => v?.ToString("F2", CultureInfo.InvariantCulture) ?? "";
@@ -32,6 +32,7 @@ public static class CsvExporter
                 d.Ip,
                 d.IsOnline ? "ONLINE" : "OFFLINE",
                 d.Hostname == Device.Unknown ? "" : d.Hostname ?? "",
+                d.GroupId > 0 ? d.GroupId.ToString() : "",
                 MacVendorLookup.Instance.Lookup(d.Mac) ?? "",
                 d.Mac == Device.Unknown ? "" : d.Mac ?? "",
                 Num(d.AvgMs), Num(d.MinMs), Num(d.MaxMs), Num(d.LastMs),

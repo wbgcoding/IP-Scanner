@@ -31,15 +31,18 @@ public static class TxtExporter
         sb.AppendLine($"DNS Servers: {(info.DnsServers.Count > 0 ? string.Join(", ", info.DnsServers) : "Unknown")}");
         sb.AppendLine();
 
-        sb.AppendLine($"{"IP",-16}{"Status",-9}{"Hostname",-24}{"Avg",-10}{"MAC",-18}");
-        sb.AppendLine(new string('-', 80));
-        foreach (var d in devices.Where(d => d.IsOnline || d.FromDb || d.Seen))
+        sb.AppendLine($"{"IP",-16}{"Status",-9}{"Hostname",-24}{"Group",-7}{"Avg",-10}{"Min",-10}{"Max",-10}{"Last",-10}{"Pings",-12}{"MAC",-18}");
+        sb.AppendLine(new string('-', 126));
+        string Ms(double? v) => v is null ? "-" : v.Value.ToString("F2", CultureInfo.InvariantCulture) + "ms";
+        foreach (var d in devices.Where(d => d.IsOnline || d.FromDb || d.Seen)
+                                 .OrderBy(d => Net.Ipv4.SortKey(d.Ip)))
         {
-            string avg = d.AvgMs is null ? "-" : d.AvgMs.Value.ToString("F2", CultureInfo.InvariantCulture) + "ms";
+            var target = d.TargetPings == ScanConfig.InfinitePingCount ? "∞" : d.TargetPings.ToString();
             sb.AppendLine(
                 $"{d.Ip,-16}{(d.IsOnline ? "ONLINE" : "OFFLINE"),-9}" +
-                $"{(d.Hostname ?? "-"),-24}{avg,-10}" +
-                $"{d.Mac ?? "-",-18}");
+                $"{(d.Hostname ?? "-"),-24}{(d.GroupId > 0 ? d.GroupId.ToString() : "-"),-7}" +
+                $"{Ms(d.AvgMs),-10}{Ms(d.MinMs),-10}{Ms(d.MaxMs),-10}{Ms(d.LastMs),-10}" +
+                $"{$"{d.CurrentPings}/{target}",-12}{d.Mac ?? "-",-18}");
         }
         File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
         return path;

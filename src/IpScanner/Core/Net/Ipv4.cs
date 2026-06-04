@@ -21,6 +21,20 @@ public static class Ipv4
     public static string SubnetPrefix(string ip)
         => string.Join('.', ip.Split('.')[..3]);
 
+    /// <summary>Numeric sort key for an IPv4 string (0 when unparseable).</summary>
+    public static long SortKey(string ip)
+    {
+        var p = ip.Split('.');
+        if (p.Length != 4) return 0;
+        long key = 0;
+        foreach (var part in p)
+        {
+            if (!int.TryParse(part, out var n)) return 0;
+            key = key * 256 + n;
+        }
+        return key;
+    }
+
     public static List<string> HostsInSubnet(string prefix)
     {
         var list = new List<string>(LastHost - FirstHost + 1);

@@ -14,7 +14,7 @@ public sealed class DeviceViewModel : ObservableObject
         _device = device;
         IsSelf = isSelf;
         IsPinned = isPinned;
-        IpSortKey = ToSortKey(device.Ip);
+        IpSortKey = Core.Net.Ipv4.SortKey(device.Ip);
     }
 
     /// <summary>True for this machine's own row.</summary>
@@ -26,19 +26,6 @@ public sealed class DeviceViewModel : ObservableObject
 
     /// <summary>Numeric IPv4 for sorting (0 when unparseable).</summary>
     public long IpSortKey { get; }
-
-    private static long ToSortKey(string ip)
-    {
-        var p = ip.Split('.');
-        if (p.Length != 4) return 0;
-        long key = 0;
-        foreach (var part in p)
-        {
-            if (!int.TryParse(part, out var n)) return 0;
-            key = key * 256 + n;
-        }
-        return key;
-    }
 
     public string Ip => _device.Ip;
     public string Status => _device.IsOnline ? "ONLINE" : "OFFLINE";

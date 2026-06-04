@@ -190,17 +190,21 @@ public sealed class MainViewModel : ObservableObject
 
     private IReadOnlyList<string> BuildPrefixes(NetworkInfo info, List<string> extra)
     {
-        // Manual subnet (header field + CIDR) wins and replaces auto-detect + config.
-        var manual = ManualPrefixes(ManualSubnet);
-        if (manual is { Count: > 0 }) return manual;
-
         var list = new List<string>();
-        if (info.Ip is not null) list.Add(Ipv4.SubnetPrefix(info.Ip));
-        foreach (var s in extra)
+        var seen = new HashSet<string>();
+        void Add(IEnumerable<string>? prefixes)
         {
-            var prefix = Ipv4.SubnetPrefix(s.Split('/')[0]);
-            if (!list.Contains(prefix)) list.Add(prefix);
+            if (prefixes is null) return;
+            foreach (var p in prefixes) if (seen.Add(p)) list.Add(p);
         }
+
+        // Manual subnet (header field + CIDR) replaces only the auto-detected net.
+        var manual = ManualPrefixes(ManualSubnet);
+        if (manual is { Count: > 0 }) Add(manual);
+        else if (info.Ip is not null) Add(new[] { Ipv4.SubnetPrefix(info.Ip) });
+
+        // Configured subnets (settings) are always scanned in addition.
+        foreach (var s in extra) Add(ManualPrefixes(s));
         return list;
     }
 

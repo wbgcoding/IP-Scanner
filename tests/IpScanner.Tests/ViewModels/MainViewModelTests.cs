@@ -62,6 +62,29 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task RunScan_ConfigSubnets_AreScannedInAddition()
+    {
+        var vm = new MainViewModel(
+            pingFunc: OnlyDotOne,
+            detectNetwork: () => new NetworkInfo { Ip = "10.0.2.5", Gateway = "10.0.2.1" },
+            dispatch: a => a());
+        vm.Config = new ScanConfig
+        {
+            PingCount = 1, PingIntervalMs = 0, FileOutput = false,
+            KnownDevicesDb = false, EnableInternetPing = false,
+            Subnets = new() { "10.0.1.0/24" },
+        };
+        vm.ManualSubnet = "10.0.0.0/24";
+
+        await vm.RunScanAsync();
+
+        // Manual subnet replaces auto-detect; configured subnet is scanned too.
+        Assert.Contains(vm.Devices, d => d.Ip == "10.0.0.1");
+        Assert.Contains(vm.Devices, d => d.Ip == "10.0.1.1");
+        Assert.DoesNotContain(vm.Devices, d => d.Ip == "10.0.2.1");
+    }
+
+    [Fact]
     public async Task RunScan_UpdatesNetworkCardStats()
     {
         var vm = new MainViewModel(
