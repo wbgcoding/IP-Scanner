@@ -380,7 +380,13 @@
 
                             <!-- Internet -->
                             <TextBlock Text="{x:Static loc:Loc.TabInternet}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
-                            <CheckBox x:Name="EnableInternetBox" Content="{x:Static loc:Loc.EnableInternet}" Foreground="{StaticResource Text}" FontSize="13" ToolTip="{x:Static loc:Loc.TipEnableInternet}"/>
+                            <DockPanel>
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{x:Static loc:Loc.TipInternetTimeout}">
+                                    <TextBlock Text="{x:Static loc:Loc.InternetTimeout}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox x:Name="InternetTimeoutBox" Width="130" FontSize="13"/>
+                                </StackPanel>
+                                <CheckBox x:Name="EnableInternetBox" Content="{x:Static loc:Loc.EnableInternet}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" ToolTip="{x:Static loc:Loc.TipEnableInternet}"/>
+                            </DockPanel>
                             <TextBlock Text="{x:Static loc:Loc.InternetHosts}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,12,0,4" ToolTip="{x:Static loc:Loc.TipInternetHosts}"/>
                             <Grid>
                                 <TextBox x:Name="InternetHostsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
@@ -404,6 +410,7 @@
 
                             <!-- Datenbank -->
                             <TextBlock Text="{x:Static loc:Loc.TabDatabase}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
+                            <TextBlock Text="{x:Static loc:Loc.ConfNote}" Foreground="{StaticResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
                             <TextBlock Text="{x:Static loc:Loc.DbFile}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipDbFile}"/>
                             <DockPanel Margin="0,0,0,12">
                                 <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowseDb" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>

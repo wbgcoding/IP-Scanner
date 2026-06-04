@@ -90,6 +90,10 @@ public static class Loc
     public static string ClearDb => S("Datenbank leeren", "Clear database");
     public static string MergeDb => S("Datenbanken zusammenführen …", "Merge databases …");
     public static string DbFile => S("Datenbankdatei", "Database file");
+    public static string InternetTimeout => S("Ping-Timeout (ms)", "Ping timeout (ms)");
+    public static string ConfNote => S(
+        "Die Einstellungen werden automatisch als ip_scanner.conf im Ordner der Datenbank gespeichert und beim Start geladen.",
+        "Settings are saved automatically as ip_scanner.conf next to the database and loaded at startup.");
     public static string MergeDone(int n) => German
         ? $"{n} Einträge zusammengeführt."
         : $"{n} entries merged.";
@@ -148,6 +152,9 @@ public static class Loc
     public static string TipKnownDb => S(
         "Merkt sich gefundene Geräte je Netzwerk in scanner.db, damit bekannte Geräte beim nächsten Scan wiedererkannt werden.",
         "Remembers discovered devices per network in scanner.db so known devices are recognized on the next scan.");
+    public static string TipInternetTimeout => S(
+        "ICMP-Timeout für die Internet-Host-Pings in Millisekunden. Standard 1500.",
+        "ICMP timeout for the internet host pings in milliseconds. Default 1500.");
     public static string TipDbFile => S(
         "Pfad der Known-Devices-Datenbank. Liegt standardmäßig im Scans-Ordner.",
         "Path of the known-devices database. Lives in the scans folder by default.");

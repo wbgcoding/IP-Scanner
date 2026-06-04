@@ -213,12 +213,13 @@ public sealed class MainViewModel : ObservableObject
         int target = pingCount == ScanConfig.InfinitePingCount ? int.MaxValue : Math.Max(1, pingCount);
         // Don't hammer public hosts faster than twice a second.
         int interval = Math.Max(Config.PingIntervalMs, 500);
+        int timeout = Math.Clamp(Config.InternetTimeoutMs, 100, 10_000);
 
         await Task.WhenAll(hosts.Select(host => Task.Run(async () =>
         {
             for (int i = 0; i < target && !ct.IsCancellationRequested; i++)
             {
-                var r = _pingFunc(host.Ip, 1500);
+                var r = _pingFunc(host.Ip, timeout);
                 _dispatch(() => host.RecordPing(r.Success ? r.LatencyMs : null));
                 if (i + 1 >= target) break;
                 try { await Task.Delay(interval, ct); }

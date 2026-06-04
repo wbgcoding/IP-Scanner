@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using IpScanner.Core.Data;
@@ -19,9 +20,9 @@ public partial class MainWindow : Window
         InitializeComponent();
         WindowTheme.ApplyDark(this);
 
-        // Settings live in memory only; .conf is written/read solely via the
-        // explicit export/import buttons in the settings panel.
-        _config = new ScanConfig();
+        // Settings persist as ip_scanner.conf next to the database and are
+        // loaded again on every start (export/import stays available too).
+        _config = LoadPersistedConfig();
         _vm = new MainViewModel(
             pingFunc: IcmpPinger.Ping,
             detectNetwork: NetworkDetector.DetectFast,
@@ -195,7 +196,25 @@ public partial class MainWindow : Window
     }
 
     private void OnResetDefaults(object sender, RoutedEventArgs e)
-        => LoadSettings(new ScanConfig());
+    {
+        // Reset also removes the persisted config files.
+        foreach (var p in new[] { ConfPathFor(_config.DatabasePath), ConfPathFor(new ScanConfig().DatabasePath) })
+            try { if (File.Exists(p)) File.Delete(p); } catch { /* best-effort */ }
+        LoadSettings(new ScanConfig());
+    }
+
+    /// <summary>Existing directory of a (possibly relative) path, or null.</summary>
+    private static string? DirOf(string path)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(path)) return null;
+            var full = Path.GetFullPath(path);
+            var dir = Directory.Exists(full) ? full : Path.GetDirectoryName(full);
+            return dir is not null && Directory.Exists(dir) ? dir : null;
+        }
+        catch { return null; }
+    }
 
     private void OnMergeDb(object sender, RoutedEventArgs e)
     {
@@ -212,11 +231,37 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>Config file lives next to the database.</summary>
+    private static string ConfPathFor(string dbPath)
+        => Path.Combine(Path.GetDirectoryName(Path.GetFullPath(dbPath)) ?? ".", "ip_scanner.conf");
+
+    private static ScanConfig LoadPersistedConfig()
+    {
+        try
+        {
+            var def = ConfPathFor(new ScanConfig().DatabasePath);
+            var cfg = File.Exists(def) ? ConfigManager.Load(def) : new ScanConfig();
+            // The loaded config may point to a different db folder — its conf wins.
+            var at = ConfPathFor(cfg.DatabasePath);
+            if (!string.Equals(at, def, StringComparison.OrdinalIgnoreCase) && File.Exists(at))
+                cfg = ConfigManager.Load(at);
+            return cfg;
+        }
+        catch { return new ScanConfig(); }
+    }
+
     private void OnSettingsSave(object sender, RoutedEventArgs e)
     {
         _config = ReadSettings();
         _vm.Config = _config;
         ApplyUiScale();
+        try
+        {
+            var path = ConfPathFor(_config.DatabasePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            ConfigManager.Save(path, _config);
+        }
+        catch { /* persisting is best-effort */ }
         SettingsOverlay.Visibility = Visibility.Collapsed;
     }
 
@@ -227,6 +272,7 @@ public partial class MainWindow : Window
             Filter = "Config (*.conf)|*.conf",
             FileName = "ip_scanner.conf",
         };
+        if (DirOf(_config.DatabasePath) is { } dir) dlg.InitialDirectory = dir;
         if (dlg.ShowDialog(this) != true) return;
         try { ConfigManager.Save(dlg.FileName, ReadSettings()); }
         catch (Exception ex) { MessageBox.Show(this, ex.Message, Loc.ScanError, MessageBoxButton.OK, MessageBoxImage.Error); }
@@ -235,6 +281,7 @@ public partial class MainWindow : Window
     private void OnImportConf(object sender, RoutedEventArgs e)
     {
         var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Config (*.conf)|*.conf|*.*|*.*" };
+        if (DirOf(_config.DatabasePath) is { } dir) dlg.InitialDirectory = dir;
         if (dlg.ShowDialog(this) != true) return;
         try { LoadSettings(ConfigManager.Load(dlg.FileName)); }
         catch (Exception ex) { MessageBox.Show(this, ex.Message, Loc.ScanError, MessageBoxButton.OK, MessageBoxImage.Error); }
@@ -251,6 +298,7 @@ public partial class MainWindow : Window
         InitPingCountBox.Text = c.InitPingCount.ToString();
         OfflineRecheckBox.Text = c.OfflineRecheckSeconds.ToString();
         EnableInternetBox.IsChecked = c.EnableInternetPing;
+        InternetTimeoutBox.Text = c.InternetTimeoutMs.ToString();
         InternetHostsBox.Text = string.Join(Environment.NewLine, c.InternetHosts);
         OutputDirBox.Text = c.OutputDirectory;
         DbPathBox.Text = c.DatabasePath;
@@ -279,6 +327,7 @@ public partial class MainWindow : Window
             InitPingCount = I(InitPingCountBox.Text, 1),
             OfflineRecheckSeconds = Math.Clamp(I(OfflineRecheckBox.Text, 2), 0, 3600),
             EnableInternetPing = EnableInternetBox.IsChecked == true,
+            InternetTimeoutMs = Math.Clamp(I(InternetTimeoutBox.Text, 1500), 100, 10_000),
             InternetHosts = Items(InternetHostsBox.Text),
             OutputDirectory = OutputDirBox.Text.Trim(),
             DatabasePath = DbPathBox.Text.Trim().Length > 0 ? DbPathBox.Text.Trim() : "./Scans/scanner.db",
@@ -291,6 +340,7 @@ public partial class MainWindow : Window
     private void OnBrowse(object sender, RoutedEventArgs e)
     {
         var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.OutputDir };
+        if (DirOf(OutputDirBox.Text) is { } dir) dlg.InitialDirectory = dir;
         if (dlg.ShowDialog(this) == true) OutputDirBox.Text = dlg.FolderName;
     }
 
@@ -311,6 +361,7 @@ public partial class MainWindow : Window
             FileName = "scanner.db",
             OverwritePrompt = false,    // existing db is opened, not replaced
         };
+        if (DirOf(DbPathBox.Text) is { } dir) dlg.InitialDirectory = dir;
         if (dlg.ShowDialog(this) == true) DbPathBox.Text = dlg.FileName;
     }
 

@@ -27,6 +27,7 @@ public static class ConfigManager
                 case "init_ping_count":             cfg.InitPingCount = ParseInt(value, 1, 100, 1); break;
                 case "offline_recheck_seconds":     cfg.OfflineRecheckSeconds = ParseInt(value, 0, 3600, 2); break;
                 case "enable_internet_ping":        cfg.EnableInternetPing = ParseBool(value); break;
+                case "internet_timeout_ms":         cfg.InternetTimeoutMs = ParseInt(value, 100, 10_000, 1500); break;
                 case "internet_hosts":              cfg.InternetHosts = ParseIpList(value); break;
                 case "known_devices_db":            cfg.KnownDevicesDb = ParseBool(value); break;
                 case "database_path":               if (value.Length > 0) cfg.DatabasePath = value; break;
@@ -85,6 +86,8 @@ public static class ConfigManager
         sb.AppendLine("# -- Internet-Latenz -----------------------------------------");
         sb.AppendLine("# enable_internet_ping  Offentliche Hosts mitpingen. Standard true.");
         sb.AppendLine($"enable_internet_ping = {B(c.EnableInternetPing)}");
+        sb.AppendLine("# internet_timeout_ms  Ping-Timeout fuer Internet-Hosts (100-10000 ms). Standard 1500.");
+        sb.AppendLine($"internet_timeout_ms = {c.InternetTimeoutMs}");
         sb.AppendLine("# internet_hosts  Zu messende IPs, Komma-getrennt.");
         sb.AppendLine($"internet_hosts = {string.Join(", ", c.InternetHosts)}");
         sb.AppendLine();
