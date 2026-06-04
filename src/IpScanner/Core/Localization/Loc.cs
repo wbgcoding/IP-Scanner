@@ -40,6 +40,16 @@ public static class Loc
     public static string ConfFileFilter => S(
         "Konfiguration (*.conf)|*.conf|Alle Dateien (*.*)|*.*",
         "Configuration (*.conf)|*.conf|All files (*.*)|*.*");
+    public static string TipOpenScans => S("Scan-Ordner öffnen", "Open the scans folder");
+    public static string TipResetValue => S("Zurück zum automatischen Wert", "Back to the automatic value");
+    public static string AllDevices => S("Alle Geräte", "All devices");
+    public static string LatencyHistory => S("LATENZ-VERLAUF", "LATENCY HISTORY");
+    public static string TipGraphSource => S(
+        "Quelle des Graphen: Gesamtdurchschnitt oder ein einzelnes Gerät.",
+        "Graph source: overall average or a single device.");
+    public static string TipEditCell => S(
+        "Doppelklick zum Bearbeiten — Änderungen werden dauerhaft gespeichert.",
+        "Double-click to edit — changes are stored permanently.");
     public static string ExampleSubnets => "192.168.2.0/24";
     public static string ExamplePinnedIps => "192.168.2.10, 192.168.2.20";
     public static string ExampleInternetHosts => "8.8.8.8 Google, 1.1.1.1 Cloudflare";

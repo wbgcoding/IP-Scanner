@@ -22,7 +22,7 @@ public sealed class ScanConfig
     public bool KnownDevicesDb { get; set; } = true;
     /// <summary>Known-devices database file (lives in the scans folder by default).</summary>
     public string DatabasePath { get; set; } = DefaultDatabasePath;
-    public string OutputDirectory { get; set; } = "./Scans";
+    public string OutputDirectory { get; set; } = DefaultOutputDirectory;
     public bool FileOutput { get; set; }          // TXT report off by default
     public bool ExportCsv { get; set; }
     /// <summary>Parallel ping workers per scan. 0 = one thread per device (max).</summary>
@@ -43,6 +43,8 @@ public sealed class ScanConfig
     public const string DefaultDatabasePath = "./Scans/scanner.db";
     public const string DefaultDatabaseFileName = "scanner.db";
     public const string ConfigFileName = "ip_scanner.conf";
+    public const string OverridesFileName = "overrides.conf";
+    public const string DefaultOutputDirectory = "./Scans";
 
     /// <summary>Copy with a different ping count (lists shared, read-only use).</summary>
     public ScanConfig CloneWith(int pingCount) => new()

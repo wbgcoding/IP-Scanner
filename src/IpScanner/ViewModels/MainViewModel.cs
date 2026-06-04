@@ -78,6 +78,53 @@ public sealed class MainViewModel : ObservableObject
     private string? _selfHost;
     private string? _gatewayIp;
     private HashSet<string> _pinned = new();
+    private readonly OverrideStore _overrides = new();
+
+    /// <summary>Load manual hostname/group overrides (file lives next to the db).</summary>
+    public void InitOverrides(string path) => _overrides.Load(path);
+
+    private static string? StableMac(Device d) =>
+        d.Mac is { } m && m != Device.Unknown ? m : null;
+
+    /// <summary>Re-apply a stored manual hostname (rank -1 beats every resolver).</summary>
+    private void ApplyHostnameOverride(Device d)
+    {
+        if (_overrides.Get(StableMac(d), d.Ip)?.Hostname is not { } host) return;
+        if (d.HostnameRank != -1) { d.AutoHostname = d.Hostname; d.AutoHostnameRank = d.HostnameRank; }
+        d.Hostname = host;
+        d.HostnameRank = -1;
+    }
+
+    /// <summary>Set (or clear with null) the manual hostname of a row.</summary>
+    public void SetHostnameOverride(DeviceViewModel vm, string? hostname)
+    {
+        var d = vm.Model;
+        hostname = string.IsNullOrWhiteSpace(hostname) ? null : hostname.Trim().Replace('\t', ' ');
+        _overrides.SetHostname(StableMac(d), d.Ip, hostname);
+        if (hostname is null)
+        {
+            if (d.HostnameRank == -1) { d.Hostname = d.AutoHostname; d.HostnameRank = d.AutoHostnameRank; }
+        }
+        else
+        {
+            if (d.HostnameRank != -1) { d.AutoHostname = d.Hostname; d.AutoHostnameRank = d.HostnameRank; }
+            d.Hostname = hostname;
+            d.HostnameRank = -1;
+        }
+        vm.Refresh();
+    }
+
+    /// <summary>Set (or clear with null) the manual group number of a row.</summary>
+    public void SetGroupOverride(DeviceViewModel vm, int? group)
+    {
+        var d = vm.Model;
+        _overrides.SetGroup(StableMac(d), d.Ip, group);
+        d.GroupId = group is { } g ? DisplayToGroupId(g) : d.AutoGroupId;
+        vm.Refresh();
+    }
+
+    // Display/export numbering: 0 = ungrouped, 1 = gateway, 2+ = dynamic groups.
+    private static int DisplayToGroupId(int display) => display <= 0 ? 0 : display + 1;
 
     /// <summary>Full scan using the configured ping count; writes report/DB.</summary>
     public Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
@@ -314,6 +361,7 @@ public sealed class MainViewModel : ObservableObject
     private void OnDeviceUpdated(Device d)
     {
         ApplySelfInfo(d);
+        ApplyHostnameOverride(d);
         if (!d.IsOnline && !d.Seen) return;
 
         // Known rows are only marked dirty (flushed by the throttled aggregate
@@ -350,6 +398,7 @@ public sealed class MainViewModel : ObservableObject
         {
             foreach (var dev in engine.Devices.Where(d => d.IsOnline || d.Seen))
             {
+                ApplyHostnameOverride(dev);
                 if (!_byIp.ContainsKey(dev.Ip))
                 {
                     var vm = new DeviceViewModel(dev, dev.Ip == _selfIp, _pinned.Contains(dev.Ip));
@@ -392,6 +441,14 @@ public sealed class MainViewModel : ObservableObject
         {
             _lastGroupTick = now;
             DeviceGrouper.AssignGroups(all, _gatewayIp);
+            // Manual group assignments win over the automatic grouping; the
+            // automatic result is kept so the X button can restore it.
+            foreach (var d in all)
+            {
+                d.AutoGroupId = d.GroupId;
+                if (_overrides.Get(StableMac(d), d.Ip)?.Group is { } g)
+                    d.GroupId = DisplayToGroupId(g);
+            }
             // Groups may have shifted: refresh every row.
             lock (_byIpLock) { foreach (var vm in Devices) vm.Refresh(); }
             _dirty.Clear();
@@ -485,6 +542,20 @@ public sealed class MainViewModel : ObservableObject
         var best = withVal.OrderBy(v => sel(v)!.Value).First();
         var worst = withVal.OrderByDescending(v => sel(v)!.Value).First();
         return sel(best)!.Value == sel(worst)!.Value ? (null, null) : (best, worst);
+    }
+
+    /// <summary>Current graph sample: a device's last ping (by IP) or — with
+    /// null — the average of the last pings of all online devices.</summary>
+    public double? GraphValue(string? ip)
+    {
+        lock (_byIpLock)
+        {
+            if (ip is not null)
+                return _byIp.TryGetValue(ip, out var vm) ? vm.LastRaw : null;
+            var vals = Devices.Where(v => v.IsOnline && v.LastRaw is not null)
+                              .Select(v => v.LastRaw!.Value).ToList();
+            return vals.Count > 0 ? vals.Average() : null;
+        }
     }
 
     private static string Slug(string? host)

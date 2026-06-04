@@ -16,6 +16,17 @@ public sealed class DeviceViewModel : ObservableObject
         IpSortKey = Core.Net.Ipv4.SortKey(device.Ip);
     }
 
+    /// <summary>Underlying device (for override handling in the main VM).</summary>
+    internal Device Model => _device;
+
+    // ── Inline editing (double-click on hostname / group cell) ──
+    private bool _editHost, _editGroup;
+    private string _editHostText = "", _editGroupText = "";
+    public bool IsEditingHostname { get => _editHost; set { _editHost = value; Raise(nameof(IsEditingHostname)); } }
+    public bool IsEditingGroup { get => _editGroup; set { _editGroup = value; Raise(nameof(IsEditingGroup)); } }
+    public string EditHostnameText { get => _editHostText; set { _editHostText = value; Raise(nameof(EditHostnameText)); } }
+    public string EditGroupText { get => _editGroupText; set { _editGroupText = value; Raise(nameof(EditGroupText)); } }
+
     /// <summary>True for this machine's own row.</summary>
     public bool IsSelf { get; }
     /// <summary>True for a pinned IP (kept at the top of the list).</summary>

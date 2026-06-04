@@ -10,6 +10,12 @@ using IpScanner.Views;
 
 namespace IpScanner;
 
+/// <summary>Selectable graph source: overall average (Ip = null) or one device.</summary>
+public sealed record GraphSource(string Label, string? Ip)
+{
+    public override string ToString() => Label;
+}
+
 public partial class MainWindow : Window
 {
     private readonly MainViewModel _vm;
@@ -62,6 +68,8 @@ public partial class MainWindow : Window
         ApplyDefaultPingCount(); // persisted default ping count into the dropdown
         LanguageBox.ItemsSource = new[] { Loc.LangAuto, Loc.LangDe, Loc.LangEn };
         InitColorPicker();
+        _vm.InitOverrides(OverridesPathFor(_config.DatabasePath));   // manual hostname/group edits
+        InitGraph();
         LoadSettings(_config);   // fills all fields incl. export toggles once
 
         // On startup, immediately run a discovery sweep of the local network so
@@ -171,8 +179,17 @@ public partial class MainWindow : Window
 
     private void OnSwatchPick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
+        // Select only (hex field + preview update) — applied when OK is pressed.
         if (sender is System.Windows.Controls.Border { Tag: string hex })
-            ApplyPickedColor(hex);
+            HexBox.Text = hex;
+    }
+
+    /// <summary>The picker popup stays open until OK or a click outside it.</summary>
+    private void OnWindowPreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (ColorPickerPopup.IsOpen &&
+            ColorPickerPopup.Child is FrameworkElement child && !child.IsMouseOver)
+            ColorPickerPopup.IsOpen = false;
     }
 
     private static bool IsHexColor(string s) =>
@@ -200,6 +217,174 @@ public partial class MainWindow : Window
         ApplyBarColors();
         PersistConfig();
         ColorPickerPopup.IsOpen = false;
+    }
+
+    // ── Inline editing: hostname & group (double-click; X = back to auto) ──
+    private static DeviceViewModel? RowVm(object sender) =>
+        (sender as FrameworkElement)?.DataContext as DeviceViewModel;
+
+    private void OnHostnameCellClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 2 || RowVm(sender) is not { } vm) return;
+        var h = vm.Model.Hostname;
+        vm.EditHostnameText = h is null or Device.Unknown ? "" : h;
+        vm.IsEditingHostname = true;
+        e.Handled = true;
+    }
+
+    private void OnHostnameEditKey(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (RowVm(sender) is not { } vm) return;
+        if (e.Key == System.Windows.Input.Key.Enter) CommitHostname(vm);
+        else if (e.Key == System.Windows.Input.Key.Escape) vm.IsEditingHostname = false;
+    }
+
+    private void OnHostnameEditLost(object sender, RoutedEventArgs e)
+    {
+        if (RowVm(sender) is { IsEditingHostname: true } vm) CommitHostname(vm);
+    }
+
+    private void CommitHostname(DeviceViewModel vm)
+    {
+        _vm.SetHostnameOverride(vm, vm.EditHostnameText);
+        vm.IsEditingHostname = false;
+    }
+
+    private void OnHostnameResetClick(object sender, RoutedEventArgs e)
+    {
+        if (RowVm(sender) is not { } vm) return;
+        _vm.SetHostnameOverride(vm, null);
+        vm.IsEditingHostname = false;
+    }
+
+    private void OnGroupCellClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 2 || RowVm(sender) is not { } vm) return;
+        vm.EditGroupText = Core.Export.CsvExporter.ExportGroup(vm.GroupId);
+        vm.IsEditingGroup = true;
+        e.Handled = true;
+    }
+
+    private void OnGroupEditKey(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (RowVm(sender) is not { } vm) return;
+        if (e.Key == System.Windows.Input.Key.Enter) CommitGroup(vm);
+        else if (e.Key == System.Windows.Input.Key.Escape) vm.IsEditingGroup = false;
+    }
+
+    private void OnGroupEditLost(object sender, RoutedEventArgs e)
+    {
+        if (RowVm(sender) is { IsEditingGroup: true } vm) CommitGroup(vm);
+    }
+
+    private void CommitGroup(DeviceViewModel vm)
+    {
+        if (int.TryParse(vm.EditGroupText.Trim(), out var g) && g >= 0)
+            _vm.SetGroupOverride(vm, g);
+        vm.IsEditingGroup = false;
+    }
+
+    private void OnGroupResetClick(object sender, RoutedEventArgs e)
+    {
+        if (RowVm(sender) is not { } vm) return;
+        _vm.SetGroupOverride(vm, null);
+        vm.IsEditingGroup = false;
+    }
+
+    private void OnEditBoxVisible(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (sender is TextBox { IsVisible: true } tb)
+            Dispatcher.BeginInvoke(() => { tb.Focus(); tb.SelectAll(); });
+    }
+
+    // ── Scans folder shortcut (sidebar, left of the export toggles) ──
+    private void OnOpenScansFolder(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dir = Path.GetFullPath(string.IsNullOrWhiteSpace(_config.OutputDirectory)
+                ? ScanConfig.DefaultOutputDirectory : _config.OutputDirectory);
+            Directory.CreateDirectory(dir);
+            System.Diagnostics.Process.Start(
+                new System.Diagnostics.ProcessStartInfo(dir) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, Loc.ScanError, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    // ── Latency history graph (sidebar bottom) ──
+    private const int GraphCapacity = 60;            // one sample per second
+    private readonly List<double?> _graphSamples = new();
+    private string? _graphIp;                        // null = overall average
+
+    private void InitGraph()
+    {
+        var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        timer.Tick += (_, _) => OnGraphTick();
+        timer.Start();
+    }
+
+    private void OnGraphTick()
+    {
+        RefreshGraphSources();
+        _graphSamples.Add(_vm.GraphValue(_graphIp));
+        if (_graphSamples.Count > GraphCapacity) _graphSamples.RemoveAt(0);
+        RenderGraph();
+    }
+
+    /// <summary>Keep the source dropdown in sync with the device list.</summary>
+    private void RefreshGraphSources()
+    {
+        if (GraphSourceBox.Items.Count == _vm.Devices.Count + 1) return;
+        var items = new List<GraphSource> { new(Loc.AllDevices, null) };
+        items.AddRange(_vm.Devices.Select(d => new GraphSource(d.Ip, d.Ip)));
+        GraphSourceBox.ItemsSource = items;
+        int idx = items.FindIndex(i => i.Ip == _graphIp);
+        GraphSourceBox.SelectedIndex = idx >= 0 ? idx : 0;
+    }
+
+    private void OnGraphSourceChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var ip = (GraphSourceBox.SelectedItem as GraphSource)?.Ip;
+        if (ip == _graphIp) return;
+        _graphIp = ip;
+        _graphSamples.Clear();   // fresh line for the new source
+        RenderGraph();
+    }
+
+    private void OnGraphSizeChanged(object sender, SizeChangedEventArgs e) => RenderGraph();
+
+    private void RenderGraph()
+    {
+        double w = GraphCanvas.ActualWidth, h = GraphCanvas.ActualHeight;
+        var points = new System.Windows.Media.PointCollection();
+        var present = _graphSamples.Where(v => v is not null).Select(v => v!.Value).ToList();
+        if (w > 0 && h > 0 && present.Count > 1)
+        {
+            double min = present.Min(), max = present.Max();
+            if (max - min < 0.5) { max += 0.5; min = Math.Max(0, min - 0.5); }   // flat-line guard
+            double stepX = w / (GraphCapacity - 1);
+            for (int i = 0; i < _graphSamples.Count; i++)
+            {
+                if (_graphSamples[i] is not { } v) continue;   // gap while offline
+                double x = w - (_graphSamples.Count - 1 - i) * stepX;   // newest right
+                double y = h - 4 - (v - min) / (max - min) * (h - 8);
+                points.Add(new Point(x, y));
+            }
+            GraphMaxText.Text = Core.NumberFormat.Ms(max);
+            GraphMinText.Text = Core.NumberFormat.Ms(min);
+        }
+        else
+        {
+            GraphMaxText.Text = "";
+            GraphMinText.Text = "";
+        }
+        GraphLine.Points = points;
+        var last = _graphSamples.Count > 0 ? _graphSamples[^1] : null;
+        GraphValueText.Text = Core.NumberFormat.Ms(last);
+        GraphValueText.Foreground = BrushFor(Core.Palette.Heat(last));
     }
 
     private string GetBarColor(string key) => key switch
@@ -369,6 +554,10 @@ public partial class MainWindow : Window
     /// <summary>Config file lives next to the database.</summary>
     private static string ConfPathFor(string dbPath)
         => Path.Combine(Path.GetDirectoryName(Path.GetFullPath(dbPath)) ?? ".", ScanConfig.ConfigFileName);
+
+    /// <summary>Manual hostname/group overrides live next to the database too.</summary>
+    private static string OverridesPathFor(string dbPath)
+        => Path.Combine(Path.GetDirectoryName(Path.GetFullPath(dbPath)) ?? ".", ScanConfig.OverridesFileName);
 
     private static ScanConfig LoadPersistedConfig()
     {

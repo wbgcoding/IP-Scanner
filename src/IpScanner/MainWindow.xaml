@@ -6,7 +6,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Title="{x:Static loc:Loc.AppTitle}" Height="720" Width="1320" MinWidth="700" MinHeight="480"
         Icon="Resources/network.ico" Background="{StaticResource Bg}"
-        WindowStartupLocation="Manual">
+        WindowStartupLocation="Manual" PreviewMouseDown="OnWindowPreviewMouseDown">
     <Grid x:Name="RootLayout">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -161,12 +161,53 @@
                     <DataGridTemplateColumn Header="{x:Static loc:Loc.Group}" Width="Auto" MinWidth="64">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border Width="14" Height="14" CornerRadius="2" HorizontalAlignment="Center"
-                                        Background="{Binding GroupColor}"/>
+                                <Grid Background="Transparent" MouseLeftButtonDown="OnGroupCellClick"
+                                      ToolTip="{x:Static loc:Loc.TipEditCell}">
+                                    <Border Width="14" Height="14" CornerRadius="2" HorizontalAlignment="Center"
+                                            Background="{Binding GroupColor}">
+                                        <Border.Style><Style TargetType="Border"><Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEditingGroup}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers></Style></Border.Style>
+                                    </Border>
+                                    <DockPanel Visibility="{Binding IsEditingGroup, Converter={StaticResource BoolToVis}}">
+                                        <Button DockPanel.Dock="Right" Content="✕" FontSize="10" Padding="4,0" Margin="3,0,0,0"
+                                                Style="{StaticResource GhostButton}" Click="OnGroupResetClick"
+                                                ToolTip="{x:Static loc:Loc.TipResetValue}"/>
+                                        <TextBox Text="{Binding EditGroupText, UpdateSourceTrigger=PropertyChanged}" FontSize="12"
+                                                 MinWidth="32" KeyDown="OnGroupEditKey" LostKeyboardFocus="OnGroupEditLost"
+                                                 IsVisibleChanged="OnEditBoxVisible"/>
+                                    </DockPanel>
+                                </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="{x:Static loc:Loc.Hostname}" Binding="{Binding Hostname}" Width="Auto" MinWidth="110"/>
+                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Hostname}" Width="Auto" MinWidth="110"
+                                            SortMemberPath="Hostname">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid Background="Transparent" MouseLeftButtonDown="OnHostnameCellClick"
+                                      ToolTip="{x:Static loc:Loc.TipEditCell}">
+                                    <TextBlock Text="{Binding Hostname}">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEditingHostname}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                    <DockPanel Visibility="{Binding IsEditingHostname, Converter={StaticResource BoolToVis}}">
+                                        <Button DockPanel.Dock="Right" Content="✕" FontSize="10" Padding="4,0" Margin="3,0,0,0"
+                                                Style="{StaticResource GhostButton}" Click="OnHostnameResetClick"
+                                                ToolTip="{x:Static loc:Loc.TipResetValue}"/>
+                                        <TextBox Text="{Binding EditHostnameText, UpdateSourceTrigger=PropertyChanged}" FontSize="12"
+                                                 MinWidth="80" KeyDown="OnHostnameEditKey" LostKeyboardFocus="OnHostnameEditLost"
+                                                 IsVisibleChanged="OnEditBoxVisible"/>
+                                    </DockPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="{x:Static loc:Loc.Avg}" Width="Auto" MinWidth="80">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -340,6 +381,14 @@
                         <Border Padding="13,12">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="OpenScansButton" Style="{StaticResource IconButton}" Margin="0,0,10,0"
+                                            VerticalAlignment="Center" Click="OnOpenScansFolder"
+                                            ToolTip="{x:Static loc:Loc.TipOpenScans}">
+                                        <Viewbox Width="15" Height="15">
+                                            <!-- Folder vector -->
+                                            <Path Fill="{StaticResource Text}" Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>
+                                        </Viewbox>
+                                    </Button>
                                     <ToggleButton x:Name="TxtToggle" Content="{x:Static loc:Loc.TxtExport}" Style="{StaticResource PillToggle}"
                                                   Click="OnExportToggle" ToolTip="{x:Static loc:Loc.TipWriteTxt}"/>
                                     <ToggleButton x:Name="CsvToggle" Content="{x:Static loc:Loc.CsvExport}" Style="{StaticResource PillToggle}"
@@ -350,13 +399,37 @@
                                            Visibility="{Binding HasExport, Converter={StaticResource BoolToVis}}"/>
                             </StackPanel>
                         </Border>
+
+                        <!-- Latency history graph (overall average or one device) -->
+                        <Border Padding="13,12" BorderBrush="{StaticResource Surface}" BorderThickness="0,1,0,0">
+                            <StackPanel>
+                                <DockPanel>
+                                    <TextBlock Text="{x:Static loc:Loc.LatencyHistory}" Foreground="{StaticResource Subtext}"
+                                               FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="GraphValueText" DockPanel.Dock="Right" FontSize="10" FontWeight="SemiBold"
+                                               VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                    <ComboBox x:Name="GraphSourceBox" DockPanel.Dock="Right" MinWidth="104" Height="22"
+                                              FontSize="10" Margin="8,0" SelectionChanged="OnGraphSourceChanged"
+                                              ToolTip="{x:Static loc:Loc.TipGraphSource}"/>
+                                </DockPanel>
+                                <Canvas x:Name="GraphCanvas" Height="64" Margin="0,9,0,0" ClipToBounds="True"
+                                        Background="{StaticResource BgDark}" SizeChanged="OnGraphSizeChanged">
+                                    <Polyline x:Name="GraphLine" Stroke="{StaticResource Green}" StrokeThickness="1.5"
+                                              StrokeLineJoin="Round"/>
+                                    <TextBlock x:Name="GraphMaxText" Canvas.Left="4" Canvas.Top="1" FontSize="9"
+                                               Foreground="{StaticResource MidGray}"/>
+                                    <TextBlock x:Name="GraphMinText" Canvas.Left="4" Canvas.Bottom="1" FontSize="9"
+                                               Foreground="{StaticResource MidGray}"/>
+                                </Canvas>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
         </Grid>
 
         <!-- ══ Color picker for the legend squares ══ -->
-        <Popup x:Name="ColorPickerPopup" StaysOpen="False" AllowsTransparency="True"
+        <Popup x:Name="ColorPickerPopup" StaysOpen="True" AllowsTransparency="True"
                Placement="Bottom" VerticalOffset="6" PopupAnimation="Fade">
             <Border Background="{StaticResource BgDark}" BorderBrush="{StaticResource Surface}"
                     BorderThickness="1" CornerRadius="9" Padding="12">
