@@ -217,12 +217,15 @@ public partial class MainWindow : Window
             HexBox.Text = hex;
     }
 
-    /// <summary>The picker popup stays open until OK or a click outside it.</summary>
+    /// <summary>Popups stay open until OK or a click outside them.</summary>
     private void OnWindowPreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (ColorPickerPopup.IsOpen &&
-            ColorPickerPopup.Child is FrameworkElement child && !child.IsMouseOver)
+            ColorPickerPopup.Child is FrameworkElement picker && !picker.IsMouseOver)
             ColorPickerPopup.IsOpen = false;
+        if (CellEditPopup.IsOpen &&
+            CellEditPopup.Child is FrameworkElement editor && !editor.IsMouseOver)
+            CellEditPopup.IsOpen = false;
     }
 
     private static bool IsHexColor(string s) =>
@@ -412,7 +415,10 @@ public partial class MainWindow : Window
         }
     }
 
-    // ── Inline editing: hostname & group (double-click; X = back to auto) ──
+    // ── Cell editing: hostname & group via popup (double-click; ✕ = back to auto) ──
+    private DeviceViewModel? _cellEditVm;
+    private bool _cellEditIsGroup;
+
     private static DeviceViewModel? RowVm(object sender) =>
         (sender as FrameworkElement)?.DataContext as DeviceViewModel;
 
@@ -420,80 +426,66 @@ public partial class MainWindow : Window
     {
         if (e.ClickCount != 2 || RowVm(sender) is not { } vm) return;
         var h = vm.Model.Hostname;
-        vm.EditHostnameText = h is null or Device.Unknown ? "" : h;
-        vm.IsEditingHostname = true;
+        OpenCellEdit(vm, isGroup: false, h is null or Device.Unknown ? "" : h,
+                     (UIElement)sender, (sender as FrameworkElement)?.ActualWidth ?? 0);
         e.Handled = true;
-    }
-
-    private void OnHostnameEditKey(object sender, System.Windows.Input.KeyEventArgs e)
-    {
-        if (RowVm(sender) is not { } vm) return;
-        if (e.Key == System.Windows.Input.Key.Enter) CommitHostname(vm);
-        else if (e.Key == System.Windows.Input.Key.Escape) vm.IsEditingHostname = false;
-    }
-
-    private void OnHostnameEditLost(object sender, RoutedEventArgs e)
-    {
-        if (RowVm(sender) is { IsEditingHostname: true } vm) CommitHostname(vm);
-    }
-
-    private void CommitHostname(DeviceViewModel vm)
-    {
-        _vm.SetHostnameOverride(vm, vm.EditHostnameText);
-        vm.IsEditingHostname = false;
-    }
-
-    private void OnHostnameResetClick(object sender, RoutedEventArgs e)
-    {
-        if (RowVm(sender) is not { } vm) return;
-        _vm.SetHostnameOverride(vm, null);
-        vm.IsEditingHostname = false;
     }
 
     private void OnGroupCellClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (e.ClickCount != 2 || RowVm(sender) is not { } vm) return;
-        vm.EditGroupText = Core.Export.CsvExporter.ExportGroup(vm.GroupId);
-        vm.IsEditingGroup = true;
+        OpenCellEdit(vm, isGroup: true, Core.Export.CsvExporter.ExportGroup(vm.GroupId),
+                     (UIElement)sender, 0);
         e.Handled = true;
     }
 
-    private void OnGroupEditKey(object sender, System.Windows.Input.KeyEventArgs e)
+    private void OpenCellEdit(DeviceViewModel vm, bool isGroup, string text,
+                              UIElement target, double cellWidth)
     {
-        if (RowVm(sender) is not { } vm) return;
-        if (e.Key == System.Windows.Input.Key.Enter) CommitGroup(vm);
-        else if (e.Key == System.Windows.Input.Key.Escape) vm.IsEditingGroup = false;
+        _cellEditVm = vm;
+        _cellEditIsGroup = isGroup;
+        CellEditBox.Text = text;
+        CellEditBox.MinWidth = Math.Max(170, cellWidth);   // span the column width
+        CellEditPopup.PlacementTarget = target;
+        CellEditPopup.IsOpen = true;
+        CellEditBox.Focus();
+        CellEditBox.SelectAll();
     }
 
-    private void OnGroupEditLost(object sender, RoutedEventArgs e)
+    private void OnCellEditKey(object sender, System.Windows.Input.KeyEventArgs e)
     {
-        if (RowVm(sender) is { IsEditingGroup: true } vm) CommitGroup(vm);
+        if (e.Key == System.Windows.Input.Key.Enter) CommitCellEdit();
+        else if (e.Key == System.Windows.Input.Key.Escape) CellEditPopup.IsOpen = false;
     }
 
-    private void CommitGroup(DeviceViewModel vm)
-    {
-        if (int.TryParse(vm.EditGroupText.Trim(), out var g) && g >= 0)
-            _vm.SetGroupOverride(vm, g);
-        vm.IsEditingGroup = false;
-    }
+    private void OnCellEditOk(object sender, RoutedEventArgs e) => CommitCellEdit();
 
-    private void OnGroupResetClick(object sender, RoutedEventArgs e)
+    private void CommitCellEdit()
     {
-        if (RowVm(sender) is not { } vm) return;
-        _vm.SetGroupOverride(vm, null);
-        vm.IsEditingGroup = false;
-    }
-
-    private void OnEditBoxVisible(object sender, DependencyPropertyChangedEventArgs e)
-    {
-        if (sender is not TextBox { IsVisible: true } tb) return;
-        // After input processing — the DataGrid otherwise steals focus back.
-        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
+        if (_cellEditVm is { } vm)
         {
-            tb.Focus();
-            System.Windows.Input.Keyboard.Focus(tb);
-            tb.SelectAll();
-        });
+            if (_cellEditIsGroup)
+            {
+                if (int.TryParse(CellEditBox.Text.Trim(), out var g) && g >= 0)
+                    _vm.SetGroupOverride(vm, g);
+            }
+            else
+            {
+                _vm.SetHostnameOverride(vm, CellEditBox.Text);
+            }
+        }
+        CellEditPopup.IsOpen = false;
+    }
+
+    /// <summary>✕ in the popup: drop the manual value, back to the automatic one.</summary>
+    private void OnCellEditReset(object sender, RoutedEventArgs e)
+    {
+        if (_cellEditVm is { } vm)
+        {
+            if (_cellEditIsGroup) _vm.SetGroupOverride(vm, null);
+            else _vm.SetHostnameOverride(vm, null);
+        }
+        CellEditPopup.IsOpen = false;
     }
 
     // ── Scans folder shortcut (sidebar, left of the export toggles) ──

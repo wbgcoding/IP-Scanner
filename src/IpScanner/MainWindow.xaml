@@ -164,21 +164,7 @@
                                 <Grid Background="Transparent" MouseLeftButtonDown="OnGroupCellClick"
                                       ToolTip="{x:Static loc:Loc.TipEditCell}">
                                     <Border Width="14" Height="14" CornerRadius="2" HorizontalAlignment="Center"
-                                            Background="{Binding GroupColor}">
-                                        <Border.Style><Style TargetType="Border"><Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsEditingGroup}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                            </DataTrigger>
-                                        </Style.Triggers></Style></Border.Style>
-                                    </Border>
-                                    <DockPanel Visibility="{Binding IsEditingGroup, Converter={StaticResource BoolToVis}}">
-                                        <Button DockPanel.Dock="Right" Content="✕" FontSize="10" Padding="4,0" Margin="3,0,0,0"
-                                                Style="{StaticResource GhostButton}" Click="OnGroupResetClick"
-                                                ToolTip="{x:Static loc:Loc.TipResetValue}"/>
-                                        <TextBox Text="{Binding EditGroupText, UpdateSourceTrigger=PropertyChanged}" FontSize="12"
-                                                 MinWidth="32" KeyDown="OnGroupEditKey" LostKeyboardFocus="OnGroupEditLost"
-                                                 IsVisibleChanged="OnEditBoxVisible"/>
-                                    </DockPanel>
+                                            Background="{Binding GroupColor}"/>
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -189,21 +175,7 @@
                             <DataTemplate>
                                 <Grid Background="Transparent" MouseLeftButtonDown="OnHostnameCellClick"
                                       ToolTip="{x:Static loc:Loc.TipEditCell}">
-                                    <TextBlock Text="{Binding Hostname}">
-                                        <TextBlock.Style><Style TargetType="TextBlock"><Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsEditingHostname}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                            </DataTrigger>
-                                        </Style.Triggers></Style></TextBlock.Style>
-                                    </TextBlock>
-                                    <DockPanel Visibility="{Binding IsEditingHostname, Converter={StaticResource BoolToVis}}">
-                                        <Button DockPanel.Dock="Right" Content="✕" FontSize="10" Padding="4,0" Margin="3,0,0,0"
-                                                Style="{StaticResource GhostButton}" Click="OnHostnameResetClick"
-                                                ToolTip="{x:Static loc:Loc.TipResetValue}"/>
-                                        <TextBox Text="{Binding EditHostnameText, UpdateSourceTrigger=PropertyChanged}" FontSize="12"
-                                                 MinWidth="80" KeyDown="OnHostnameEditKey" LostKeyboardFocus="OnHostnameEditLost"
-                                                 IsVisibleChanged="OnEditBoxVisible"/>
-                                    </DockPanel>
+                                    <TextBlock Text="{Binding Hostname}" VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -475,6 +447,24 @@
                                  KeyDown="OnHexColorKeyDown"/>
                     </DockPanel>
                 </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- ══ Cell edit popup (hostname / group, opened by double-click) ══ -->
+        <Popup x:Name="CellEditPopup" StaysOpen="True" AllowsTransparency="True"
+               Placement="Bottom" VerticalOffset="4" PopupAnimation="Fade">
+            <Border Background="{StaticResource BgDark}" BorderBrush="{StaticResource Surface}"
+                    BorderThickness="1" CornerRadius="9" Padding="10">
+                <DockPanel>
+                    <Button x:Name="CellEditResetBtn" DockPanel.Dock="Right" Content="✕"
+                            Style="{StaticResource GhostButton}" Padding="10,5" Margin="6,0,0,0"
+                            Click="OnCellEditReset" ToolTip="{x:Static loc:Loc.TipResetValue}"/>
+                    <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Ok}"
+                            Style="{StaticResource AccentButton}" Padding="12,5" Margin="8,0,0,0"
+                            Click="OnCellEditOk"/>
+                    <TextBox x:Name="CellEditBox" MinWidth="170" FontSize="13" VerticalAlignment="Center"
+                             KeyDown="OnCellEditKey"/>
+                </DockPanel>
             </Border>
         </Popup>
 
