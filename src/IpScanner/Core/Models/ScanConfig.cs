@@ -9,6 +9,8 @@ public sealed class ScanConfig
     public int PingIntervalMs { get; set; } = 100;
     public int OfflineAfterFailedPings { get; set; } = 5;
     public int InitPingCount { get; set; } = 1;
+    /// <summary>Ping count for the automatic sweep right after the app starts.</summary>
+    public int StartupPingCount { get; set; } = 5;
     /// <summary>Recheck offline IPs every N seconds during a run (0 = off).</summary>
     public int OfflineRecheckSeconds { get; set; } = 2;
     public bool EnableInternetPing { get; set; } = true;
@@ -35,7 +37,8 @@ public sealed class ScanConfig
     {
         Subnets = Subnets, PinnedIps = PinnedIps, PingCount = pingCount,
         PingIntervalMs = PingIntervalMs, OfflineAfterFailedPings = OfflineAfterFailedPings,
-        InitPingCount = InitPingCount, OfflineRecheckSeconds = OfflineRecheckSeconds,
+        InitPingCount = InitPingCount, StartupPingCount = StartupPingCount,
+        OfflineRecheckSeconds = OfflineRecheckSeconds,
         EnableInternetPing = EnableInternetPing, InternetTimeoutMs = InternetTimeoutMs,
         InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb,
         DatabasePath = DatabasePath, OutputDirectory = OutputDirectory, FileOutput = FileOutput,

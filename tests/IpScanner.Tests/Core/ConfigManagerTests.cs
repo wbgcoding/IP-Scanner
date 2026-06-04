@@ -45,7 +45,7 @@ public class ConfigManagerTests
         var cfg = new ScanConfig
         {
             PingCount = 100, PingIntervalMs = 250, ExportCsv = true, FileOutput = true,
-            OfflineAfterFailedPings = 7, InitPingCount = 3, OfflineRecheckSeconds = 9,
+            OfflineAfterFailedPings = 7, InitPingCount = 3, StartupPingCount = 8, OfflineRecheckSeconds = 9,
             EnableInternetPing = false, InternetTimeoutMs = 2200,
             KnownDevicesDb = false, DatabasePath = "./Data/other.db",
             OutputDirectory = "./Out", ScanThreads = 77, UiScalePercent = 120,
@@ -63,6 +63,7 @@ public class ConfigManagerTests
         Assert.True(loaded.FileOutput);
         Assert.Equal(7, loaded.OfflineAfterFailedPings);
         Assert.Equal(3, loaded.InitPingCount);
+        Assert.Equal(8, loaded.StartupPingCount);
         Assert.Equal(9, loaded.OfflineRecheckSeconds);
         Assert.False(loaded.EnableInternetPing);
         Assert.Equal(2200, loaded.InternetTimeoutMs);

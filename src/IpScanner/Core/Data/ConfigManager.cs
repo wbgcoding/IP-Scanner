@@ -25,6 +25,7 @@ public static class ConfigManager
                 case "ping_interval_ms":            cfg.PingIntervalMs = ParseInt(value, 0, 10_000, 100); break;
                 case "offline_after_failed_pings":  cfg.OfflineAfterFailedPings = ParseInt(value, 1, 100, 5); break;
                 case "init_ping_count":             cfg.InitPingCount = ParseInt(value, 1, 100, 1); break;
+                case "startup_ping_count":          cfg.StartupPingCount = ParseInt(value, 0, 10_000, 5); break;
                 case "offline_recheck_seconds":     cfg.OfflineRecheckSeconds = ParseInt(value, 0, 3600, 2); break;
                 case "enable_internet_ping":        cfg.EnableInternetPing = ParseBool(value); break;
                 case "internet_timeout_ms":         cfg.InternetTimeoutMs = ParseInt(value, 100, 10_000, 1000); break;
@@ -79,6 +80,8 @@ public static class ConfigManager
         sb.AppendLine($"offline_after_failed_pings = {c.OfflineAfterFailedPings}");
         sb.AppendLine("# init_ping_count  Pings in der Suchphase je IP (1-100). Standard 1.");
         sb.AppendLine($"init_ping_count = {c.InitPingCount}");
+        sb.AppendLine("# startup_ping_count  Pings je Geraet beim Auto-Scan nach dem Start (0-10000). Standard 5.");
+        sb.AppendLine($"startup_ping_count = {c.StartupPingCount}");
         sb.AppendLine("# offline_recheck_seconds  Offline-IPs alle N Sekunden erneut pruefen (0 = aus). Standard 2.");
         sb.AppendLine($"offline_recheck_seconds = {c.OfflineRecheckSeconds}");
         sb.AppendLine();

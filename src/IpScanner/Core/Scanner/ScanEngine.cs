@@ -80,7 +80,9 @@ public sealed class ScanEngine
                 if (ct.IsCancellationRequested) return;
                 var device = _devices.GetOrAdd(ip, x => new Device(x)
                 {
-                    TargetPings = cfg.PingCount == 0 ? 1 : cfg.PingCount,
+                    // Discovery target first (x/init pings); switches to the run
+                    // target once the device answers.
+                    TargetPings = Math.Max(1, cfg.InitPingCount),
                     OfflineAfterFailures = cfg.OfflineAfterFailedPings,
                 });
                 // Discovery: up to InitPingCount attempts, stop at first reply.
@@ -98,6 +100,7 @@ public sealed class ScanEngine
                 DeviceUpdated?.Invoke(device);
                 if (r.Success)
                 {
+                    device.TargetPings = cfg.PingCount == 0 ? 1 : cfg.PingCount;
                     // First reply: resolve MAC + hostname OFF the critical path so
                     // discovery finishes fast and analysis pings start without delay.
                     TryEnrich(device);
@@ -184,6 +187,7 @@ public sealed class ScanEngine
                 // Failed probes are not counted as scan pings (they would grow
                 // unbounded on long runs); a reply counts and joins the run.
                 if (!r.Success) { DeviceUpdated?.Invoke(device); return; }
+                device.TargetPings = cfg.PingCount == 0 ? 1 : cfg.PingCount;
                 Progress.AddSuccess();
                 Progress.NotifyChanged();
                 DeviceUpdated?.Invoke(device);

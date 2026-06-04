@@ -297,6 +297,7 @@ public partial class MainWindow : Window
         IntervalBox.Text = c.PingIntervalMs.ToString();
         OfflineAfterBox.Text = c.OfflineAfterFailedPings.ToString();
         InitPingCountBox.Text = c.InitPingCount.ToString();
+        StartupPingsBox.Text = c.StartupPingCount.ToString();
         OfflineRecheckBox.Text = c.OfflineRecheckSeconds.ToString();
         EnableInternetBox.IsChecked = c.EnableInternetPing;
         InternetTimeoutBox.Text = c.InternetTimeoutMs.ToString();
@@ -326,6 +327,7 @@ public partial class MainWindow : Window
             PingIntervalMs = I(IntervalBox.Text, 100),
             OfflineAfterFailedPings = I(OfflineAfterBox.Text, 5),
             InitPingCount = I(InitPingCountBox.Text, 1),
+            StartupPingCount = Math.Clamp(I(StartupPingsBox.Text, 5), 0, 10_000),
             OfflineRecheckSeconds = Math.Clamp(I(OfflineRecheckBox.Text, 2), 0, 3600),
             EnableInternetPing = EnableInternetBox.IsChecked == true,
             InternetTimeoutMs = Math.Clamp(I(InternetTimeoutBox.Text, 1000), 100, 10_000),

@@ -74,6 +74,7 @@ public static class Loc
     public static string PingInterval => S("Ping-Intervall (ms)", "Ping interval (ms)");
     public static string OfflineAfter => S("Offline nach N Fehlversuchen", "Offline after N failures");
     public static string InitPings => S("Such-Pings je IP", "Discovery pings per IP");
+    public static string StartupPings => S("Pings bei Start", "Pings at startup");
     public static string ScanThreads => S("Threads pro Scan (0 = max)", "Threads per scan (0 = max)");
     public static string TextScale => S("Textgröße (%)", "Text size (%)");
     public static string OfflineRecheck => S("Offline-Recheck (s, 0 = aus)", "Offline recheck (s, 0 = off)");
@@ -134,6 +135,9 @@ public static class Loc
     public static string TipInternetHosts => S(
         "Öffentliche IPs für die Internet-Latenzmessung. Format: IP Leerzeichen Name, z.B. \"8.8.8.8 Google\". Ohne Name wird die IP angezeigt.",
         "Public IPs for the internet latency check. Format: IP space name, e.g. \"8.8.8.8 Google\". Without a name the IP is shown.");
+    public static string TipStartupPings => S(
+        "Ping-Anzahl je Gerät für den automatischen Scan direkt nach dem Programmstart. 0 = nur Geräte suchen.",
+        "Ping count per device for the automatic scan right after startup. 0 = discovery only.");
     public static string TipOfflineRecheck => S(
         "Prüft während eines Durchlaufs alle N Sekunden, ob Offline-IPs online gekommen sind — neue Geräte steigen sofort in den Durchlauf ein. 0 schaltet die Prüfung ab.",
         "While a run is active, rechecks offline IPs every N seconds — devices that come online join the run immediately. 0 disables the recheck.");

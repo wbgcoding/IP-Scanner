@@ -370,20 +370,32 @@
 
                             <!-- Ping -->
                             <TextBlock Text="{x:Static loc:Loc.TabPing}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
-                            <!-- Inputs docked right, labels stay left. -->
-                            <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipScanThreads}"><TextBox x:Name="ScanThreadsBox" Width="130" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.ScanThreads}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                            <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipPingInterval}"><TextBox x:Name="IntervalBox" Width="130" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.PingInterval}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                            <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineAfter}"><TextBox x:Name="OfflineAfterBox" Width="130" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.OfflineAfter}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                            <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipInitPings}"><TextBox x:Name="InitPingCountBox" Width="130" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.InitPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                            <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineRecheck}"><TextBox x:Name="OfflineRecheckBox" Width="130" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.OfflineRecheck}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                            <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipTextScale}"><TextBox x:Name="UiScaleBox" Width="130" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.TextScale}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
+                            <!-- Two columns to save height; inputs right, labels left. -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipScanThreads}"><TextBox x:Name="ScanThreadsBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.ScanThreads}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Grid.Row="1" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipPingInterval}"><TextBox x:Name="IntervalBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.PingInterval}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Grid.Row="2" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineAfter}"><TextBox x:Name="OfflineAfterBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.OfflineAfter}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Grid.Row="3" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipTextScale}"><TextBox x:Name="UiScaleBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.TextScale}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Grid.Row="0" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipInitPings}"><TextBox x:Name="InitPingCountBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.InitPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Grid.Row="1" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipStartupPings}"><TextBox x:Name="StartupPingsBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.StartupPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
+                                <DockPanel Grid.Row="2" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineRecheck}"><TextBox x:Name="OfflineRecheckBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.OfflineRecheck}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
+                            </Grid>
 
                             <!-- Internet -->
                             <TextBlock Text="{x:Static loc:Loc.TabInternet}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <DockPanel>
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{x:Static loc:Loc.TipInternetTimeout}">
                                     <TextBlock Text="{x:Static loc:Loc.InternetTimeout}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBox x:Name="InternetTimeoutBox" Width="130" FontSize="13"/>
+                                    <TextBox x:Name="InternetTimeoutBox" Width="80" FontSize="13"/>
                                 </StackPanel>
                                 <CheckBox x:Name="EnableInternetBox" Content="{x:Static loc:Loc.EnableInternet}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" ToolTip="{x:Static loc:Loc.TipEnableInternet}"/>
                             </DockPanel>

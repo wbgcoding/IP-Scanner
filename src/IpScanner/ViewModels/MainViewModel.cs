@@ -75,10 +75,10 @@ public sealed class MainViewModel : ObservableObject
     public Task RunScanAsync(IReadOnlyList<string>? subnetOverride = null)
         => RunScanInternal(null, persist: true, subnetOverride);
 
-    /// <summary>Startup discovery sweep: 1 ping per IP, no analysis, no file/DB.
-    /// Populates the network sidebar and online devices immediately.</summary>
+    /// <summary>Automatic sweep right after startup: StartupPingCount pings per
+    /// device, no file/DB output. Populates sidebar + devices immediately.</summary>
     public Task RunInitScanAsync()
-        => RunScanInternal(0, persist: false, null);
+        => RunScanInternal(Math.Max(0, Config.StartupPingCount), persist: false, null);
 
     private async Task RunScanInternal(int? pingCountOverride, bool persist,
                                        IReadOnlyList<string>? subnetOverride)
