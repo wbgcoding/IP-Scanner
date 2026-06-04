@@ -9,7 +9,7 @@ public class ProgressViewModelTests
     public void DeviceFractions_SumToScannedRatio()
     {
         var vm = new ProgressViewModel();
-        vm.SetDevices(online: 10, offline: 40, unknown: 0, total: 100);
+        vm.SetDevices(online: 10, offline: 40, total: 100);
         Assert.Equal(0.10, vm.OnlineFraction, 3);
         Assert.Equal(0.40, vm.OfflineFraction, 3);
     }

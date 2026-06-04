@@ -126,7 +126,6 @@ public partial class MainWindow : Window
             new((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex));
         DevBar.Color1 = B(_config.ColorOnline);  LegOnline.Background = B(_config.ColorOnline);
         DevBar.Color2 = B(_config.ColorOffline); LegOffline.Background = B(_config.ColorOffline);
-        DevBar.Color3 = B(_config.ColorUnknown); LegUnknown.Background = B(_config.ColorUnknown);
         PingBar.Color1 = B(_config.ColorSuccess); LegSuccess.Background = B(_config.ColorSuccess);
         PingBar.Color2 = B(_config.ColorFailed);  LegFailed.Background = B(_config.ColorFailed);
         PingBar.Color3 = B(_config.ColorSkipped); LegSkipped.Background = B(_config.ColorSkipped);
@@ -206,8 +205,8 @@ public partial class MainWindow : Window
     private string GetBarColor(string key) => key switch
     {
         "online" => _config.ColorOnline, "offline" => _config.ColorOffline,
-        "unknown" => _config.ColorUnknown, "success" => _config.ColorSuccess,
-        "failed" => _config.ColorFailed, _ => _config.ColorSkipped,
+        "success" => _config.ColorSuccess, "failed" => _config.ColorFailed,
+        _ => _config.ColorSkipped,
     };
 
     private void SetBarColor(string key, string hex)
@@ -216,7 +215,6 @@ public partial class MainWindow : Window
         {
             case "online": _config.ColorOnline = hex; break;
             case "offline": _config.ColorOffline = hex; break;
-            case "unknown": _config.ColorUnknown = hex; break;
             case "success": _config.ColorSuccess = hex; break;
             case "failed": _config.ColorFailed = hex; break;
             default: _config.ColorSkipped = hex; break;
@@ -598,7 +596,7 @@ public partial class MainWindow : Window
             Language = LanguageModes[Math.Max(0, LanguageBox.SelectedIndex)],
             // Colors have no settings UI — carry them over from the live config.
             ColorOnline = _config.ColorOnline, ColorOffline = _config.ColorOffline,
-            ColorUnknown = _config.ColorUnknown, ColorSuccess = _config.ColorSuccess,
+            ColorSuccess = _config.ColorSuccess,
             ColorFailed = _config.ColorFailed, ColorSkipped = _config.ColorSkipped,
         };
     }

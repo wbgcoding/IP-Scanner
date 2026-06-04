@@ -35,7 +35,6 @@ public sealed class ScanConfig
     // Progress-bar colors (clickable legend squares; persisted, not shown in settings).
     public string ColorOnline { get; set; } = Palette.Green;
     public string ColorOffline { get; set; } = Palette.Red;
-    public string ColorUnknown { get; set; } = Palette.Surface2;
     public string ColorSuccess { get; set; } = Palette.Green;
     public string ColorFailed { get; set; } = Palette.Red;
     public string ColorSkipped { get; set; } = Palette.MidGray;
@@ -54,7 +53,7 @@ public sealed class ScanConfig
         DatabasePath = DatabasePath, OutputDirectory = OutputDirectory, FileOutput = FileOutput,
         ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
         Language = Language,
-        ColorOnline = ColorOnline, ColorOffline = ColorOffline, ColorUnknown = ColorUnknown,
+        ColorOnline = ColorOnline, ColorOffline = ColorOffline,
         ColorSuccess = ColorSuccess, ColorFailed = ColorFailed, ColorSkipped = ColorSkipped,
     };
 }

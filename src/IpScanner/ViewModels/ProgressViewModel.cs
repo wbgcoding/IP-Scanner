@@ -5,15 +5,15 @@ namespace IpScanner.ViewModels;
 
 public sealed class ProgressViewModel : ObservableObject
 {
-    private int _online, _offline, _unknown, _deviceTotal;
+    private int _online, _offline, _deviceTotal;
     private long _success, _failed, _skipped, _pingTotal;
 
-    public void SetDevices(int online, int offline, int unknown, int total)
+    public void SetDevices(int online, int offline, int total)
     {
-        _online = online; _offline = offline; _unknown = unknown; _deviceTotal = Math.Max(1, total);
-        Raise(nameof(OnlineFraction)); Raise(nameof(OfflineFraction)); Raise(nameof(UnknownFraction));
-        Raise(nameof(OnlineCount)); Raise(nameof(OfflineCount)); Raise(nameof(UnknownCount));
-        Raise(nameof(OnlineText)); Raise(nameof(OfflineText)); Raise(nameof(UnknownText));
+        _online = online; _offline = offline; _deviceTotal = Math.Max(1, total);
+        Raise(nameof(OnlineFraction)); Raise(nameof(OfflineFraction));
+        Raise(nameof(OnlineCount)); Raise(nameof(OfflineCount));
+        Raise(nameof(OnlineText)); Raise(nameof(OfflineText));
         Raise(nameof(DeviceCountText));
     }
 
@@ -27,16 +27,13 @@ public sealed class ProgressViewModel : ObservableObject
 
     public double OnlineFraction  => (double)_online  / _deviceTotal;
     public double OfflineFraction => (double)_offline / _deviceTotal;
-    public double UnknownFraction => (double)_unknown / _deviceTotal;
     public int OnlineCount  => _online;
     public int OfflineCount => _offline;
-    public int UnknownCount => _unknown;
 
     // Compact (k/M) legend texts, e.g. "Online 14", "Offline 1,2k".
     public string OnlineText  => $"{Loc.Online} {NumberFormat.Short(_online)}";
     public string OfflineText => $"{Loc.Offline} {NumberFormat.Short(_offline)}";
-    public string UnknownText => $"{Loc.Unknown} {NumberFormat.Short(_unknown)}";
-    public string DeviceCountText => $"{NumberFormat.Short(_online + _offline + _unknown)} / {NumberFormat.Short(_deviceTotal)}";
+    public string DeviceCountText => $"{NumberFormat.Short(_online + _offline)} / {NumberFormat.Short(_deviceTotal)}";
 
     public double SuccessFraction => (double)_success / _pingTotal;
     public double FailedFraction  => (double)_failed  / _pingTotal;

@@ -408,8 +408,7 @@ public sealed class MainViewModel : ObservableObject
         int discovered = all.Count;
         int online = all.Count(d => d.IsOnline);
         int offline = discovered - online;
-        int unknown = Math.Max(0, _plannedDevices - discovered);   // not yet scanned
-        Progress.SetDevices(online, offline, unknown, Math.Max(_plannedDevices, 1));
+        Progress.SetDevices(online, offline, Math.Max(_plannedDevices, 1));
         Progress.SetPings(p.SuccessPings, p.FailedPings, p.SkippedPings, _totalPings);
 
         foreach (var net in Networks)

@@ -44,7 +44,6 @@ public static class ConfigManager
                 case "pinned_ips":                  cfg.PinnedIps = ParseIpList(value); break;
                 case "color_online":                cfg.ColorOnline = ParseColor(value, cfg.ColorOnline); break;
                 case "color_offline":               cfg.ColorOffline = ParseColor(value, cfg.ColorOffline); break;
-                case "color_unknown":               cfg.ColorUnknown = ParseColor(value, cfg.ColorUnknown); break;
                 case "color_success":               cfg.ColorSuccess = ParseColor(value, cfg.ColorSuccess); break;
                 case "color_failed":                cfg.ColorFailed = ParseColor(value, cfg.ColorFailed); break;
                 case "color_skipped":               cfg.ColorSkipped = ParseColor(value, cfg.ColorSkipped); break;
@@ -135,7 +134,6 @@ public static class ConfigManager
         sb.AppendLine("# -- Farben (Fortschrittsbalken, per Klick auf die Legende aenderbar; RRGGBB) --");
         sb.AppendLine($"color_online = {H(c.ColorOnline)}");
         sb.AppendLine($"color_offline = {H(c.ColorOffline)}");
-        sb.AppendLine($"color_unknown = {H(c.ColorUnknown)}");
         sb.AppendLine($"color_success = {H(c.ColorSuccess)}");
         sb.AppendLine($"color_failed = {H(c.ColorFailed)}");
         sb.AppendLine($"color_skipped = {H(c.ColorSkipped)}");

@@ -40,7 +40,6 @@ public static class Loc
     public static string Pings => S("Pings", "Pings");
     public static string Online => S("Online", "Online");
     public static string Offline => S("Offline", "Offline");
-    public static string Unknown => S("Unbekannt", "Unknown");
     public static string Success => S("Erfolg", "Success");
     public static string Fail => S("Fehlschlag", "Failed");
     public static string Skipped => S("Übersprungen", "Skipped");
