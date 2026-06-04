@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>IP-Scanner</AssemblyName>
+    <Version>2.4.0</Version>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ApplicationIcon>Resources\network.ico</ApplicationIcon>
   </PropertyGroup>

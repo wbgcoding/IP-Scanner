@@ -20,8 +20,13 @@ self-contained exe.
 - Multiple subnets per run plus pinned IPs that are always scanned
 - Internet latency panel (configurable public hosts)
 - Known-devices database (SQLite), mergeable between instances
-- TXT/CSV reports, German/English UI (auto-detected), adjustable text size
-- Settings persist next to the database and can be exported/imported as .conf
+- TXT/CSV reports, toggled right in the sidebar with file name and size shown
+- German/English UI (auto-detected or picked in the settings), adjustable text size
+- Customizable progress-bar colors — click a legend square to change it
+- Settings save instantly, persist next to the database and can be
+  exported/imported as .conf
+
+Release history: see [CHANGELOG.md](CHANGELOG.md).
 
 ## Build
 
