@@ -354,19 +354,24 @@
                             <TextBlock Text="{x:Static loc:Loc.Subnets}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipSubnets}"/>
                             <Grid>
                                 <TextBox x:Name="SubnetsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="120" FontSize="13"
-                                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipSubnets}"/>
+                                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipSubnets}"
+                                         TextChanged="OnSubnetsValidate"/>
                                 <TextBlock Text="192.168.2.0/24" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetsBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>
+                            <TextBlock x:Name="SubnetsError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
                             <TextBlock Text="{x:Static loc:Loc.PinnedIps}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,14,0,4" ToolTip="{x:Static loc:Loc.TipPinnedIps}"/>
                             <Grid>
                                 <TextBox x:Name="PinnedBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
-                                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipPinnedIps}"/>
+                                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipPinnedIps}"
+                                         TextChanged="OnPinnedValidate"/>
                                 <TextBlock Text="192.168.2.10, 192.168.2.20" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>
+
+                            <TextBlock x:Name="PinnedError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
 
                             <!-- Ping -->
                             <TextBlock Text="{x:Static loc:Loc.TabPing}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
@@ -381,13 +386,35 @@
                                     <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipScanThreads}"><TextBox x:Name="ScanThreadsBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.ScanThreads}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                                <DockPanel Grid.Row="1" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipPingInterval}"><TextBox x:Name="IntervalBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.PingInterval}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                                <DockPanel Grid.Row="2" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineAfter}"><TextBox x:Name="OfflineAfterBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.OfflineAfter}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                                <DockPanel Grid.Row="3" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipTextScale}"><TextBox x:Name="UiScaleBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.TextScale}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                                <DockPanel Grid.Row="0" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipInitPings}"><TextBox x:Name="InitPingCountBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.InitPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                                <DockPanel Grid.Row="1" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipStartupPings}"><TextBox x:Name="StartupPingsBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.StartupPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
-                                <DockPanel Grid.Row="2" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineRecheck}"><TextBox x:Name="OfflineRecheckBox" Width="80" FontSize="13" DockPanel.Dock="Right"/><TextBlock Text="{x:Static loc:Loc.OfflineRecheck}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/></DockPanel>
+                                <!-- Right-aligned numbers with a fixed (read-only) unit suffix. -->
+                                <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipScanThreads}">
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="ScanThreadsBox" Width="70" FontSize="13" TextAlignment="Right"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                    <TextBlock Text="{x:Static loc:Loc.ScanThreads}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <DockPanel Grid.Row="1" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipPingInterval}">
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="IntervalBox" Width="70" FontSize="13" TextAlignment="Right"/><TextBlock Text="ms" Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                    <TextBlock Text="{x:Static loc:Loc.PingInterval}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <DockPanel Grid.Row="2" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineAfter}">
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="OfflineAfterBox" Width="70" FontSize="13" TextAlignment="Right"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                    <TextBlock Text="{x:Static loc:Loc.OfflineAfter}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <DockPanel Grid.Row="3" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipTextScale}">
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="UiScaleBox" Width="70" FontSize="13" TextAlignment="Right"/><TextBlock Text="%" Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                    <TextBlock Text="{x:Static loc:Loc.TextScale}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <DockPanel Grid.Row="0" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipInitPings}">
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="InitPingCountBox" Width="70" FontSize="13" TextAlignment="Right"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                    <TextBlock Text="{x:Static loc:Loc.InitPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <DockPanel Grid.Row="1" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipStartupPings}">
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="StartupPingsBox" Width="70" FontSize="13" TextAlignment="Right"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                    <TextBlock Text="{x:Static loc:Loc.StartupPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <DockPanel Grid.Row="2" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineRecheck}">
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="OfflineRecheckBox" Width="70" FontSize="13" TextAlignment="Right"/><TextBlock Text="s" Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                    <TextBlock Text="{x:Static loc:Loc.OfflineRecheck}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                </DockPanel>
                             </Grid>
 
                             <!-- Internet -->
@@ -395,7 +422,8 @@
                             <DockPanel>
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{x:Static loc:Loc.TipInternetTimeout}">
                                     <TextBlock Text="{x:Static loc:Loc.InternetTimeout}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBox x:Name="InternetTimeoutBox" Width="80" FontSize="13"/>
+                                    <TextBox x:Name="InternetTimeoutBox" Width="70" FontSize="13" TextAlignment="Right"/>
+                                    <TextBlock Text="ms" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                 </StackPanel>
                                 <CheckBox x:Name="EnableInternetBox" Content="{x:Static loc:Loc.EnableInternet}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" ToolTip="{x:Static loc:Loc.TipEnableInternet}"/>
                             </DockPanel>

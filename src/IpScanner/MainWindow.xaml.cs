@@ -309,12 +309,45 @@ public partial class MainWindow : Window
         KnownDbBox.IsChecked = c.KnownDevicesDb;
     }
 
+    // Split on newlines, commas and semicolons so values can be comma-separated.
+    private static List<string> Items(string t) => t
+        .Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+        .Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
+
+    // ── Live syntax validation for the network/IP lists ──
+    private void OnSubnetsValidate(object sender, TextChangedEventArgs e)
+        => ValidateList(SubnetsBox, SubnetsError, IsValidSubnetEntry);
+
+    private void OnPinnedValidate(object sender, TextChangedEventArgs e)
+        => ValidateList(PinnedBox, PinnedError, Core.Net.Ipv4.IsValid);
+
+    /// <summary>"a.b.c.d" or "a.b.c.d/1..32".</summary>
+    private static bool IsValidSubnetEntry(string entry)
+    {
+        var parts = entry.Split('/');
+        if (parts.Length > 2 || !Core.Net.Ipv4.IsValid(parts[0].Trim())) return false;
+        return parts.Length == 1 ||
+               (int.TryParse(parts[1].Trim(), out var cidr) && cidr is >= 1 and <= 32);
+    }
+
+    private void ValidateList(TextBox box, TextBlock error, Func<string, bool> isValid)
+    {
+        var bad = Items(box.Text).FirstOrDefault(x => !isValid(x));
+        if (bad is null)
+        {
+            box.ClearValue(System.Windows.Controls.Control.BorderBrushProperty);
+            error.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            box.BorderBrush = (System.Windows.Media.Brush)FindResource("Red");
+            error.Text = Loc.InvalidEntry(bad);
+            error.Visibility = Visibility.Visible;
+        }
+    }
+
     private ScanConfig ReadSettings()
     {
-        // Split on newlines, commas and semicolons so values can be comma-separated.
-        static List<string> Items(string t) => t
-            .Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
         int I(string s, int d) => int.TryParse(s.Trim(), out var v) ? v : d;
 
         return new ScanConfig

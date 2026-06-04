@@ -26,7 +26,7 @@ public sealed class ScanConfig
     public bool FileOutput { get; set; }          // TXT report off by default
     public bool ExportCsv { get; set; }
     /// <summary>Parallel ping workers per scan. 0 = one thread per device (max).</summary>
-    public int ScanThreads { get; set; } = 50;
+    public int ScanThreads { get; set; } = 100;
     /// <summary>UI/text scale in percent (100 = default).</summary>
     public int UiScalePercent { get; set; } = 100;
 

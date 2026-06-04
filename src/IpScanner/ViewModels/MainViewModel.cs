@@ -76,12 +76,14 @@ public sealed class MainViewModel : ObservableObject
         => RunScanInternal(null, persist: true, subnetOverride);
 
     /// <summary>Automatic sweep right after startup: StartupPingCount pings per
-    /// device, no file/DB output. Populates sidebar + devices immediately.</summary>
+    /// device with MAX threads (0 = one per device), no file/DB output.</summary>
     public Task RunInitScanAsync()
-        => RunScanInternal(Math.Max(0, Config.StartupPingCount), persist: false, null);
+        => RunScanInternal(Math.Max(0, Config.StartupPingCount), persist: false, null,
+                           scanThreadsOverride: 0);
 
     private async Task RunScanInternal(int? pingCountOverride, bool persist,
-                                       IReadOnlyList<string>? subnetOverride)
+                                       IReadOnlyList<string>? subnetOverride,
+                                       int? scanThreadsOverride = null)
     {
         _cts?.Cancel();
         _cts?.Dispose();
@@ -89,13 +91,14 @@ public sealed class MainViewModel : ObservableObject
         IsScanning = true;
         try
         {
-            await RunScanCore(pingCountOverride, persist, subnetOverride);
+            await RunScanCore(pingCountOverride, persist, subnetOverride, scanThreadsOverride);
         }
         finally { IsScanning = false; }
     }
 
     private async Task RunScanCore(int? pingCountOverride, bool persist,
-                                   IReadOnlyList<string>? subnetOverride)
+                                   IReadOnlyList<string>? subnetOverride,
+                                   int? scanThreadsOverride)
     {
         GroupColorPalette.Shuffle();   // fresh random group colors per run
         var info = _detectNetwork();
@@ -107,6 +110,8 @@ public sealed class MainViewModel : ObservableObject
         LastExportPath = null;
         Raise(nameof(HasExport));
         var cfg = pingCountOverride is null ? Config : Config.CloneWith(pingCountOverride.Value);
+        if (scanThreadsOverride is { } threads && pingCountOverride is not null)
+            cfg.ScanThreads = threads;   // cfg is a clone here, Config stays untouched
         var prefixes = subnetOverride ?? BuildPrefixes(info, cfg.Subnets);
 
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;

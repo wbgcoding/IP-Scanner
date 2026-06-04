@@ -71,13 +71,16 @@ public static class Loc
     public static string TabDatabase => S("Datenbank", "Database");
     public static string Subnets => S("Subnetze (eine pro Zeile)", "Subnets (one per line)");
     public static string PinnedIps => S("Angeheftete IPs (eine pro Zeile)", "Pinned IPs (one per line)");
-    public static string PingInterval => S("Ping-Intervall (ms)", "Ping interval (ms)");
-    public static string OfflineAfter => S("Offline nach N Fehlversuchen", "Offline after N failures");
+    public static string PingInterval => S("Ping-Intervall", "Ping interval");
+    public static string OfflineAfter => S("Offline nach X Fehlversuchen", "Offline after X failures");
     public static string InitPings => S("Such-Pings je IP", "Discovery pings per IP");
     public static string StartupPings => S("Pings bei Start", "Pings at startup");
     public static string ScanThreads => S("Threads pro Scan (0 = max)", "Threads per scan (0 = max)");
-    public static string TextScale => S("Textgröße (%)", "Text size (%)");
-    public static string OfflineRecheck => S("Offline-Recheck (s, 0 = aus)", "Offline recheck (s, 0 = off)");
+    public static string TextScale => S("Textgröße", "Text size");
+    public static string OfflineRecheck => S("Offline-Recheck (0 = aus)", "Offline recheck (0 = off)");
+    public static string InvalidEntry(string entry) => German
+        ? $"Ungültiger Eintrag: {entry}"
+        : $"Invalid entry: {entry}";
     public static string ExportConf => S("Einstellungen exportieren …", "Export settings …");
     public static string ImportConf => S("Einstellungen importieren …", "Import settings …");
     public static string TabConfig => S("Konfigurationsdatei", "Configuration file");
@@ -91,7 +94,7 @@ public static class Loc
     public static string ClearDb => S("Datenbank leeren", "Clear database");
     public static string MergeDb => S("Datenbanken zusammenführen …", "Merge databases …");
     public static string DbFile => S("Datenbankdatei", "Database file");
-    public static string InternetTimeout => S("Ping-Timeout (ms)", "Ping timeout (ms)");
+    public static string InternetTimeout => S("Ping-Timeout", "Ping timeout");
     public static string ConfNote => S(
         "Die Einstellungen werden automatisch als ip_scanner.conf im Ordner der Datenbank gespeichert und beim Start geladen.",
         "Settings are saved automatically as ip_scanner.conf next to the database and loaded at startup.");
@@ -112,8 +115,8 @@ public static class Loc
         "Diese IPs werden immer mitgepingt (auch außerhalb der Subnetze) und stehen ganz oben in der Tabelle.",
         "These IPs are always pinged (even outside the subnets) and stay at the top of the table.");
     public static string TipScanThreads => S(
-        "Parallele Ping-Worker für Suche und Analyse. 0 = ein Thread pro Gerät (maximale Geschwindigkeit, mehr Last). Standard 50.",
-        "Parallel ping workers for discovery and analysis. 0 = one thread per device (max speed, more load). Default 50.");
+        "Parallele Ping-Worker für Suche und Analyse. 0 = ein Thread pro Gerät (maximale Geschwindigkeit, mehr Last). Standard 100.",
+        "Parallel ping workers for discovery and analysis. 0 = one thread per device (max speed, more load). Default 100.");
     public static string TipExportConf => S(
         "Speichert alle aktuellen Einstellungen in eine .conf-Datei.",
         "Saves all current settings to a .conf file.");

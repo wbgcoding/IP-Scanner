@@ -35,7 +35,7 @@ public static class ConfigManager
                 case "output_directory":            cfg.OutputDirectory = value; break;
                 case "file_output":                 cfg.FileOutput = ParseBool(value); break;
                 case "export_csv":                  cfg.ExportCsv = ParseBool(value); break;
-                case "scan_threads":                cfg.ScanThreads = ParseInt(value, 0, 1000, 50); break;
+                case "scan_threads":                cfg.ScanThreads = ParseInt(value, 0, 1000, 100); break;
                 case "ui_scale":                    cfg.UiScalePercent = ParseInt(value, 50, 200, 100); break;
                 case "pinned_ips":                  cfg.PinnedIps = ParseIpList(value); break;
                 default:
@@ -112,7 +112,7 @@ public static class ConfigManager
         sb.AppendLine();
 
         sb.AppendLine("# -- Performance ---------------------------------------------");
-        sb.AppendLine("# scan_threads  Parallele Ping-Worker je Scan (0-1000, 0=einer je Geraet). Standard 50.");
+        sb.AppendLine("# scan_threads  Parallele Ping-Worker je Scan (0-1000, 0=einer je Geraet). Standard 100.");
         sb.AppendLine($"scan_threads = {c.ScanThreads}");
         sb.AppendLine("# ui_scale  Textgroesse in Prozent (50-200). Standard 100.");
         sb.AppendLine($"ui_scale = {c.UiScalePercent}");
