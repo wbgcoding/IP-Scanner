@@ -72,7 +72,6 @@ public static class Loc
     // ── Settings ──
     public static string Settings => S("Einstellungen", "Settings");
     public static string Close => S("Schließen", "Close");
-    public static string Language => S("Sprache", "Language");
     public static string LangAuto => S("Automatisch", "Automatic");
     public static string TabNetwork => S("Netzwerk", "Network");
     public static string TabPing => S("Ping", "Ping");

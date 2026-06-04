@@ -305,10 +305,10 @@
                                         <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="1" Text="{x:Static loc:Loc.Avg}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="2" Text="{x:Static loc:Loc.Min}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="3" Text="{x:Static loc:Loc.Max}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="4" Text="{x:Static loc:Loc.Last}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="1" Text="{x:Static loc:Loc.Avg}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{x:Static loc:Loc.Min}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="3" Text="{x:Static loc:Loc.Max}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="4" Text="{x:Static loc:Loc.Last}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
                                 </Grid>
                                 <ItemsControl ItemsSource="{Binding InternetHosts}">
                                     <ItemsControl.ItemTemplate>
@@ -320,10 +320,10 @@
                                                     <ColumnDefinition Width="38"/><ColumnDefinition Width="38"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="{Binding Name}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding MinDisplay}" Foreground="{Binding MinColor}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Column="3" Text="{Binding MaxDisplay}" Foreground="{Binding MaxColor}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                                                <TextBlock Grid.Column="4" Text="{Binding LastDisplay}" Foreground="{Binding LastColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding MinDisplay}" Foreground="{Binding MinColor}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding MaxDisplay}" Foreground="{Binding MaxColor}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="4" Text="{Binding LastDisplay}" Foreground="{Binding LastColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -335,9 +335,9 @@
                         <Border Padding="13,12">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <ToggleButton x:Name="TxtToggle" Content="TXT" Style="{StaticResource PillToggle}"
+                                    <ToggleButton x:Name="TxtToggle" Content="TXT Export" Style="{StaticResource PillToggle}"
                                                   Click="OnExportToggle" ToolTip="{x:Static loc:Loc.TipWriteTxt}"/>
-                                    <ToggleButton x:Name="CsvToggle" Content="CSV" Style="{StaticResource PillToggle}"
+                                    <ToggleButton x:Name="CsvToggle" Content="CSV Export" Style="{StaticResource PillToggle}"
                                                   Click="OnExportToggle" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipExportCsv}"/>
                                 </StackPanel>
                                 <TextBlock Text="{Binding ExportInfo}" Foreground="{StaticResource MidGray}" FontSize="10"
@@ -359,7 +359,9 @@
                     <Grid DockPanel.Dock="Top" Margin="0,0,0,14">
                         <TextBlock Text="{x:Static loc:Loc.Settings}" Foreground="{StaticResource Mauve}" FontSize="20" FontWeight="Bold"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="{x:Static loc:Loc.ResetDefaults}" Click="OnResetDefaults" Style="{StaticResource GhostButton}" Padding="14,7" ToolTip="{x:Static loc:Loc.TipResetDefaults}"/>
+                            <ComboBox x:Name="LanguageBox" Width="140" Height="32" VerticalAlignment="Center"
+                                      SelectionChanged="OnLanguageChanged" ToolTip="{x:Static loc:Loc.TipLanguage}"/>
+                            <Button Content="{x:Static loc:Loc.ResetDefaults}" Click="OnResetDefaults" Style="{StaticResource GhostButton}" Padding="14,7" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipResetDefaults}"/>
                             <Button Content="{x:Static loc:Loc.Close}" Click="OnSettingsCancel" Style="{StaticResource AccentButton}" Padding="18,7" Margin="8,0,0,0"/>
                         </StackPanel>
                     </Grid>
@@ -491,10 +493,6 @@
 
                             <!-- Konfigurationsdatei -->
                             <TextBlock Text="{x:Static loc:Loc.TabConfig}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
-                            <DockPanel Margin="0,0,0,12" ToolTip="{x:Static loc:Loc.TipLanguage}">
-                                <ComboBox x:Name="LanguageBox" Width="150" DockPanel.Dock="Right" SelectionChanged="OnLanguageChanged"/>
-                                <TextBlock Text="{x:Static loc:Loc.Language}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
-                            </DockPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Button Content="{x:Static loc:Loc.ExportConf}" Click="OnExportConf" Style="{StaticResource AccentButton}" ToolTip="{x:Static loc:Loc.TipExportConf}"/>
                                 <Button Content="{x:Static loc:Loc.ImportConf}" Click="OnImportConf" Style="{StaticResource GhostButton}" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipImportConf}"/>
