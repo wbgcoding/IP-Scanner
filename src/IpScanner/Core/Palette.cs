@@ -15,4 +15,15 @@ public static class Palette
     public const string Mauve = "#CBA6F7";
     public const string Blue = "#89B4FA";
     public const string Transparent = "#00000000";
+
+    /// <summary>Latency heatmap: green (fast) -> red (slow). Mirrors Python thresholds.</summary>
+    public static string Heat(double? ms) => ms switch
+    {
+        null => MidGray,
+        <= 50 => Green,     // excellent
+        <= 100 => Lime,     // good
+        <= 200 => Yellow,   // okay
+        <= 400 => Peach,    // bad
+        _ => Red,           // very bad
+    };
 }

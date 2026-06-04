@@ -87,21 +87,11 @@ public sealed class DeviceViewModel : ObservableObject
         Raise(nameof(AvgMarkColor)); Raise(nameof(MinMarkColor)); Raise(nameof(MaxMarkColor)); Raise(nameof(LastMarkColor));
     }
 
-    // Latency heatmap: green (fast) -> red (slow). Mirrors Python thresholds.
-    public string AvgColor => HeatColor(_device.AvgMs);
-    public string MinColor => HeatColor(_device.MinMs);
-    public string MaxColor => HeatColor(_device.MaxMs);
-    public string LastColor => HeatColor(_device.LastMs);
-
-    private static string HeatColor(double? ms) => ms switch
-    {
-        null => Core.Palette.MidGray,
-        <= 50 => Core.Palette.Green,    // excellent
-        <= 100 => Core.Palette.Lime,    // good
-        <= 200 => Core.Palette.Yellow,  // okay
-        <= 400 => Core.Palette.Peach,   // bad
-        _ => Core.Palette.Red,          // very bad
-    };
+    // Latency heatmap: green (fast) -> red (slow).
+    public string AvgColor => Core.Palette.Heat(_device.AvgMs);
+    public string MinColor => Core.Palette.Heat(_device.MinMs);
+    public string MaxColor => Core.Palette.Heat(_device.MaxMs);
+    public string LastColor => Core.Palette.Heat(_device.LastMs);
     public string ProgressDisplay =>
         _device.TargetPings == ScanConfig.InfinitePingCount
             ? $"{Core.NumberFormat.Short(_device.CurrentPings)}/∞"

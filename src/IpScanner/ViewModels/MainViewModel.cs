@@ -374,26 +374,36 @@ public sealed class MainViewModel : ObservableObject
         UpdateTotals(rows);
     }
 
-    // ── Totals row (average of each ping column across all rows) ──
+    // ── Totals row (average of each ping column across all rows, heat-colored) ──
     public string TotalAvg { get; private set; } = "—";
     public string TotalMin { get; private set; } = "—";
     public string TotalMax { get; private set; } = "—";
     public string TotalLast { get; private set; } = "—";
+    public string TotalAvgColor { get; private set; } = Core.Palette.MidGray;
+    public string TotalMinColor { get; private set; } = Core.Palette.MidGray;
+    public string TotalMaxColor { get; private set; } = Core.Palette.MidGray;
+    public string TotalLastColor { get; private set; } = Core.Palette.MidGray;
 
     private void UpdateTotals(List<DeviceViewModel> rows)
     {
-        static string Avg(List<DeviceViewModel> l, Func<DeviceViewModel, double?> sel)
+        static double? Avg(List<DeviceViewModel> l, Func<DeviceViewModel, double?> sel)
         {
             var vals = l.Select(sel).Where(v => v is not null).Select(v => v!.Value).ToList();
-            return vals.Count == 0 ? "—"
-                 : vals.Average().ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) + " ms";
+            return vals.Count == 0 ? null : vals.Average();
         }
-        TotalAvg = Avg(rows, v => v.AvgRaw);
-        TotalMin = Avg(rows, v => v.MinRaw);
-        TotalMax = Avg(rows, v => v.MaxRaw);
-        TotalLast = Avg(rows, v => v.LastRaw);
+        static string Fmt(double? v) => v is null ? "—"
+            : v.Value.ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) + " ms";
+
+        double? avg = Avg(rows, v => v.AvgRaw), min = Avg(rows, v => v.MinRaw),
+                max = Avg(rows, v => v.MaxRaw), last = Avg(rows, v => v.LastRaw);
+        TotalAvg = Fmt(avg);   TotalAvgColor = Core.Palette.Heat(avg);
+        TotalMin = Fmt(min);   TotalMinColor = Core.Palette.Heat(min);
+        TotalMax = Fmt(max);   TotalMaxColor = Core.Palette.Heat(max);
+        TotalLast = Fmt(last); TotalLastColor = Core.Palette.Heat(last);
         Raise(nameof(TotalAvg)); Raise(nameof(TotalMin));
         Raise(nameof(TotalMax)); Raise(nameof(TotalLast));
+        Raise(nameof(TotalAvgColor)); Raise(nameof(TotalMinColor));
+        Raise(nameof(TotalMaxColor)); Raise(nameof(TotalLastColor));
     }
 
     // Mark best (lowest) green and worst (highest) red per ping column across rows.

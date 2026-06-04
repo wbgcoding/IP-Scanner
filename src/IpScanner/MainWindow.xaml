@@ -203,13 +203,13 @@
                     <TextBlock Text="{x:Static loc:Loc.TotalRow}" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="11" VerticalAlignment="Center" Margin="0,0,18,0"/>
                     <TextBlock Text="{x:Static loc:Loc.Avg}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding TotalAvg}" Foreground="{StaticResource Text}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TotalAvg}" Foreground="{Binding TotalAvgColor}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
                     <TextBlock Text="{x:Static loc:Loc.Min}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding TotalMin}" Foreground="{StaticResource Text}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TotalMin}" Foreground="{Binding TotalMinColor}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
                     <TextBlock Text="{x:Static loc:Loc.Max}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding TotalMax}" Foreground="{StaticResource Text}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TotalMax}" Foreground="{Binding TotalMaxColor}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
                     <TextBlock Text="{x:Static loc:Loc.Last}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding TotalLast}" Foreground="{StaticResource Text}" FontWeight="SemiBold" FontSize="11" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TotalLast}" Foreground="{Binding TotalLastColor}" FontWeight="SemiBold" FontSize="11" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
             </Border>
             </Grid>
