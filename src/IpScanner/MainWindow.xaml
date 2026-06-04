@@ -183,7 +183,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Hostname}" Width="Auto" MinWidth="110"
+                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Hostname}" Width="*" MinWidth="110"
                                             SortMemberPath="Hostname">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -387,15 +387,19 @@
                                     <TextBlock Grid.Column="4" Text="{Binding InternetTotalLast}" Foreground="{Binding InternetTotalLastColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Grid>
                                 <!-- Small history graph of the overall internet average -->
-                                <Canvas x:Name="InetGraphCanvas" Height="38" Margin="0,7,0,0" ClipToBounds="True"
-                                        Background="{StaticResource Bg}" SizeChanged="OnGraphSizeChanged">
-                                    <Polyline x:Name="InetGraphLine" Stroke="{StaticResource Blue}" StrokeThickness="1.2"
-                                              StrokeLineJoin="Round"/>
-                                    <TextBlock x:Name="InetGraphMaxText" Canvas.Left="3" Canvas.Top="0" FontSize="8"
-                                               Foreground="{StaticResource MidGray}"/>
-                                    <TextBlock x:Name="InetGraphMinText" Canvas.Left="3" Canvas.Bottom="0" FontSize="8"
-                                               Foreground="{StaticResource MidGray}"/>
-                                </Canvas>
+                                <StackPanel x:Name="InetGraphSection">
+                                    <Canvas x:Name="InetGraphCanvas" Height="38" Margin="0,7,0,0" ClipToBounds="True"
+                                            SizeChanged="OnGraphSizeChanged">
+                                        <Polyline x:Name="InetGraphLine" Stroke="{StaticResource Blue}" StrokeThickness="1.2"
+                                                  StrokeLineJoin="Round"/>
+                                        <TextBlock x:Name="InetGraphMaxText" Canvas.Left="3" Canvas.Top="0" FontSize="8"
+                                                   Foreground="{StaticResource MidGray}"/>
+                                        <TextBlock x:Name="InetGraphMinText" Canvas.Left="3" Canvas.Bottom="0" FontSize="8"
+                                                   Foreground="{StaticResource MidGray}"/>
+                                    </Canvas>
+                                    <TextBlock x:Name="InetGraphTimeText" FontSize="9" Foreground="{StaticResource MidGray}"
+                                               HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
@@ -423,7 +427,7 @@
                         </Border>
 
                         <!-- Latency history graph (overall average or one device) -->
-                        <Border Padding="13,12" BorderBrush="{StaticResource Surface}" BorderThickness="0,1,0,0">
+                        <Border x:Name="GraphSection" Padding="13,12" BorderBrush="{StaticResource Surface}" BorderThickness="0,1,0,0">
                             <StackPanel>
                                 <DockPanel>
                                     <TextBlock Text="{x:Static loc:Loc.LatencyHistory}" Foreground="{StaticResource Subtext}"
@@ -435,14 +439,16 @@
                                               ToolTip="{x:Static loc:Loc.TipGraphSource}"/>
                                 </DockPanel>
                                 <Canvas x:Name="GraphCanvas" Height="64" Margin="0,9,0,0" ClipToBounds="True"
-                                        Background="{StaticResource BgDark}" SizeChanged="OnGraphSizeChanged">
+                                        SizeChanged="OnGraphSizeChanged">
                                     <Polyline x:Name="GraphLine" Stroke="{StaticResource Green}" StrokeThickness="1.5"
                                               StrokeLineJoin="Round"/>
                                     <TextBlock x:Name="GraphMaxText" Canvas.Left="4" Canvas.Top="1" FontSize="9"
                                                Foreground="{StaticResource MidGray}"/>
-                                    <TextBlock x:Name="GraphMinText" Canvas.Left="4" Canvas.Bottom="1" FontSize="9"
+                                    <TextBlock x:Name="GraphMinText" Canvas.Left="4" Canvas.Bottom="0" FontSize="9"
                                                Foreground="{StaticResource MidGray}"/>
                                 </Canvas>
+                                <TextBlock x:Name="GraphTimeText" FontSize="9" Foreground="{StaticResource MidGray}"
+                                           HorizontalAlignment="Center" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -494,6 +500,9 @@
                             <!-- Subnets: target + name + color -> chip per entry -->
                             <TextBlock Text="{x:Static loc:Loc.Subnets}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipSubnets}"/>
                             <DockPanel>
+                                <Button x:Name="SubnetDeleteBtn" DockPanel.Dock="Right" Content="✕" FontSize="13" Padding="10,2" Margin="6,0,0,0"
+                                        Style="{StaticResource GhostButton}" Click="OnSubnetDelete" Visibility="Collapsed"
+                                        ToolTip="{x:Static loc:Loc.TipRemoveChip}"/>
                                 <Button x:Name="SubnetAddBtn" DockPanel.Dock="Right" Content="+" FontSize="15" Padding="12,2" Margin="6,0,0,0"
                                         Style="{StaticResource AccentButton}" Click="OnSubnetAdd" ToolTip="{x:Static loc:Loc.TipAddEntry}"/>
                                 <Border x:Name="SubnetColorBtn" DockPanel.Dock="Right" Width="28" Height="28" CornerRadius="6" Margin="6,0,0,0"
@@ -518,6 +527,9 @@
                             <!-- Pinned IPs: same pattern -->
                             <TextBlock Text="{x:Static loc:Loc.PinnedIps}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,14,0,4" ToolTip="{x:Static loc:Loc.TipPinnedIps}"/>
                             <DockPanel>
+                                <Button x:Name="PinnedDeleteBtn" DockPanel.Dock="Right" Content="✕" FontSize="13" Padding="10,2" Margin="6,0,0,0"
+                                        Style="{StaticResource GhostButton}" Click="OnPinnedDelete" Visibility="Collapsed"
+                                        ToolTip="{x:Static loc:Loc.TipRemoveChip}"/>
                                 <Button x:Name="PinnedAddBtn" DockPanel.Dock="Right" Content="+" FontSize="15" Padding="12,2" Margin="6,0,0,0"
                                         Style="{StaticResource AccentButton}" Click="OnPinnedAdd" ToolTip="{x:Static loc:Loc.TipAddEntry}"/>
                                 <Border x:Name="PinnedColorBtn" DockPanel.Dock="Right" Width="28" Height="28" CornerRadius="6" Margin="6,0,0,0"
@@ -598,16 +610,39 @@
                                 <CheckBox x:Name="EnableInternetBox" Content="{x:Static loc:Loc.EnableInternet}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" ToolTip="{x:Static loc:Loc.TipEnableInternet}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                             </DockPanel>
                             <TextBlock Text="{x:Static loc:Loc.InternetHosts}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,12,0,4" ToolTip="{x:Static loc:Loc.TipInternetHosts}"/>
-                            <Grid>
-                                <TextBox x:Name="InternetHostsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
-                                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipInternetHosts}"
-                                         TextChanged="OnHostsValidate"/>
-                                <TextBlock Text="{x:Static loc:Loc.ExampleInternetHosts}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=InternetHostsBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                </TextBlock>
-                            </Grid>
-
+                            <DockPanel>
+                                <Button x:Name="HostDeleteBtn" DockPanel.Dock="Right" Content="✕" FontSize="13" Padding="10,2" Margin="6,0,0,0"
+                                        Style="{StaticResource GhostButton}" Click="OnHostDelete" Visibility="Collapsed"
+                                        ToolTip="{x:Static loc:Loc.TipRemoveChip}"/>
+                                <Button x:Name="HostAddBtn" DockPanel.Dock="Right" Content="+" FontSize="15" Padding="12,2" Margin="6,0,0,0"
+                                        Style="{StaticResource AccentButton}" Click="OnHostAdd" ToolTip="{x:Static loc:Loc.TipAddEntry}"/>
+                                <Grid DockPanel.Dock="Right" Width="150" Margin="6,0,0,0">
+                                    <TextBox x:Name="HostNameBox" FontSize="13" KeyDown="OnHostInputKey"/>
+                                    <TextBlock Text="{x:Static loc:Loc.NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=HostNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                                <Grid>
+                                    <TextBox x:Name="HostIpBox" FontSize="13" KeyDown="OnHostInputKey"/>
+                                    <TextBlock Text="8.8.8.8" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=HostIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </DockPanel>
                             <TextBlock x:Name="InternetHostsError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
+                            <WrapPanel x:Name="HostChips" Margin="0,7,0,0"/>
+
+                            <!-- Graphen -->
+                            <TextBlock Text="{x:Static loc:Loc.TabGraphs}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
+                            <DockPanel>
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{x:Static loc:Loc.TipGraphMaxTime}">
+                                    <TextBlock Text="{x:Static loc:Loc.GraphMaxTime}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox x:Name="GraphMaxBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/>
+                                    <TextBlock Text="s" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                </StackPanel>
+                                <CheckBox x:Name="GraphsEnabledBox" Content="{x:Static loc:Loc.EnableGraphs}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"
+                                          ToolTip="{x:Static loc:Loc.TipEnableGraphs}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                            </DockPanel>
 
                             <!-- Ausgabe -->
                             <TextBlock Text="{x:Static loc:Loc.TabOutput}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>

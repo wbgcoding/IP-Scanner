@@ -53,8 +53,19 @@ public static class Loc
     public static string TotalLabel => S("Gesamt", "Total");
     public static string NamePlaceholder => S("Name", "Name");
     public static string TipChipColor => S("Farbe wählen", "Pick a color");
-    public static string TipRemoveChip => S("Klick entfernt den Eintrag", "Click removes the entry");
+    public static string TipRemoveChip => S("Eintrag entfernen", "Remove entry");
+    public static string TipEditChip => S("Doppelklick zum Bearbeiten", "Double-click to edit");
     public static string TipAddEntry => S("Eintrag hinzufügen (auch mit Enter)", "Add entry (Enter works too)");
+    public static string TabGraphs => S("Graphen", "Graphs");
+    public static string EnableGraphs => S("Graphen anzeigen", "Show graphs");
+    public static string GraphMaxTime => S("Max. Zeitspanne", "Max time span");
+    public static string TipEnableGraphs => S(
+        "Blendet die Latenz-Graphen in der Seitenleiste ein oder aus.",
+        "Shows or hides the latency graphs in the sidebar.");
+    public static string TipGraphMaxTime => S(
+        "Sichtbare Zeitspanne der Graphen in Sekunden (10–300).",
+        "Visible time span of the graphs in seconds (10–300).");
+    public static string TimeWindow(string span) => German ? $"letzte {span}" : $"last {span}";
     public static string ConfLocation => S("Speicherort …", "Location …");
     public static string TipConfLocation => S(
         "Ordner wählen, in dem die ip_scanner.conf gespeichert wird (leer = neben der Datenbank).",
@@ -116,8 +127,8 @@ public static class Loc
     public static string TabInternet => S("Internet", "Internet");
     public static string TabOutput => S("Ausgabe", "Output");
     public static string TabDatabase => S("Datenbank", "Database");
-    public static string Subnets => S("Subnetze (eine pro Zeile)", "Subnets (one per line)");
-    public static string PinnedIps => S("Angeheftete IPs (eine pro Zeile)", "Pinned IPs (one per line)");
+    public static string Subnets => S("Subnetze", "Subnets");
+    public static string PinnedIps => S("Angeheftete IPs", "Pinned IPs");
     public static string PingInterval => S("Ping-Intervall", "Ping interval");
     public static string OfflineAfter => S("Offline nach X Fehlversuchen", "Offline after X failures");
     public static string InitPings => S("Such-Pings je IP", "Discovery pings per IP");

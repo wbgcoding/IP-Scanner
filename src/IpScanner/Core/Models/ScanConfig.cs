@@ -33,6 +33,10 @@ public sealed class ScanConfig
     public string Language { get; set; } = "auto";
     /// <summary>Folder of ip_scanner.conf; empty = next to the database.</summary>
     public string ConfigDirectory { get; set; } = "";
+    /// <summary>Show the latency history graphs in the sidebar.</summary>
+    public bool GraphsEnabled { get; set; } = true;
+    /// <summary>Visible time span of the graphs in seconds (10–300).</summary>
+    public int GraphMaxSeconds { get; set; } = 300;
 
     // Progress-bar colors (clickable legend squares; persisted, not shown in settings).
     public string ColorOnline { get; set; } = Palette.Green;
@@ -60,6 +64,7 @@ public sealed class ScanConfig
         DatabasePath = DatabasePath, OutputDirectory = OutputDirectory, FileOutput = FileOutput,
         ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
         Language = Language, ConfigDirectory = ConfigDirectory,
+        GraphsEnabled = GraphsEnabled, GraphMaxSeconds = GraphMaxSeconds,
         ColorOnline = ColorOnline, ColorOffline = ColorOffline,
         ColorSuccess = ColorSuccess, ColorFailed = ColorFailed, ColorSkipped = ColorSkipped,
     };

@@ -68,8 +68,10 @@ public partial class MainWindow : Window
         ApplyDefaultPingCount(); // persisted default ping count into the dropdown
         LanguageBox.ItemsSource = new[] { Loc.LangAuto, Loc.LangDe, Loc.LangEn };
         InitColorPicker();
+        InitChipEditors();
         _vm.InitOverrides(OverridesPathFor(_config.DatabasePath));   // manual hostname/group edits
         InitGraph();
+        ApplyGraphSettings();
         LoadSettings(_config);   // fills all fields incl. export toggles once
 
         // On startup, immediately run a discovery sweep of the local network so
@@ -102,7 +104,27 @@ public partial class MainWindow : Window
         if (_spinSpeed == 0 && _spinTarget == 0) return;
 
         _spinSpeed += (_spinTarget - _spinSpeed) * Math.Min(1.0, dt * 2.5);   // ~1s ramp
-        if (_spinTarget == 0 && Math.Abs(_spinSpeed) < 3) _spinSpeed = 0;
+
+        // Stopping: glide the rest of the turn so the logo always comes to
+        // rest in its starting position instead of freezing mid-rotation.
+        if (_spinTarget == 0 && Math.Abs(_spinSpeed) < 3)
+        {
+            double remaining = (360 - _spinAngle) % 360;
+            double step = Math.Clamp(remaining * 1.5, 12, 120) * dt;   // ease-out
+            if (step >= remaining)
+            {
+                _spinAngle = 0;
+                _spinSpeed = 0;
+                _logoSpin.Angle = 0;
+                LogoGlow.Opacity = 0;
+                return;
+            }
+            _spinAngle += step;
+            _logoSpin.Angle = _spinAngle;
+            LogoGlow.Opacity = 0;
+            return;
+        }
+
         _spinAngle = (_spinAngle + _spinSpeed * dt) % 360;
         _logoSpin.Angle = _spinAngle;
 
@@ -228,93 +250,165 @@ public partial class MainWindow : Window
     }
 
     // ── Chip editors for subnets and pinned IPs (settings) ──
-    private readonly List<NetEntry> _subnetEntries = new();
-    private readonly List<NetEntry> _pinnedEntries = new();
-    private string _subnetColor = "", _pinnedColor = "";
+    private ChipEditor _subnetChips = null!, _pinnedChips = null!, _hostChips = null!;
 
-    private void OnSubnetColorClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        => OpenColorPicker(SubnetColorBtn, _subnetColor, hex =>
-        { _subnetColor = hex; SubnetColorBtn.Background = BrushFor(hex); });
+    private void InitChipEditors()
+    {
+        _subnetChips = new ChipEditor(this, SubnetNetBox, SubnetNameBox, SubnetColorBtn,
+                                      SubnetDeleteBtn, SubnetsError, SubnetChips, IsValidSubnetEntry);
+        _pinnedChips = new ChipEditor(this, PinnedIpBox, PinnedNameBox, PinnedColorBtn,
+                                      PinnedDeleteBtn, PinnedError, PinnedChips, Core.Net.Ipv4.IsValid);
+        _hostChips = new ChipEditor(this, HostIpBox, HostNameBox, null,
+                                    HostDeleteBtn, InternetHostsError, HostChips, Core.Net.Ipv4.IsValid);
+    }
 
-    private void OnPinnedColorClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        => OpenColorPicker(PinnedColorBtn, _pinnedColor, hex =>
-        { _pinnedColor = hex; PinnedColorBtn.Background = BrushFor(hex); });
+    private void OnSubnetColorClick(object sender, System.Windows.Input.MouseButtonEventArgs e) => _subnetChips.PickColor();
+    private void OnPinnedColorClick(object sender, System.Windows.Input.MouseButtonEventArgs e) => _pinnedChips.PickColor();
+    private void OnSubnetAdd(object sender, RoutedEventArgs e) => _subnetChips.Add();
+    private void OnPinnedAdd(object sender, RoutedEventArgs e) => _pinnedChips.Add();
+    private void OnSubnetDelete(object sender, RoutedEventArgs e) => _subnetChips.DeleteEditing();
+    private void OnPinnedDelete(object sender, RoutedEventArgs e) => _pinnedChips.DeleteEditing();
 
     private void OnSubnetInputKey(object sender, System.Windows.Input.KeyEventArgs e)
-    { if (e.Key == System.Windows.Input.Key.Enter) OnSubnetAdd(sender, e); }
+    { if (e.Key == System.Windows.Input.Key.Enter) _subnetChips.Add(); }
 
     private void OnPinnedInputKey(object sender, System.Windows.Input.KeyEventArgs e)
-    { if (e.Key == System.Windows.Input.Key.Enter) OnPinnedAdd(sender, e); }
+    { if (e.Key == System.Windows.Input.Key.Enter) _pinnedChips.Add(); }
 
-    private void OnSubnetAdd(object sender, RoutedEventArgs e)
-    {
-        if (!AddChipEntry(_subnetEntries, SubnetNetBox, SubnetNameBox, _subnetColor,
-                          IsValidSubnetEntry, SubnetsError, SubnetChips)) return;
-        _subnetColor = "";
-        SubnetColorBtn.Background = (System.Windows.Media.Brush)FindResource("Surface");
-    }
+    private void OnHostAdd(object sender, RoutedEventArgs e) => _hostChips.Add();
+    private void OnHostDelete(object sender, RoutedEventArgs e) => _hostChips.DeleteEditing();
 
-    private void OnPinnedAdd(object sender, RoutedEventArgs e)
-    {
-        if (!AddChipEntry(_pinnedEntries, PinnedIpBox, PinnedNameBox, _pinnedColor,
-                          Core.Net.Ipv4.IsValid, PinnedError, PinnedChips)) return;
-        _pinnedColor = "";
-        PinnedColorBtn.Background = (System.Windows.Media.Brush)FindResource("Surface");
-    }
+    private void OnHostInputKey(object sender, System.Windows.Input.KeyEventArgs e)
+    { if (e.Key == System.Windows.Input.Key.Enter) _hostChips.Add(); }
 
-    private bool AddChipEntry(List<NetEntry> list, TextBox targetBox, TextBox nameBox, string color,
-                              Func<string, bool> isValid, TextBlock error, System.Windows.Controls.WrapPanel panel)
+    /// <summary>Editable bubble list: target + optional name + color per entry.
+    /// Double-click on a bubble loads it for editing; ✕ deletes the loaded one.
+    /// A fresh random default color is chosen after every add/load.</summary>
+    private sealed class ChipEditor
     {
-        var target = targetBox.Text.Trim();
-        if (!isValid(target))
+        private readonly MainWindow _w;
+        private readonly TextBox _target, _name;
+        private readonly System.Windows.Controls.Border? _colorBtn;   // null = colorless list
+        private readonly Button _deleteBtn;
+        private readonly TextBlock _error;
+        private readonly System.Windows.Controls.WrapPanel _panel;
+        private readonly Func<string, bool> _isValid;
+        private NetEntry? _editing;
+        private string _color = "";
+
+        public List<NetEntry> Entries { get; } = new();
+
+        public ChipEditor(MainWindow w, TextBox target, TextBox name,
+                          System.Windows.Controls.Border? colorBtn, Button deleteBtn,
+                          TextBlock error, System.Windows.Controls.WrapPanel panel,
+                          Func<string, bool> isValid)
         {
-            error.Text = Loc.InvalidEntry(target);
-            error.Visibility = Visibility.Visible;
-            return false;
+            _w = w; _target = target; _name = name; _colorBtn = colorBtn;
+            _deleteBtn = deleteBtn; _error = error; _panel = panel; _isValid = isValid;
+            RandomColor();
         }
-        error.Visibility = Visibility.Collapsed;
-        list.RemoveAll(en => en.Target == target);   // re-adding replaces
-        list.Add(new NetEntry(target, nameBox.Text.Trim(), color));
-        targetBox.Clear();
-        nameBox.Clear();
-        RebuildChips(panel, list);
-        ApplyInstant();
-        return true;
-    }
 
-    /// <summary>Render one colored bubble per entry; clicking a chip removes it.</summary>
-    private void RebuildChips(System.Windows.Controls.WrapPanel panel, List<NetEntry> list)
-    {
-        panel.Children.Clear();
-        foreach (var entry in list)
+        public void Load(IEnumerable<string> raw)
         {
-            var e = entry;
-            bool colored = e.Color.Length > 0;
-            var label = new TextBlock
+            Entries.Clear();
+            Entries.AddRange(raw.Select(NetEntry.Parse).Where(en => en.Target.Length > 0));
+            Reset();
+            Rebuild();
+        }
+
+        public void PickColor()
+        {
+            if (_colorBtn is null) return;
+            _w.OpenColorPicker(_colorBtn, _color,
+                hex => { _color = hex; _colorBtn.Background = BrushFor(hex); });
+        }
+
+        public void RandomColor()
+        {
+            if (_colorBtn is null) return;
+            _color = SwatchColors[Random.Shared.Next(SwatchColors.Length)];
+            _colorBtn.Background = BrushFor(_color);
+        }
+
+        public void Add()
+        {
+            var target = _target.Text.Trim();
+            if (!_isValid(target))
             {
-                Text = (e.Name.Length > 0 ? e.Name : e.Target) + "  ✕",
-                FontSize = 12,
-                Foreground = colored ? (System.Windows.Media.Brush)FindResource("BgDark")
-                                     : (System.Windows.Media.Brush)FindResource("Text"),
-            };
-            var chip = new System.Windows.Controls.Border
+                _error.Text = Loc.InvalidEntry(target);
+                _error.Visibility = Visibility.Visible;
+                return;
+            }
+            if (_editing is { } old) Entries.Remove(old);
+            Entries.RemoveAll(en => en.Target == target);   // re-adding replaces
+            Entries.Add(new NetEntry(target, _name.Text.Trim(), _color));
+            Reset();
+            Rebuild();
+            _w.ApplyInstant();
+        }
+
+        public void DeleteEditing()
+        {
+            if (_editing is { } old)
             {
-                Background = colored ? BrushFor(e.Color)
-                                     : (System.Windows.Media.Brush)FindResource("Surface"),
-                CornerRadius = new CornerRadius(10),
-                Padding = new Thickness(9, 4, 9, 4),
-                Margin = new Thickness(0, 0, 6, 6),
-                Cursor = System.Windows.Input.Cursors.Hand,
-                ToolTip = $"{e.Target} — {Loc.TipRemoveChip}",
-                Child = label,
-            };
-            chip.MouseLeftButtonDown += (_, _) =>
+                Entries.Remove(old);
+                Rebuild();
+                _w.ApplyInstant();
+            }
+            Reset();
+        }
+
+        private void Reset()
+        {
+            _editing = null;
+            _target.Clear();
+            _name.Clear();
+            _deleteBtn.Visibility = Visibility.Collapsed;
+            _error.Visibility = Visibility.Collapsed;
+            RandomColor();
+        }
+
+        private void BeginEdit(NetEntry e)
+        {
+            _editing = e;
+            _target.Text = e.Target;
+            _name.Text = e.Name;
+            _color = e.Color;
+            if (_colorBtn is not null)
+                _colorBtn.Background = e.Color.Length > 0
+                    ? BrushFor(e.Color)
+                    : (System.Windows.Media.Brush)_w.FindResource("Surface");
+            _deleteBtn.Visibility = Visibility.Visible;
+            _error.Visibility = Visibility.Collapsed;
+        }
+
+        private void Rebuild()
+        {
+            _panel.Children.Clear();
+            foreach (var entry in Entries)
             {
-                list.Remove(e);
-                RebuildChips(panel, list);
-                ApplyInstant();
-            };
-            panel.Children.Add(chip);
+                var e = entry;
+                bool colored = e.Color.Length > 0;
+                var chip = new System.Windows.Controls.Border
+                {
+                    Background = colored ? BrushFor(e.Color)
+                                         : (System.Windows.Media.Brush)_w.FindResource("Surface"),
+                    CornerRadius = new CornerRadius(10),
+                    Padding = new Thickness(9, 4, 9, 4),
+                    Margin = new Thickness(0, 0, 6, 6),
+                    Cursor = System.Windows.Input.Cursors.Hand,
+                    ToolTip = $"{e.Target} — {Loc.TipEditChip}",
+                    Child = new TextBlock
+                    {
+                        Text = e.Name.Length > 0 ? e.Name : e.Target,
+                        FontSize = 12,
+                        Foreground = colored ? (System.Windows.Media.Brush)_w.FindResource("BgDark")
+                                             : (System.Windows.Media.Brush)_w.FindResource("Text"),
+                    },
+                };
+                chip.MouseLeftButtonDown += (_, args) => { if (args.ClickCount == 2) BeginEdit(e); };
+                _panel.Children.Add(chip);
+            }
         }
     }
 
@@ -392,8 +486,14 @@ public partial class MainWindow : Window
 
     private void OnEditBoxVisible(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (sender is TextBox { IsVisible: true } tb)
-            Dispatcher.BeginInvoke(() => { tb.Focus(); tb.SelectAll(); });
+        if (sender is not TextBox { IsVisible: true } tb) return;
+        // After input processing — the DataGrid otherwise steals focus back.
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, () =>
+        {
+            tb.Focus();
+            System.Windows.Input.Keyboard.Focus(tb);
+            tb.SelectAll();
+        });
     }
 
     // ── Scans folder shortcut (sidebar, left of the export toggles) ──
@@ -414,10 +514,20 @@ public partial class MainWindow : Window
     }
 
     // ── Latency history graphs (device graph at the bottom, internet mini graph) ──
-    private const int GraphCapacity = 60;            // one sample per second
     private readonly List<double?> _graphSamples = new();
     private readonly List<double?> _inetSamples = new();
     private string? _graphIp;                        // null = overall average
+
+    /// <summary>Visible time window in samples (one per second).</summary>
+    private int GraphWindowSeconds => Math.Clamp(_config.GraphMaxSeconds, 10, 300);
+
+    /// <summary>Show/hide both graphs per settings.</summary>
+    private void ApplyGraphSettings()
+    {
+        var vis = _config.GraphsEnabled ? Visibility.Visible : Visibility.Collapsed;
+        GraphSection.Visibility = vis;
+        InetGraphSection.Visibility = vis;
+    }
 
     private void InitGraph()
     {
@@ -428,6 +538,7 @@ public partial class MainWindow : Window
 
     private void OnGraphTick()
     {
+        if (!_config.GraphsEnabled) return;
         RefreshGraphSources();
         Sample(_graphSamples, _vm.GraphValue(_graphIp));
         Sample(_inetSamples, _vm.InternetGraphValue());
@@ -435,18 +546,22 @@ public partial class MainWindow : Window
         RenderInternetGraph();
     }
 
-    private static void Sample(List<double?> series, double? value)
+    private void Sample(List<double?> series, double? value)
     {
         series.Add(value);
-        if (series.Count > GraphCapacity) series.RemoveAt(0);
+        while (series.Count > GraphWindowSeconds) series.RemoveAt(0);
     }
 
-    /// <summary>Keep the source dropdown in sync with the device list.</summary>
+    /// <summary>Keep the source dropdown in sync with the device list.
+    /// Labels show the hostname when known, otherwise the IP.</summary>
     private void RefreshGraphSources()
     {
-        if (GraphSourceBox.Items.Count == _vm.Devices.Count + 1) return;
+        if (GraphSourceBox.IsDropDownOpen) return;   // don't yank an open list
         var items = new List<GraphSource> { new(Loc.AllDevices, null) };
-        items.AddRange(_vm.Devices.Select(d => new GraphSource(d.Ip, d.Ip)));
+        items.AddRange(_vm.Devices.Select(d =>
+            new GraphSource(d.Hostname != "—" ? d.Hostname : d.Ip, d.Ip)));
+        if (GraphSourceBox.ItemsSource is List<GraphSource> cur &&
+            cur.Count == items.Count && cur.Zip(items).All(p => p.First == p.Second)) return;
         GraphSourceBox.ItemsSource = items;
         int idx = items.FindIndex(i => i.Ip == _graphIp);
         GraphSourceBox.SelectedIndex = idx >= 0 ? idx : 0;
@@ -469,20 +584,28 @@ public partial class MainWindow : Window
 
     private void RenderGraph()
     {
-        RenderSeries(_graphSamples, GraphCanvas, GraphLine, GraphMaxText, GraphMinText);
+        RenderSeries(_graphSamples, GraphCanvas, GraphLine, GraphMaxText, GraphMinText, GraphTimeText);
         var last = _graphSamples.Count > 0 ? _graphSamples[^1] : null;
         GraphValueText.Text = Core.NumberFormat.Ms(last);
         GraphValueText.Foreground = BrushFor(Core.Palette.Heat(last));
     }
 
     private void RenderInternetGraph()
-        => RenderSeries(_inetSamples, InetGraphCanvas, InetGraphLine, InetGraphMaxText, InetGraphMinText);
+        => RenderSeries(_inetSamples, InetGraphCanvas, InetGraphLine,
+                        InetGraphMaxText, InetGraphMinText, InetGraphTimeText);
 
-    /// <summary>Plot a sample series into a canvas: newest right, gaps for nulls.</summary>
-    private static void RenderSeries(List<double?> samples, System.Windows.Controls.Canvas canvas,
-                                     System.Windows.Shapes.Polyline line,
-                                     TextBlock maxText, TextBlock minText)
+    /// <summary>Covered time span: "45 s" / "2,5 min".</summary>
+    private static string SpanText(int seconds) => seconds < 120
+        ? $"{seconds} s"
+        : (seconds / 60.0).ToString("0.#", System.Globalization.CultureInfo.CurrentCulture) + " min";
+
+    /// <summary>Plot a sample series: line stretches over the full width, newest
+    /// right, gaps for nulls; the plot floor stays above the min label.</summary>
+    private void RenderSeries(List<double?> samples, System.Windows.Controls.Canvas canvas,
+                              System.Windows.Shapes.Polyline line,
+                              TextBlock maxText, TextBlock minText, TextBlock timeText)
     {
+        const double padTop = 4, padBottom = 13;   // floor above the min label
         double w = canvas.ActualWidth, h = canvas.ActualHeight;
         var points = new System.Windows.Media.PointCollection();
         var present = samples.Where(v => v is not null).Select(v => v!.Value).ToList();
@@ -490,13 +613,12 @@ public partial class MainWindow : Window
         {
             double min = present.Min(), max = present.Max();
             if (max - min < 0.5) { max += 0.5; min = Math.Max(0, min - 0.5); }   // flat-line guard
-            double stepX = w / (GraphCapacity - 1);
+            double stepX = w / (samples.Count - 1);
             for (int i = 0; i < samples.Count; i++)
             {
                 if (samples[i] is not { } v) continue;
-                double x = w - (samples.Count - 1 - i) * stepX;
-                double y = h - 4 - (v - min) / (max - min) * (h - 8);
-                points.Add(new Point(x, y));
+                double y = h - padBottom - (v - min) / (max - min) * (h - padTop - padBottom);
+                points.Add(new Point(i * stepX, y));
             }
             maxText.Text = Core.NumberFormat.Ms(max);
             minText.Text = Core.NumberFormat.Ms(min);
@@ -507,6 +629,7 @@ public partial class MainWindow : Window
             minText.Text = "";
         }
         line.Points = points;
+        timeText.Text = samples.Count > 1 ? Loc.TimeWindow(SpanText(samples.Count)) : "";
     }
 
     private string GetBarColor(string key) => key switch
@@ -668,6 +791,7 @@ public partial class MainWindow : Window
         ApplyUiScale();
         ApplyBarColors();
         ApplyDefaultPingCount();
+        ApplyGraphSettings();
     }
 
     /// <summary>Existing directory of a (possibly relative) path, or null.</summary>
@@ -738,6 +862,7 @@ public partial class MainWindow : Window
         _vm.Config = _config;
         ApplyDefaultPingCount();
         SyncExportToggles();
+        ApplyGraphSettings();
         PersistConfig();
     }
 
@@ -813,12 +938,10 @@ public partial class MainWindow : Window
         _loadingSettings = true;
         try
         {
-        _subnetEntries.Clear();
-        _subnetEntries.AddRange(c.Subnets.Select(NetEntry.Parse).Where(en => en.Target.Length > 0));
-        _pinnedEntries.Clear();
-        _pinnedEntries.AddRange(c.PinnedIps.Select(NetEntry.Parse).Where(en => en.Target.Length > 0));
-        RebuildChips(SubnetChips, _subnetEntries);
-        RebuildChips(PinnedChips, _pinnedEntries);
+        _subnetChips.Load(c.Subnets);
+        _pinnedChips.Load(c.PinnedIps);
+        GraphsEnabledBox.IsChecked = c.GraphsEnabled;
+        GraphMaxBox.Text = c.GraphMaxSeconds.ToString();
         ScanThreadsBox.Text = c.ScanThreads.ToString();
         UiScaleBox.Text = c.UiScalePercent.ToString();
         IntervalBox.Text = c.PingIntervalMs.ToString();
@@ -829,7 +952,7 @@ public partial class MainWindow : Window
         OfflineRecheckBox.Text = c.OfflineRecheckSeconds.ToString();
         EnableInternetBox.IsChecked = c.EnableInternetPing;
         InternetTimeoutBox.Text = c.InternetTimeoutMs.ToString();
-        InternetHostsBox.Text = string.Join(Environment.NewLine, c.InternetHosts);
+        _hostChips.Load(c.InternetHosts);
         OutputDirBox.Text = c.OutputDirectory;
         DbPathBox.Text = c.DatabasePath;
         FileOutputBox.IsChecked = c.FileOutput;
@@ -842,24 +965,12 @@ public partial class MainWindow : Window
         finally { _loadingSettings = false; }
     }
 
-    // Split on newlines, commas and semicolons so values can be comma-separated.
-    private static List<string> Items(string t) => t
-        .Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
-        .Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
-
-    // ── Live syntax validation for the list/path fields ──
-    private void OnHostsValidate(object sender, TextChangedEventArgs e)
-    { ValidateList(InternetHostsBox, InternetHostsError, IsValidHostEntry); ApplyInstant(); }
-
+    // ── Live syntax validation for the path fields ──
     private void OnOutputDirValidate(object sender, TextChangedEventArgs e)
     { ValidatePath(OutputDirBox, OutputDirError); ApplyInstant(); }
 
     private void OnDbPathValidate(object sender, TextChangedEventArgs e)
     { ValidatePath(DbPathBox, DbPathError); ApplyInstant(); }
-
-    /// <summary>"ip" or "ip name" — the first token must be a valid IPv4.</summary>
-    private static bool IsValidHostEntry(string entry)
-        => Core.Net.Ipv4.IsValid(entry.Split(' ', 2)[0].Trim());
 
     private static bool IsValidPathText(string path)
     {
@@ -893,22 +1004,6 @@ public partial class MainWindow : Window
                (int.TryParse(parts[1].Trim(), out var cidr) && cidr is >= 1 and <= 32);
     }
 
-    private void ValidateList(TextBox box, TextBlock error, Func<string, bool> isValid)
-    {
-        var bad = Items(box.Text).FirstOrDefault(x => !isValid(x));
-        if (bad is null)
-        {
-            box.ClearValue(System.Windows.Controls.Control.BorderBrushProperty);
-            error.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            box.BorderBrush = (System.Windows.Media.Brush)FindResource("Red");
-            error.Text = Loc.InvalidEntry(bad);
-            error.Visibility = Visibility.Visible;
-        }
-    }
-
     private ScanConfig ReadSettings()
     {
         int I(string s, int d) => int.TryParse(s.Trim(), out var v) ? v : d;
@@ -916,9 +1011,11 @@ public partial class MainWindow : Window
         int defaultPings = I(DefaultPingsBox.Text, 10);
         return new ScanConfig
         {
-            Subnets = _subnetEntries.Select(en => en.ToString()).ToList(),
-            PinnedIps = _pinnedEntries.Select(en => en.ToString()).ToList(),
+            Subnets = _subnetChips.Entries.Select(en => en.ToString()).ToList(),
+            PinnedIps = _pinnedChips.Entries.Select(en => en.ToString()).ToList(),
             ConfigDirectory = _config.ConfigDirectory,
+            GraphsEnabled = GraphsEnabledBox.IsChecked == true,
+            GraphMaxSeconds = Math.Clamp(I(GraphMaxBox.Text, 300), 10, 300),
             PingCount = defaultPings is ScanConfig.InfinitePingCount or > 0 ? defaultPings : 10,
             ScanThreads = I(ScanThreadsBox.Text, 50),
             UiScalePercent = Math.Clamp(I(UiScaleBox.Text, 100), 50, 200),
@@ -929,7 +1026,7 @@ public partial class MainWindow : Window
             OfflineRecheckSeconds = Math.Clamp(I(OfflineRecheckBox.Text, 2), 0, 3600),
             EnableInternetPing = EnableInternetBox.IsChecked == true,
             InternetTimeoutMs = Math.Clamp(I(InternetTimeoutBox.Text, 1000), 100, 10_000),
-            InternetHosts = Items(InternetHostsBox.Text),
+            InternetHosts = _hostChips.Entries.Select(en => en.ToString()).ToList(),
             OutputDirectory = OutputDirBox.Text.Trim(),
             DatabasePath = DbPathBox.Text.Trim().Length > 0 ? DbPathBox.Text.Trim() : ScanConfig.DefaultDatabasePath,
             FileOutput = FileOutputBox.IsChecked == true,

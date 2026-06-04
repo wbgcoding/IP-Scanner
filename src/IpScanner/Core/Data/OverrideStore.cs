@@ -64,8 +64,9 @@ public sealed class OverrideStore
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(_path) ?? ".");
+            // "N/A" marks a group that was never set manually (reads back as null).
             File.WriteAllLines(_path, _entries.Select(kv =>
-                $"{kv.Key}\t{kv.Value.Hostname ?? ""}\t{kv.Value.Group?.ToString() ?? ""}"));
+                $"{kv.Key}\t{kv.Value.Hostname ?? ""}\t{kv.Value.Group?.ToString() ?? "N/A"}"));
         }
         catch { /* best-effort */ }
     }

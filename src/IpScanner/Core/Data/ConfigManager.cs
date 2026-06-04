@@ -33,6 +33,8 @@ public static class ConfigManager
                 case "known_devices_db":            cfg.KnownDevicesDb = ParseBool(value); break;
                 case "database_path":               if (value.Length > 0) cfg.DatabasePath = value; break;
                 case "config_directory":            cfg.ConfigDirectory = value; break;
+                case "graphs_enabled":              cfg.GraphsEnabled = ParseBool(value); break;
+                case "graph_max_seconds":           cfg.GraphMaxSeconds = ParseInt(value, 10, 300, 300); break;
                 case "output_directory":            cfg.OutputDirectory = value; break;
                 case "file_output":                 cfg.FileOutput = ParseBool(value); break;
                 case "export_csv":                  cfg.ExportCsv = ParseBool(value); break;
@@ -104,6 +106,13 @@ public static class ConfigManager
         sb.AppendLine($"internet_timeout_ms = {c.InternetTimeoutMs}");
         sb.AppendLine("# internet_hosts  Zu messende IPs, Komma-getrennt.");
         sb.AppendLine($"internet_hosts = {string.Join(", ", c.InternetHosts)}");
+        sb.AppendLine();
+
+        sb.AppendLine("# -- Graphen -------------------------------------------------");
+        sb.AppendLine("# graphs_enabled  Latenz-Graphen in der Seitenleiste anzeigen. Standard true.");
+        sb.AppendLine($"graphs_enabled = {B(c.GraphsEnabled)}");
+        sb.AppendLine("# graph_max_seconds  Sichtbare Zeitspanne der Graphen (10-300 s). Standard 300.");
+        sb.AppendLine($"graph_max_seconds = {c.GraphMaxSeconds}");
         sb.AppendLine();
 
         sb.AppendLine("# -- Ausgabe -------------------------------------------------");

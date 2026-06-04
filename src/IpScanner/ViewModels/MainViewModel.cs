@@ -388,21 +388,11 @@ public sealed class MainViewModel : ObservableObject
         d.HostnameRank = -1;
     }
 
-    /// <summary>Fixed group color from pinned-IP entry (wins) or subnet entry.</summary>
-    private void ApplyColorOverride(Device d)
-    {
-        d.GroupColorOverride =
-            _pinnedMeta.TryGetValue(d.Ip, out var p) && p.Color.Length > 0 ? p.Color
-            : _subnetMeta.TryGetValue(Ipv4.SubnetPrefix(d.Ip), out var s) && s.Color.Length > 0 ? s.Color
-            : null;
-    }
-
     private void OnDeviceUpdated(Device d)
     {
         ApplySelfInfo(d);
         ApplyPinnedName(d);
         ApplyHostnameOverride(d);
-        ApplyColorOverride(d);
         if (!d.IsOnline && !d.Seen) return;
 
         // Known rows are only marked dirty (flushed by the throttled aggregate
@@ -441,7 +431,6 @@ public sealed class MainViewModel : ObservableObject
             {
                 ApplyPinnedName(dev);
                 ApplyHostnameOverride(dev);
-                ApplyColorOverride(dev);
                 if (!_byIp.ContainsKey(dev.Ip))
                 {
                     var vm = new DeviceViewModel(dev, dev.Ip == _selfIp, _pinned.Contains(dev.Ip));
@@ -491,7 +480,6 @@ public sealed class MainViewModel : ObservableObject
                 d.AutoGroupId = d.GroupId;
                 if (_overrides.Get(StableMac(d), d.Ip)?.Group is { } g)
                     d.GroupId = DisplayToGroupId(g);
-                ApplyColorOverride(d);
             }
             // Groups may have shifted: refresh every row.
             lock (_byIpLock) { foreach (var vm in Devices) vm.Refresh(); }
