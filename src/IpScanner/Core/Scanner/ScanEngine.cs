@@ -18,6 +18,8 @@ public sealed class ScanEngine
     private const int EnrichGateTimeoutMs = 30_000; // max wait for a free enrichment slot
     private const int EnrichJoinTimeoutMs = 8000;   // max wait per resolver thread
     private const int EnrichGateSize = 24;          // concurrent enrichment batches
+    private const int FastRecheckWindowMs = 10_000; // burst window after a device drops
+    private const int FastRecheckIntervalMs = 1000; // probe cadence inside the window
 
     /// <param name="ping">Ping function (injected for tests).</param>
     /// <param name="enrichers">Optional MAC/hostname techniques, ordered best-first
@@ -78,8 +80,11 @@ public sealed class ScanEngine
 
         using var analysisSem = new SemaphoreSlim(Math.Max(1, workers));
         var analysisTasks = new ConcurrentBag<Task>();
-        // IPs whose analysis loop has started (prevents double-starts from rechecks).
+        // IPs whose analysis loop is running (prevents double-starts from rechecks).
         var analyzing = new ConcurrentDictionary<string, byte>();
+        // IPs whose analysis pings were skipped at discovery — only those are
+        // un-skipped when a recheck brings them into the run.
+        var skippedAtDiscovery = new ConcurrentDictionary<string, byte>();
 
         await RunParallel(ips, workers, ct,
             ip =>
@@ -113,11 +118,12 @@ public sealed class ScanEngine
                     // discovery finishes fast and analysis pings start without delay.
                     TryEnrich(device);
                     if ((infinite || analysisPerIp > 0) && analyzing.TryAdd(ip, 0))
-                        analysisTasks.Add(AnalyzeDeviceAsync(device, cfg, infinite, analysisSem, ct));
+                        analysisTasks.Add(AnalyzeDeviceAsync(device, cfg, infinite, analysisSem, analyzing, ct));
                 }
                 else if (analysisPerIp > 0)
                 {
                     // Offline at discovery: its analysis pings are skipped.
+                    skippedAtDiscovery.TryAdd(ip, 0);
                     Progress.AddSkipped(analysisPerIp);
                     Progress.NotifyChanged();
                 }
@@ -128,7 +134,7 @@ public sealed class ScanEngine
         using var recheckCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         var recheckTask = cfg.OfflineRecheckSeconds > 0 && cfg.PingCount != 0
             ? RecheckOfflineLoopAsync(cfg, infinite, analysisPerIp, workers, analysisSem,
-                                      analysisTasks, analyzing, ct, recheckCts.Token)
+                                      analysisTasks, analyzing, skippedAtDiscovery, ct, recheckCts.Token)
             : Task.CompletedTask;
         // Supervisor: periodically re-runs enrichment for online devices that
         // still miss MAC or hostname (first attempts often lose the race
@@ -170,26 +176,42 @@ public sealed class ScanEngine
         }
     }
 
-    /// <summary>Every OfflineRecheckSeconds, ping all still-offline IPs once;
-    /// devices that answer start their analysis loop right away.</summary>
+    /// <summary>Ping still-offline IPs periodically; devices that answer start
+    /// their analysis loop right away. Devices that just dropped offline get a
+    /// fast burst (every second for a short window — they often reappear right
+    /// away), afterwards the regular OfflineRecheckSeconds cadence applies.</summary>
     private async Task RecheckOfflineLoopAsync(ScanConfig cfg, bool infinite, int analysisPerIp,
         int workers, SemaphoreSlim sem, ConcurrentBag<Task> tasks,
-        ConcurrentDictionary<string, byte> analyzing, CancellationToken scanCt, CancellationToken loopCt)
+        ConcurrentDictionary<string, byte> analyzing, ConcurrentDictionary<string, byte> skippedAtDiscovery,
+        CancellationToken scanCt, CancellationToken loopCt)
     {
+        long slowMs = cfg.OfflineRecheckSeconds * 1000L;
+        long loopStart = Environment.TickCount64;
+        var lastProbe = new Dictionary<string, long>();   // loop-thread only
+
         while (!loopCt.IsCancellationRequested)
         {
-            try { await Task.Delay(cfg.OfflineRecheckSeconds * 1000, loopCt).ConfigureAwait(false); }
+            try { await Task.Delay(FastRecheckIntervalMs, loopCt).ConfigureAwait(false); }
             catch (OperationCanceledException) { return; }
 
-            var offline = _devices.Values
+            long now = Environment.TickCount64;
+            var due = _devices.Values
                 .Where(d => !d.IsOnline && !analyzing.ContainsKey(d.Ip))
+                .Where(d =>
+                {
+                    bool fresh = d.OfflineSince is { } t && now - t < FastRecheckWindowMs;
+                    long wait = fresh ? FastRecheckIntervalMs : slowMs;
+                    long anchor = lastProbe.GetValueOrDefault(d.Ip, d.OfflineSince ?? loopStart);
+                    return now - anchor >= wait;
+                })
                 .Select(d => d.Ip).ToList();
-            if (offline.Count == 0) continue;
+            if (due.Count == 0) continue;
+            foreach (var ip in due) lastProbe[ip] = now;
 
-            await RunParallel(offline, workers, loopCt, ip =>
+            await RunParallel(due, workers, loopCt, ip =>
             {
                 if (loopCt.IsCancellationRequested) return;
-                using var _ = new WorkerScope(this);
+                using var worker = new WorkerScope(this);
                 var device = _devices[ip];
                 var r = Ping(ip);
                 device.RecordPing(r);
@@ -203,8 +225,10 @@ public sealed class ScanEngine
                 TryEnrich(device);
                 if ((infinite || analysisPerIp > 0) && analyzing.TryAdd(ip, 0))
                 {
-                    if (analysisPerIp > 0) Progress.AddSkipped(-analysisPerIp);   // un-skip: it scans now
-                    tasks.Add(AnalyzeDeviceAsync(device, cfg, infinite, sem, scanCt));
+                    // Un-skip only pings that were actually skipped at discovery.
+                    if (analysisPerIp > 0 && skippedAtDiscovery.TryRemove(ip, out _))
+                        Progress.AddSkipped(-analysisPerIp);
+                    tasks.Add(AnalyzeDeviceAsync(device, cfg, infinite, sem, analyzing, scanCt));
                 }
             }).ConfigureAwait(false);
         }
@@ -212,7 +236,8 @@ public sealed class ScanEngine
 
     /// <summary>N analysis pings for one device, gated by the analysis semaphore.</summary>
     private async Task AnalyzeDeviceAsync(Device device, ScanConfig cfg, bool infinite,
-                                          SemaphoreSlim sem, CancellationToken ct)
+                                          SemaphoreSlim sem, ConcurrentDictionary<string, byte> analyzing,
+                                          CancellationToken ct)
     {
         try { await sem.WaitAsync(ct).ConfigureAwait(false); }
         catch (OperationCanceledException) { return; }
@@ -235,7 +260,14 @@ public sealed class ScanEngine
             }, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException) { }
-        finally { sem.Release(); }
+        finally
+        {
+            sem.Release();
+            // A device that dropped offline during analysis goes back to the
+            // recheck pool, so it rejoins the run if it answers again.
+            if (!device.IsOnline && !ct.IsCancellationRequested)
+                analyzing.TryRemove(device.Ip, out _);
+        }
     }
 
     private static async Task RunParallel(IReadOnlyList<string> items, int maxParallel,

@@ -35,6 +35,9 @@ public sealed class Device
 
     public bool IsOnline { get; private set; }
     public bool WentOffline { get; private set; }
+    /// <summary>TickCount64 of the moment the device flipped online → offline
+    /// (null while online or never seen). Drives the fast-recheck burst.</summary>
+    public long? OfflineSince { get; private set; }
 
     public void RecordPing(PingResult r)
     {
@@ -44,6 +47,7 @@ public sealed class Device
             Seen = true;
             IsOnline = true;
             WentOffline = false;
+            OfflineSince = null;
             _consecutiveFails = 0;
             SuccessCount++;
             LastFailed = false;
@@ -63,6 +67,7 @@ public sealed class Device
             _consecutiveFails++;
             if (Seen && _consecutiveFails >= OfflineAfterFailures)
             {
+                if (IsOnline) OfflineSince = Environment.TickCount64;   // transition only
                 IsOnline = false;
                 WentOffline = true;
             }
