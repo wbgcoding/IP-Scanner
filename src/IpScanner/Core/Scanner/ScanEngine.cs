@@ -11,17 +11,18 @@ namespace IpScanner.Core.Scanner;
 public sealed class ScanEngine
 {
     private readonly Func<string, int, PingResult> _ping;
-    private readonly Func<string, (string? mac, string? host)>? _enrich;
+    private readonly IReadOnlyList<Func<string, (string? mac, string? host)>>? _enrichers;
     private const int IcmpTimeoutMs = 1000;
 
     /// <param name="ping">Ping function (injected for tests).</param>
-    /// <param name="enrich">Optional MAC/hostname resolver, called once per device
-    /// when it first answers. Null in tests; production passes ARP+DNS+NetBIOS.</param>
+    /// <param name="enrichers">Optional MAC/hostname techniques, ordered best-first
+    /// (index = rank). All run in parallel per device; every partial result is
+    /// applied immediately and replaced when a better-ranked one arrives.</param>
     public ScanEngine(Func<string, int, PingResult> ping,
-                      Func<string, (string? mac, string? host)>? enrich = null)
+                      IReadOnlyList<Func<string, (string? mac, string? host)>>? enrichers = null)
     {
         _ping = ping;
-        _enrich = enrich;
+        _enrichers = enrichers;
     }
 
     /// <summary>Tracks ping counters across the full scan lifetime.</summary>
@@ -220,26 +221,57 @@ public sealed class ScanEngine
     // At most N devices enrich at once — hundreds in parallel exhaust sockets
     // and nbtstat processes, and every lookup then dies in its timeout.
     private static readonly SemaphoreSlim EnrichGate = new(12);
+    private readonly ConcurrentDictionary<string, byte> _enriching = new();
 
-    /// <summary>Fire-and-forget MAC/hostname resolution; never blocks the ping path.
-    /// LongRunning = dedicated thread, so enrichment isn't starved while the
-    /// thread pool is saturated with blocking ping loops.</summary>
+    /// <summary>Fire-and-forget MAC/hostname resolution. Every technique runs on
+    /// its own dedicated thread (the pool is saturated with blocking pings, queued
+    /// work would die in its timeout). Each partial result lands immediately;
+    /// better-ranked results replace worse ones.</summary>
     private void TryEnrich(Device device)
     {
-        if (_enrich is null) return;
+        if (_enrichers is null || _enrichers.Count == 0) return;
+        if (!_enriching.TryAdd(device.Ip, 0)) return;   // batch already running
         _ = Task.Factory.StartNew(() =>
         {
-            if (!EnrichGate.Wait(30000)) return;   // give up quietly under extreme load
+            if (!EnrichGate.Wait(30000)) { _enriching.TryRemove(device.Ip, out _); return; }
             try
             {
-                var (mac, host) = _enrich(device.Ip);
-                if (!string.IsNullOrEmpty(mac)) device.Mac = mac;
-                if (!string.IsNullOrEmpty(host)) device.Hostname = host;
-                DeviceUpdated?.Invoke(device);
+                var threads = new List<Thread>();
+                for (int i = 0; i < _enrichers.Count; i++)
+                {
+                    int rank = i;
+                    var resolve = _enrichers[i];
+                    var t = new Thread(() => ApplyEnrichResult(device, rank, resolve)) { IsBackground = true };
+                    t.Start();
+                    threads.Add(t);
+                }
+                foreach (var t in threads) t.Join(8000);
             }
-            catch { /* enrichment is best-effort */ }
-            finally { EnrichGate.Release(); }
+            finally
+            {
+                EnrichGate.Release();
+                _enriching.TryRemove(device.Ip, out _);
+            }
         }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+    }
+
+    private void ApplyEnrichResult(Device device, int rank,
+                                   Func<string, (string? mac, string? host)> resolve)
+    {
+        try
+        {
+            var (mac, host) = resolve(device.Ip);
+            bool changed = false;
+            lock (device)
+            {
+                if (!string.IsNullOrEmpty(host) && rank < device.HostnameRank)
+                { device.Hostname = host; device.HostnameRank = rank; changed = true; }
+                if (!string.IsNullOrEmpty(mac) && rank < device.MacRank)
+                { device.Mac = mac; device.MacRank = rank; changed = true; }
+            }
+            if (changed) DeviceUpdated?.Invoke(device);
+        }
+        catch { /* each technique is best-effort */ }
     }
 
     private static void InterruptibleSleep(int ms, CancellationToken ct)

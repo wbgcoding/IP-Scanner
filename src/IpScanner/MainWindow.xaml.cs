@@ -26,7 +26,7 @@ public partial class MainWindow : Window
             pingFunc: IcmpPinger.Ping,
             detectNetwork: NetworkDetector.DetectFast,
             dispatch: a => Dispatcher.BeginInvoke(a),
-            enrich: Enrich)
+            enrichers: Enrichers)
         { Config = _config };
         DataContext = _vm;
 
@@ -109,27 +109,18 @@ public partial class MainWindow : Window
             : new System.Windows.Media.ScaleTransform(f, f);
     }
 
-    // Resolve MAC + hostname for an online device. All techniques run in
-    // PARALLEL (reverse DNS, mDNS, NetBIOS, ARP) — a sequential chain takes up
-    // to ~9s per device and starves the lookups under load.
-    // Hostname preference: DNS > mDNS > NetBIOS; MAC: ARP > NetBIOS.
-    private static (string? mac, string? host) Enrich(string ip)
+    // MAC/hostname techniques, best-first (index = rank). The engine runs all
+    // of them in parallel per device, shows the FIRST result immediately and
+    // swaps in a better-ranked one when it arrives later.
+    //   MAC:      ARP (rank 0) > NetBIOS (rank 3)
+    //   Hostname: reverse DNS (1) > mDNS (2) > NetBIOS (3)
+    private static readonly Func<string, (string? mac, string? host)>[] Enrichers =
     {
-        var dns  = Task.Run(() => HostnameResolver.Resolve(ip));
-        var mdns = Task.Run(() => MdnsHelper.Resolve(ip, 1500));
-        var nbt  = Task.Run(() => NetBiosHelper.Lookup(ip));
-        var arp  = Task.Run(() => ArpHelper.Resolve(ip));
-
-        try { Task.WaitAll(new Task[] { dns, mdns, nbt, arp }, 4000); }
-        catch { /* individual lookups are best-effort */ }
-
-        static string? R(Task<string?> t) => t.IsCompletedSuccessfully ? t.Result : null;
-        var nb = nbt.IsCompletedSuccessfully ? nbt.Result : ((string?)null, (string?)null);
-
-        var host = R(dns) ?? R(mdns) ?? nb.Item1;
-        var mac = R(arp) ?? nb.Item2;
-        return (mac, host);
-    }
+        ip => (ArpHelper.Resolve(ip), null),
+        ip => (null, HostnameResolver.Resolve(ip)),
+        ip => (null, MdnsHelper.Resolve(ip, 1500)),
+        ip => { var (name, mac) = NetBiosHelper.Lookup(ip); return (mac, name); },
+    };
 
     private async void OnScanStopClick(object sender, RoutedEventArgs e)
     {

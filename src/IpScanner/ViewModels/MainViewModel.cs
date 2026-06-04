@@ -17,7 +17,7 @@ public sealed class MainViewModel : ObservableObject
     private readonly Func<string, int, PingResult> _pingFunc;
     private readonly Func<NetworkInfo> _detectNetwork;
     private readonly Action<Action> _dispatch;
-    private readonly Func<string, (string? mac, string? host)>? _enrich;
+    private readonly IReadOnlyList<Func<string, (string? mac, string? host)>>? _enrichers;
     private CancellationTokenSource? _cts;
 
     /// <summary>Split an "ip name" config entry; without a name the IP doubles as name.</summary>
@@ -30,12 +30,12 @@ public sealed class MainViewModel : ObservableObject
     public MainViewModel(Func<string, int, PingResult> pingFunc,
                          Func<NetworkInfo> detectNetwork,
                          Action<Action> dispatch,
-                         Func<string, (string? mac, string? host)>? enrich = null)
+                         IReadOnlyList<Func<string, (string? mac, string? host)>>? enrichers = null)
     {
         _pingFunc = pingFunc;
         _detectNetwork = detectNetwork;
         _dispatch = dispatch;
-        _enrich = enrich;
+        _enrichers = enrichers;
     }
 
     public ObservableCollection<DeviceViewModel> Devices { get; } = new();
@@ -54,9 +54,8 @@ public sealed class MainViewModel : ObservableObject
 
     public string? LastExportPath { get; private set; }
     public bool HasExport => !string.IsNullOrEmpty(LastExportPath);
-    /// <summary>"Threads: 12 / 50" live info for the totals footer.</summary>
+    /// <summary>"Threads: 12" — live count of in-flight pings for the footer.</summary>
     public string ThreadsText { get; private set; } = "";
-    private string _threadsLimit = "";
     /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
     public string? ManualSubnet { get; set; }
 
@@ -112,7 +111,6 @@ public sealed class MainViewModel : ObservableObject
 
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
         Progress.InfinitePings = infinite;
-        _threadsLimit = cfg.ScanThreads <= 0 ? Loc.MaxLabel : cfg.ScanThreads.ToString();
         int perIp = infinite ? 1 : Math.Max(1, cfg.PingCount);
         int hostsPerSubnet = Ipv4.LastHost - Ipv4.FirstHost + 1;
         _plannedDevices = Math.Max(1, prefixes.Count * hostsPerSubnet);
@@ -134,7 +132,7 @@ public sealed class MainViewModel : ObservableObject
         // the table; a new scan (or Stop) cancels the previous loop via the CTS.
         _ = PingInternetAsync(_cts!.Token, cfg.PingCount == 0 ? 1 : cfg.PingCount);
 
-        var engine = new ScanEngine(_pingFunc, _enrich);
+        var engine = new ScanEngine(_pingFunc, _enrichers);
         engine.DeviceUpdated += OnDeviceUpdated;
         // Per-device row refreshes stay immediate (OnDeviceUpdated); the heavy
         // aggregate pass (bars, groups, extremes) is throttled so a fast ping
@@ -381,7 +379,7 @@ public sealed class MainViewModel : ObservableObject
                 vm?.Refresh();
             }
         }
-        ThreadsText = $"{Loc.Threads}: {engine.ActivePings} / {_threadsLimit}";
+        ThreadsText = $"{Loc.Threads}: {engine.ActivePings}";
         Raise(nameof(ThreadsText));
 
         int discovered = all.Count;

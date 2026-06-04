@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -65,6 +66,29 @@ public class ScanEngineTests
         var d2 = engine.Devices.First(d => d.Ip == "10.0.0.2");
         Assert.True(d2.IsOnline);
         Assert.True(d2.SuccessCount > 1);   // recheck reply + analysis pings
+    }
+
+    [Fact]
+    public async Task Enrichers_RunParallel_BetterRankReplacesWorse()
+    {
+        PingResult Fake(string ip, int _) =>
+            ip.EndsWith(".1") ? new PingResult(true, 1.0, 64) : new PingResult(false, null, null);
+
+        var slowDone = new System.Threading.ManualResetEventSlim();
+        var enrichers = new Func<string, (string? mac, string? host)>[]
+        {
+            ip => { Thread.Sleep(250); slowDone.Set(); return (null, "good-name"); }, // rank 0, slow
+            ip => (null, "fast-name"),                                                 // rank 1, instant
+        };
+
+        var engine = new ScanEngine(Fake, enrichers);
+        var cfg = new ScanConfig { PingCount = 1, PingIntervalMs = 0, OfflineRecheckSeconds = 0 };
+        await engine.ScanAsync(new[] { "10.0.0" }, cfg, CancellationToken.None);
+
+        Assert.True(slowDone.Wait(5000));      // enrichment is fire-and-forget
+        await Task.Delay(150);
+        var d = engine.Devices.First(x => x.Ip == "10.0.0.1");
+        Assert.Equal("good-name", d.Hostname); // rank 0 replaced the fast rank-1 result
     }
 
     [Fact]
