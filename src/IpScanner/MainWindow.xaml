@@ -21,20 +21,9 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Title + subnet pills -->
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
-                               FontWeight="Bold" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="SubnetBox" Width="160" Height="30" Margin="0,0,6,0" VerticalAlignment="Center"
-                             Foreground="{StaticResource Text}" FontSize="12" VerticalContentAlignment="Center" Padding="8,0"
-                             KeyDown="OnSubnetKeyDown" ToolTip="{x:Static loc:Loc.SubnetTooltip}"/>
-                    <ComboBox x:Name="CidrBox" Width="80" Height="30" SelectedIndex="0"
-                              VerticalAlignment="Center" Margin="0,0,6,0" ToolTip="{x:Static loc:Loc.MaskTooltip}">
-                        <ComboBoxItem>/24</ComboBoxItem>
-                        <ComboBoxItem>/16</ComboBoxItem>
-                        <ComboBoxItem>/8</ComboBoxItem>
-                    </ComboBox>
-                </StackPanel>
+                <!-- Title -->
+                <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
+                           FontWeight="Bold" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
 
                 <!-- Center: progress bars -->
                 <StackPanel Grid.Column="1" Margin="18,0" VerticalAlignment="Center">
@@ -88,18 +77,31 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Right: controls -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{x:Static loc:Loc.PingsLabel}" Foreground="{StaticResource Subtext}" FontSize="11"
-                               VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <ComboBox x:Name="PingCountBox" Width="80" Margin="0,0,6,0" SelectedIndex="0">
-                        <ComboBoxItem>10</ComboBoxItem><ComboBoxItem>100</ComboBoxItem>
-                        <ComboBoxItem>1000</ComboBoxItem><ComboBoxItem>10000</ComboBoxItem>
-                        <ComboBoxItem>100000</ComboBoxItem><ComboBoxItem>∞</ComboBoxItem>
-                    </ComboBox>
-                    <Button x:Name="ScanButton" Content="{x:Static loc:Loc.Scan}" Click="OnScanClick" Style="{StaticResource AccentButton}"/>
-                    <Button x:Name="StopButton" Content="{x:Static loc:Loc.Stop}" Click="OnStopClick" Style="{StaticResource DangerButton}"/>
-                    <Button x:Name="SettingsButton" Content="⚙" Click="OnSettingsClick" Style="{StaticResource GhostButton}"/>
+                <!-- Right: subnet input above the scan controls -->
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,6">
+                        <TextBox x:Name="SubnetBox" Width="160" Height="30" Margin="0,0,6,0" VerticalAlignment="Center"
+                                 Foreground="{StaticResource Text}" FontSize="12" VerticalContentAlignment="Center" Padding="8,0"
+                                 KeyDown="OnSubnetKeyDown" ToolTip="{x:Static loc:Loc.SubnetTooltip}"/>
+                        <ComboBox x:Name="CidrBox" Width="80" Height="30" SelectedIndex="0"
+                                  VerticalAlignment="Center" ToolTip="{x:Static loc:Loc.MaskTooltip}">
+                            <ComboBoxItem>/24</ComboBoxItem>
+                            <ComboBoxItem>/16</ComboBoxItem>
+                            <ComboBoxItem>/8</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <TextBlock Text="{x:Static loc:Loc.PingsLabel}" Foreground="{StaticResource Subtext}" FontSize="11"
+                                   VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <ComboBox x:Name="PingCountBox" Width="80" Margin="0,0,6,0" SelectedIndex="0">
+                            <ComboBoxItem>10</ComboBoxItem><ComboBoxItem>100</ComboBoxItem>
+                            <ComboBoxItem>1000</ComboBoxItem><ComboBoxItem>10000</ComboBoxItem>
+                            <ComboBoxItem>100000</ComboBoxItem><ComboBoxItem>∞</ComboBoxItem>
+                        </ComboBox>
+                        <Button x:Name="ScanStopButton" Content="{x:Static loc:Loc.Scan}" Click="OnScanStopClick"
+                                Style="{StaticResource AccentButton}" MinWidth="86"/>
+                        <Button x:Name="SettingsButton" Content="⚙" Click="OnSettingsClick" Style="{StaticResource GhostButton}"/>
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </Border>
@@ -111,7 +113,12 @@
                 <ColumnDefinition Width="260"/>
             </Grid.ColumnDefinitions>
 
-            <DataGrid Grid.Column="0" ItemsSource="{Binding Devices}" AutoGenerateColumns="False"
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+            <DataGrid Grid.Row="0" ItemsSource="{Binding Devices}" AutoGenerateColumns="False"
                       IsReadOnly="True" GridLinesVisibility="Horizontal" HeadersVisibility="Column"
                       Background="{StaticResource Bg}" Foreground="{StaticResource Text}"
                       RowBackground="{StaticResource Bg}" AlternatingRowBackground="{StaticResource BgAlt}"
@@ -128,7 +135,7 @@
                     <DataGridTemplateColumn Header="{x:Static loc:Loc.Status}" Width="Auto" MinWidth="74">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Status}" Foreground="{StaticResource Green}"
+                                <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
                                            FontWeight="SemiBold" HorizontalAlignment="Center"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -188,6 +195,24 @@
                                         ElementStyle="{StaticResource CenterCell}"/>
                 </DataGrid.Columns>
             </DataGrid>
+
+            <!-- Totals row: column averages across all visible devices -->
+            <Border Grid.Row="1" Background="{StaticResource BgDark}"
+                    BorderBrush="{StaticResource Surface}" BorderThickness="0,1,0,0" Padding="10,6">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{x:Static loc:Loc.TotalRow}" Foreground="{StaticResource Mauve}"
+                               FontWeight="Bold" FontSize="11" VerticalAlignment="Center" Margin="0,0,18,0"/>
+                    <TextBlock Text="{x:Static loc:Loc.Avg}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TotalAvg}" Foreground="{StaticResource Text}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{x:Static loc:Loc.Min}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TotalMin}" Foreground="{StaticResource Text}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{x:Static loc:Loc.Max}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TotalMax}" Foreground="{StaticResource Text}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{x:Static loc:Loc.Last}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding TotalLast}" Foreground="{StaticResource Text}" FontWeight="SemiBold" FontSize="11" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+            </Grid>
 
             <!-- Sidebar -->
             <Border Grid.Column="1" Background="{StaticResource BgDark}" BorderBrush="{StaticResource Surface}"

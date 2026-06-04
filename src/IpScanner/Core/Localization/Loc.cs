@@ -58,6 +58,8 @@ public static class Loc
     public static string InternetLatency => S("INTERNET-LATENZ", "INTERNET LATENCY");
     public static string LastExport => S("LETZTER EXPORT", "LAST EXPORT");
 
+    public static string TotalRow => S("Ø Gesamt", "Ø Total");
+
     // ── Phases ──
     public static string PhaseReady => S("Bereit", "Ready");
     public static string PhaseSearching => S("Suche Geräte …", "Discovering …");

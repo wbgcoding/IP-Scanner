@@ -50,12 +50,26 @@ public partial class MainWindow : Window
         Top = wa.Top;
         Left = wa.Left + (wa.Width - Width) / 2;
 
+        // One button toggles between Scan and Stop depending on scan state.
+        _vm.PropertyChanged += (_, ev) =>
+        {
+            if (ev.PropertyName == nameof(MainViewModel.IsScanning))
+                Dispatcher.BeginInvoke(UpdateScanButton);
+        };
+
         // On startup, immediately run a discovery sweep of the local network so
         // the sidebar network info and online devices show up without a manual scan.
         Loaded += async (_, _) =>
         {
             try { await _vm.RunInitScanAsync(); } catch { /* best-effort */ }
         };
+    }
+
+    private void UpdateScanButton()
+    {
+        bool scanning = _vm.IsScanning;
+        ScanStopButton.Content = scanning ? Loc.Stop : Loc.Scan;
+        ScanStopButton.Style = (Style)FindResource(scanning ? "DangerButton" : "AccentButton");
     }
 
     // Resolve MAC + hostname for an online device: ARP + reverse DNS, with a
@@ -73,11 +87,15 @@ public partial class MainWindow : Window
         return (mac, host);
     }
 
-    private async void OnScanClick(object sender, RoutedEventArgs e) => await StartScan();
+    private async void OnScanStopClick(object sender, RoutedEventArgs e)
+    {
+        if (_vm.IsScanning) _vm.Stop();
+        else await StartScan();
+    }
 
     private async void OnSubnetKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
-        if (e.Key == System.Windows.Input.Key.Enter) await StartScan();
+        if (e.Key == System.Windows.Input.Key.Enter && !_vm.IsScanning) await StartScan();
     }
 
     private async Task StartScan()
@@ -106,7 +124,6 @@ public partial class MainWindow : Window
             _vm.ManualSubnet = $"{ipPart}/{cidr}";
         }
 
-        ScanButton.IsEnabled = false;
         try
         {
             ApplySelectedPingCount();
@@ -119,10 +136,7 @@ public partial class MainWindow : Window
         {
             MessageBox.Show(this, ex.Message, Loc.ScanError, MessageBoxButton.OK, MessageBoxImage.Error);
         }
-        finally { ScanButton.IsEnabled = true; }
     }
-
-    private void OnStopClick(object sender, RoutedEventArgs e) => _vm.Stop();
 
     // ── Embedded settings overlay ──
     private void OnSettingsClick(object sender, RoutedEventArgs e)

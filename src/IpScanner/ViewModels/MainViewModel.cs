@@ -44,6 +44,15 @@ public sealed class MainViewModel : ObservableObject
     public ObservableCollection<InternetHostViewModel> InternetHosts { get; } = new();
     public ProgressViewModel Progress { get; } = new();
     public ScanConfig Config { get; set; } = new();
+
+    private bool _isScanning;
+    /// <summary>True while a scan (incl. startup sweep) is running.</summary>
+    public bool IsScanning
+    {
+        get => _isScanning;
+        private set { if (_isScanning != value) { _isScanning = value; Raise(nameof(IsScanning)); } }
+    }
+
     public string? LastExportPath { get; private set; }
     public bool HasExport => !string.IsNullOrEmpty(LastExportPath);
     /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
@@ -75,6 +84,18 @@ public sealed class MainViewModel : ObservableObject
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
+        IsScanning = true;
+        try
+        {
+            await RunScanCore(pingCountOverride, persist, subnetOverride);
+        }
+        finally { IsScanning = false; }
+    }
+
+    private async Task RunScanCore(int? pingCountOverride, bool persist,
+                                   IReadOnlyList<string>? subnetOverride)
+    {
+        GroupColorPalette.Shuffle();   // fresh random group colors per run
         var info = _detectNetwork();
         _selfIp = info.Ip;
         _selfMac = info.Mac;
@@ -126,7 +147,7 @@ public sealed class MainViewModel : ObservableObject
 
         try
         {
-            await engine.ScanAsync(prefixes, cfg, _cts.Token);
+            await engine.ScanAsync(prefixes, cfg, _cts!.Token);
         }
         catch (OperationCanceledException) { /* stopped by user */ }
 
@@ -251,8 +272,9 @@ public sealed class MainViewModel : ObservableObject
         return big;
     }
 
-    // Only ONLINE devices are shown in the list; offline ones are added/removed
-    // from the grid as their state flips.
+    // Devices that answered at least once stay in the list — when they flip to
+    // offline mid-scan the row remains (status turns red). Never-seen IPs are
+    // never shown.
     private void OnDeviceUpdated(Device d)
     {
         ApplySelfInfo(d);
@@ -261,16 +283,9 @@ public sealed class MainViewModel : ObservableObject
         lock (_byIpLock)
         {
             bool tracked = _byIp.TryGetValue(d.Ip, out var vm);
-            if (d.IsOnline)
-            {
-                if (!tracked) { vm = new DeviceViewModel(d, d.Ip == _selfIp, _pinned.Contains(d.Ip)); _byIp[d.Ip] = vm; InsertSorted(vm); }
-                else vm!.Refresh();
-            }
-            else if (tracked)
-            {
-                Devices.Remove(vm!);
-                _byIp.Remove(d.Ip);
-            }
+            if (!d.IsOnline && !d.Seen) return;
+            if (!tracked) { vm = new DeviceViewModel(d, d.Ip == _selfIp, _pinned.Contains(d.Ip)); _byIp[d.Ip] = vm; InsertSorted(vm); }
+            else vm!.Refresh();
         }
         });
     }
@@ -289,7 +304,7 @@ public sealed class MainViewModel : ObservableObject
     {
         lock (_byIpLock)
         {
-            foreach (var dev in engine.Devices.Where(d => d.IsOnline))
+            foreach (var dev in engine.Devices.Where(d => d.IsOnline || d.Seen))
             {
                 if (!_byIp.ContainsKey(dev.Ip))
                 {
@@ -353,15 +368,37 @@ public sealed class MainViewModel : ObservableObject
             net.SetAvg(avgs.Count > 0 ? avgs.Average() : null);
         }
 
-        MarkExtremes();
+        List<DeviceViewModel> rows;
+        lock (_byIpLock) { rows = Devices.ToList(); }
+        MarkExtremes(rows);
+        UpdateTotals(rows);
+    }
+
+    // ── Totals row (average of each ping column across all rows) ──
+    public string TotalAvg { get; private set; } = "—";
+    public string TotalMin { get; private set; } = "—";
+    public string TotalMax { get; private set; } = "—";
+    public string TotalLast { get; private set; } = "—";
+
+    private void UpdateTotals(List<DeviceViewModel> rows)
+    {
+        static string Avg(List<DeviceViewModel> l, Func<DeviceViewModel, double?> sel)
+        {
+            var vals = l.Select(sel).Where(v => v is not null).Select(v => v!.Value).ToList();
+            return vals.Count == 0 ? "—"
+                 : vals.Average().ToString("F1", System.Globalization.CultureInfo.GetCultureInfo("de-DE")) + " ms";
+        }
+        TotalAvg = Avg(rows, v => v.AvgRaw);
+        TotalMin = Avg(rows, v => v.MinRaw);
+        TotalMax = Avg(rows, v => v.MaxRaw);
+        TotalLast = Avg(rows, v => v.LastRaw);
+        Raise(nameof(TotalAvg)); Raise(nameof(TotalMin));
+        Raise(nameof(TotalMax)); Raise(nameof(TotalLast));
     }
 
     // Mark best (lowest) green and worst (highest) red per ping column across rows.
-    private void MarkExtremes()
+    private void MarkExtremes(List<DeviceViewModel> list)
     {
-        List<DeviceViewModel> list;
-        lock (_byIpLock) { list = Devices.ToList(); }
-
         var (avgB, avgW) = Extremes(list, v => v.AvgRaw);
         var (minB, minW) = Extremes(list, v => v.MinRaw);
         var (maxB, maxW) = Extremes(list, v => v.MaxRaw);

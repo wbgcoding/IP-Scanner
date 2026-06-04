@@ -13,5 +13,6 @@ public static class Palette
     public const string Peach = "#FAB387";
     public const string Red = "#F38BA8";
     public const string Mauve = "#CBA6F7";
+    public const string Blue = "#89B4FA";
     public const string Transparent = "#00000000";
 }

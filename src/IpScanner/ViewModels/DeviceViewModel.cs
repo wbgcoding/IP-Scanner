@@ -29,18 +29,29 @@ public sealed class DeviceViewModel : ObservableObject
 
     public string Ip => _device.Ip;
     public string Status => _device.IsOnline ? "ONLINE" : "OFFLINE";
+    public string StatusColor => _device.IsOnline ? Core.Palette.Green : Core.Palette.Red;
     public bool IsOnline => _device.IsOnline;
     public string Hostname => _device.Hostname is null or Device.Unknown ? "—" : _device.Hostname;
     public string Mac => _device.Mac is null or Device.Unknown ? "—" : _device.Mac;
     public int GroupId => _device.GroupId;
 
-    // 0/1 = none/unknown -> gray, 2 = gateway -> green, >=3 -> diverse palette.
+    // 0/1 = none/unknown -> gray, 2 = gateway group -> fixed brand color,
+    // >=3 -> diverse palette (shuffled per scan).
     public string GroupColor => _device.GroupId switch
     {
         <= 1 => Core.Palette.Surface2,
-        2 => Core.Palette.Green,
+        2 => GatewayColor(_device.Hostname),
         var g => GroupColorPalette.ColorForIndex(g - 3),
     };
+
+    // Gateway keeps a stable color: blue = UniFi, red = Fritz, otherwise purple.
+    private static string GatewayColor(string? hostname)
+    {
+        var h = (hostname ?? "").ToLowerInvariant();
+        if (h.Contains("unifi")) return Core.Palette.Blue;
+        if (h.Contains("fritz")) return Core.Palette.Red;
+        return Core.Palette.Mauve;
+    }
 
     public string AvgDisplay => Fmt(_device.AvgMs);
     public string MinDisplay => Fmt(_device.MinMs);
@@ -101,7 +112,7 @@ public sealed class DeviceViewModel : ObservableObject
     /// <summary>Push the underlying device's latest values to the UI.</summary>
     public void Refresh()
     {
-        Raise(nameof(Status)); Raise(nameof(IsOnline)); Raise(nameof(Hostname));
+        Raise(nameof(Status)); Raise(nameof(StatusColor)); Raise(nameof(IsOnline)); Raise(nameof(Hostname));
         Raise(nameof(Mac)); Raise(nameof(GroupId)); Raise(nameof(GroupColor));
         Raise(nameof(AvgDisplay)); Raise(nameof(MinDisplay)); Raise(nameof(MaxDisplay));
         Raise(nameof(LastDisplay)); Raise(nameof(ProgressDisplay));

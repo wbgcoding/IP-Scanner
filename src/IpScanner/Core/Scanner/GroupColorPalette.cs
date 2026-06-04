@@ -15,9 +15,25 @@ public static class GroupColorPalette
     };
     private const int MinDistSq = 16900;
 
-    public static IReadOnlyList<string> Sequence { get; } = Build();
+    private static readonly List<string> Base = Build();
+    private static volatile List<string> _order = new(Base);
 
-    public static string ColorForIndex(int i) => Sequence[i % Sequence.Count];
+    public static IReadOnlyList<string> Sequence => _order;
+
+    public static string ColorForIndex(int i) => _order[i % _order.Count];
+
+    /// <summary>Randomize the color order (called once per scan run).</summary>
+    public static void Shuffle()
+    {
+        var rnd = new Random();
+        var list = new List<string>(Base);
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int j = rnd.Next(i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+        _order = list;
+    }
 
     private static List<string> Build()
     {
