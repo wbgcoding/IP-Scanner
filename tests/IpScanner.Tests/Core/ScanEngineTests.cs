@@ -41,6 +41,33 @@ public class ScanEngineTests
     }
 
     [Fact]
+    public async Task Scan_OfflineDevice_JoinsRunWhenItComesOnline()
+    {
+        var calls = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();
+        PingResult Fake(string ip, int _)
+        {
+            int n = calls.AddOrUpdate(ip, 1, (_, v) => v + 1);
+            if (ip.EndsWith(".1")) return new PingResult(true, 1.0, 64);
+            // .2 is offline at discovery, answers from the second ping on.
+            if (ip.EndsWith(".2") && n > 1) return new PingResult(true, 2.0, 64);
+            return new PingResult(false, null, null);
+        }
+
+        var engine = new ScanEngine(Fake);
+        var cfg = new ScanConfig
+        {
+            PingCount = 25, PingIntervalMs = 100, ScanThreads = 32,
+            OfflineRecheckSeconds = 1,
+        };
+
+        await engine.ScanAsync(new[] { "10.0.0" }, cfg, CancellationToken.None);
+
+        var d2 = engine.Devices.First(d => d.Ip == "10.0.0.2");
+        Assert.True(d2.IsOnline);
+        Assert.True(d2.SuccessCount > 1);   // recheck reply + analysis pings
+    }
+
+    [Fact]
     public async Task Scan_TracksPingCounts()
     {
         PingResult Fake(string ip, int _) =>

@@ -50,6 +50,8 @@ public sealed class ScanEngine
         int workers = cfg.ScanThreads <= 0 ? ips.Count : cfg.ScanThreads;
         using var analysisSem = new SemaphoreSlim(Math.Max(1, workers));
         var analysisTasks = new ConcurrentBag<Task>();
+        // IPs whose analysis loop has started (prevents double-starts from rechecks).
+        var analyzing = new ConcurrentDictionary<string, byte>();
 
         await RunParallel(ips, workers, ct,
             ip =>
@@ -78,7 +80,7 @@ public sealed class ScanEngine
                     // First reply: resolve MAC + hostname OFF the critical path so
                     // discovery finishes fast and analysis pings start without delay.
                     TryEnrich(device);
-                    if (infinite || analysisPerIp > 0)
+                    if ((infinite || analysisPerIp > 0) && analyzing.TryAdd(ip, 0))
                         analysisTasks.Add(AnalyzeDeviceAsync(device, cfg, infinite, analysisSem, ct));
                 }
                 else if (analysisPerIp > 0)
@@ -89,7 +91,62 @@ public sealed class ScanEngine
                 }
             });
 
-        await Task.WhenAll(analysisTasks).ConfigureAwait(false);
+        // Recheck offline IPs periodically while the run is active; a device
+        // that comes online joins the analysis immediately.
+        using var recheckCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var recheckTask = cfg.OfflineRecheckSeconds > 0 && cfg.PingCount != 0
+            ? RecheckOfflineLoopAsync(cfg, infinite, analysisPerIp, workers, analysisSem,
+                                      analysisTasks, analyzing, ct, recheckCts.Token)
+            : Task.CompletedTask;
+
+        // Wait until no analysis task is left — rechecks may add new ones mid-wait.
+        while (true)
+        {
+            var snapshot = analysisTasks.ToArray();
+            await Task.WhenAll(snapshot).ConfigureAwait(false);
+            if (snapshot.Length == analysisTasks.Count) break;
+        }
+        recheckCts.Cancel();
+        try { await recheckTask.ConfigureAwait(false); } catch (OperationCanceledException) { }
+        await Task.WhenAll(analysisTasks.ToArray()).ConfigureAwait(false);
+    }
+
+    /// <summary>Every OfflineRecheckSeconds, ping all still-offline IPs once;
+    /// devices that answer start their analysis loop right away.</summary>
+    private async Task RecheckOfflineLoopAsync(ScanConfig cfg, bool infinite, int analysisPerIp,
+        int workers, SemaphoreSlim sem, ConcurrentBag<Task> tasks,
+        ConcurrentDictionary<string, byte> analyzing, CancellationToken scanCt, CancellationToken loopCt)
+    {
+        while (!loopCt.IsCancellationRequested)
+        {
+            try { await Task.Delay(cfg.OfflineRecheckSeconds * 1000, loopCt).ConfigureAwait(false); }
+            catch (OperationCanceledException) { return; }
+
+            var offline = _devices.Values
+                .Where(d => !d.IsOnline && !analyzing.ContainsKey(d.Ip))
+                .Select(d => d.Ip).ToList();
+            if (offline.Count == 0) continue;
+
+            await RunParallel(offline, workers, loopCt, ip =>
+            {
+                if (loopCt.IsCancellationRequested) return;
+                var device = _devices[ip];
+                var r = _ping(ip, IcmpTimeoutMs);
+                device.RecordPing(r);
+                // Failed probes are not counted as scan pings (they would grow
+                // unbounded on long runs); a reply counts and joins the run.
+                if (!r.Success) { DeviceUpdated?.Invoke(device); return; }
+                Progress.AddSuccess();
+                Progress.NotifyChanged();
+                DeviceUpdated?.Invoke(device);
+                TryEnrich(device);
+                if ((infinite || analysisPerIp > 0) && analyzing.TryAdd(ip, 0))
+                {
+                    if (analysisPerIp > 0) Progress.AddSkipped(-analysisPerIp);   // un-skip: it scans now
+                    tasks.Add(AnalyzeDeviceAsync(device, cfg, infinite, sem, scanCt));
+                }
+            }).ConfigureAwait(false);
+        }
     }
 
     /// <summary>N analysis pings for one device, gated by the analysis semaphore.</summary>

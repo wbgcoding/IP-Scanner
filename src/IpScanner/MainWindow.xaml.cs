@@ -205,6 +205,7 @@ public partial class MainWindow : Window
         IntervalBox.Text = c.PingIntervalMs.ToString();
         OfflineAfterBox.Text = c.OfflineAfterFailedPings.ToString();
         InitPingCountBox.Text = c.InitPingCount.ToString();
+        OfflineRecheckBox.Text = c.OfflineRecheckSeconds.ToString();
         EnableInternetBox.IsChecked = c.EnableInternetPing;
         InternetHostsBox.Text = string.Join(Environment.NewLine, c.InternetHosts);
         OutputDirBox.Text = c.OutputDirectory;
@@ -231,6 +232,7 @@ public partial class MainWindow : Window
             PingIntervalMs = I(IntervalBox.Text, 100),
             OfflineAfterFailedPings = I(OfflineAfterBox.Text, 5),
             InitPingCount = I(InitPingCountBox.Text, 1),
+            OfflineRecheckSeconds = Math.Clamp(I(OfflineRecheckBox.Text, 2), 0, 3600),
             EnableInternetPing = EnableInternetBox.IsChecked == true,
             InternetHosts = Items(InternetHostsBox.Text),
             OutputDirectory = OutputDirBox.Text.Trim(),

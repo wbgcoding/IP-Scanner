@@ -76,6 +76,7 @@ public static class Loc
     public static string InitPings => S("Such-Pings je IP", "Discovery pings per IP");
     public static string ScanThreads => S("Threads pro Scan (0 = max)", "Threads per scan (0 = max)");
     public static string TextScale => S("Textgröße (%)", "Text size (%)");
+    public static string OfflineRecheck => S("Offline-Recheck (s, 0 = aus)", "Offline recheck (s, 0 = off)");
     public static string ExportConf => S("Einstellungen exportieren …", "Export settings …");
     public static string ImportConf => S("Einstellungen importieren …", "Import settings …");
     public static string TabConfig => S("Konfigurationsdatei", "Configuration file");
@@ -121,6 +122,9 @@ public static class Loc
     public static string TipInternetHosts => S(
         "Öffentliche IPs für die Internet-Latenzmessung. Format: IP Leerzeichen Name, z.B. \"8.8.8.8 Google\". Ohne Name wird die IP angezeigt.",
         "Public IPs for the internet latency check. Format: IP space name, e.g. \"8.8.8.8 Google\". Without a name the IP is shown.");
+    public static string TipOfflineRecheck => S(
+        "Prüft während eines Durchlaufs alle N Sekunden, ob Offline-IPs online gekommen sind — neue Geräte steigen sofort in den Durchlauf ein. 0 schaltet die Prüfung ab.",
+        "While a run is active, rechecks offline IPs every N seconds — devices that come online join the run immediately. 0 disables the recheck.");
     public static string TipTextScale => S(
         "Skaliert die gesamte Oberfläche inklusive aller Texte. 100 = Standardgröße.",
         "Scales the whole interface including all text. 100 = default size.");

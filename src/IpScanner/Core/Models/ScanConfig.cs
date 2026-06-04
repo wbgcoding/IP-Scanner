@@ -9,6 +9,8 @@ public sealed class ScanConfig
     public int PingIntervalMs { get; set; } = 100;
     public int OfflineAfterFailedPings { get; set; } = 5;
     public int InitPingCount { get; set; } = 1;
+    /// <summary>Recheck offline IPs every N seconds during a run (0 = off).</summary>
+    public int OfflineRecheckSeconds { get; set; } = 2;
     public bool EnableInternetPing { get; set; } = true;
     /// <summary>Entries: "ip" or "ip name", e.g. "8.8.8.8 Google 1".</summary>
     public List<string> InternetHosts { get; set; } =
@@ -29,7 +31,8 @@ public sealed class ScanConfig
     {
         Subnets = Subnets, PinnedIps = PinnedIps, PingCount = pingCount,
         PingIntervalMs = PingIntervalMs, OfflineAfterFailedPings = OfflineAfterFailedPings,
-        InitPingCount = InitPingCount, EnableInternetPing = EnableInternetPing,
+        InitPingCount = InitPingCount, OfflineRecheckSeconds = OfflineRecheckSeconds,
+        EnableInternetPing = EnableInternetPing,
         InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb,
         OutputDirectory = OutputDirectory, FileOutput = FileOutput,
         ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
