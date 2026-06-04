@@ -21,9 +21,14 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Title -->
-                <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
-                           FontWeight="Bold" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <!-- Title + logo -->
+                <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
+                    <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
+                               FontWeight="Bold" FontSize="16"/>
+                    <Image Source="/Resources/network.ico" Width="36" Height="36"
+                           Margin="0,4,0,0" HorizontalAlignment="Left"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                </StackPanel>
 
                 <!-- Center: progress bars -->
                 <StackPanel Grid.Column="1" Margin="18,0" VerticalAlignment="Center">
@@ -268,7 +273,7 @@
                                                 </Grid>
                                                 <Grid Height="20">
                                                     <TextBlock Text="{x:Static loc:Loc.AvgLatency}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                    <TextBlock Text="{Binding AvgLatency}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding AvgLatency}" Foreground="{Binding AvgLatencyColor}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                                 </Grid>
                                             </StackPanel>
                                         </StackPanel>
@@ -284,24 +289,30 @@
                                 <ItemsControl ItemsSource="{Binding InternetHosts}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Margin="0,3">
-                                                <TextBlock Text="{Binding Name}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Text="{Binding LatencyDisplay}" Foreground="{StaticResource Green}"
-                                                           FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
-                                            </Grid>
+                                            <StackPanel Margin="0,4">
+                                                <Grid>
+                                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding LastDisplay}" Foreground="{Binding LastColor}"
+                                                               FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,1,0,0">
+                                                    <TextBlock Text="Ø" Foreground="{StaticResource MidGray}" FontSize="10"/>
+                                                    <TextBlock Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}" FontSize="10" Margin="3,0,8,0"/>
+                                                    <TextBlock Text="Min" Foreground="{StaticResource MidGray}" FontSize="10"/>
+                                                    <TextBlock Text="{Binding MinDisplay}" Foreground="{Binding MinColor}" FontSize="10" Margin="3,0,8,0"/>
+                                                    <TextBlock Text="Max" Foreground="{StaticResource MidGray}" FontSize="10"/>
+                                                    <TextBlock Text="{Binding MaxDisplay}" Foreground="{Binding MaxColor}" FontSize="10" Margin="3,0,0,0"/>
+                                                </StackPanel>
+                                            </StackPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </StackPanel>
                         </Border>
 
-                        <!-- Phase + export -->
+                        <!-- Export -->
                         <Border Padding="13,12">
                             <StackPanel>
-                                <Border Background="{StaticResource BgAlt}" CornerRadius="5" Padding="9,7" Margin="0,0,0,8">
-                                    <TextBlock Text="{Binding Progress.Phase}" Foreground="{StaticResource Mauve}"
-                                               FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                </Border>
                                 <StackPanel Visibility="{Binding HasExport, Converter={StaticResource BoolToVis}}">
                                     <TextBlock Text="{x:Static loc:Loc.LastExport}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="0,0,0,3"/>
                                     <TextBlock Text="{Binding LastExportPath}" Foreground="{StaticResource MidGray}"

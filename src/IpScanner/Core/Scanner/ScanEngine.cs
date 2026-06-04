@@ -139,11 +139,13 @@ public sealed class ScanEngine
         catch (OperationCanceledException) { }
     }
 
-    /// <summary>Fire-and-forget MAC/hostname resolution; never blocks the ping path.</summary>
+    /// <summary>Fire-and-forget MAC/hostname resolution; never blocks the ping path.
+    /// LongRunning = dedicated thread, so enrichment isn't starved while the
+    /// thread pool is saturated with blocking ping loops.</summary>
     private void TryEnrich(Device device)
     {
         if (_enrich is null) return;
-        _ = Task.Run(() =>
+        _ = Task.Factory.StartNew(() =>
         {
             try
             {
@@ -153,7 +155,7 @@ public sealed class ScanEngine
                 DeviceUpdated?.Invoke(device);
             }
             catch { /* enrichment is best-effort */ }
-        });
+        }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
 
     private static void InterruptibleSleep(int ms, CancellationToken ct)

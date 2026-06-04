@@ -50,5 +50,6 @@ public sealed class NetworkInfoViewModel : ObservableObject
     public int OfflineCount { get => _offline; set => SetProperty(ref _offline, value); }
 
     public string AvgLatency => _avg is null ? "—" : _avg.Value.ToString("F1") + " ms";
-    public void SetAvg(double? v) { _avg = v; Raise(nameof(AvgLatency)); }
+    public string AvgLatencyColor => Core.Palette.Heat(_avg);
+    public void SetAvg(double? v) { _avg = v; Raise(nameof(AvgLatency)); Raise(nameof(AvgLatencyColor)); }
 }

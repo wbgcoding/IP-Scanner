@@ -126,9 +126,9 @@ public sealed class MainViewModel : ObservableObject
             Progress.Phase = Loc.PhaseSearching;
         });
 
-        // Internet latency runs in the background, independent of the scan's
-        // cancellation, so it always completes even on a quick init sweep / stop.
-        _ = PingInternetAsync();
+        // Internet latency runs alongside the scan with the same ping count as
+        // the table; a new scan (or Stop) cancels the previous loop via the CTS.
+        _ = PingInternetAsync(_cts!.Token, cfg.PingCount == 0 ? 1 : cfg.PingCount);
 
         var engine = new ScanEngine(_pingFunc, _enrich);
         engine.DeviceUpdated += OnDeviceUpdated;
@@ -190,7 +190,9 @@ public sealed class MainViewModel : ObservableObject
         });
     }
 
-    public async Task PingInternetAsync(CancellationToken ct = default)
+    /// <summary>Ping the configured internet hosts in parallel, pingCount times
+    /// each (-1 = endless), tracking min/max/avg live — mirrors the table run.</summary>
+    public async Task PingInternetAsync(CancellationToken ct = default, int pingCount = 1)
     {
         if (!Config.EnableInternetPing) return;
 
@@ -205,17 +207,20 @@ public sealed class MainViewModel : ObservableObject
             foreach (var h in hosts) InternetHosts.Add(h);
         });
 
-        // Ping all hosts in parallel, two attempts each (robust against a dropped packet).
-        await Task.WhenAll(hosts.Select(host => Task.Run(() =>
+        int target = pingCount == ScanConfig.InfinitePingCount ? int.MaxValue : Math.Max(1, pingCount);
+        // Don't hammer public hosts faster than twice a second.
+        int interval = Math.Max(Config.PingIntervalMs, 500);
+
+        await Task.WhenAll(hosts.Select(host => Task.Run(async () =>
         {
-            double? latency = null;
-            for (int attempt = 0; attempt < 2 && latency is null; attempt++)
+            for (int i = 0; i < target && !ct.IsCancellationRequested; i++)
             {
-                if (ct.IsCancellationRequested) break;
                 var r = _pingFunc(host.Ip, 1500);
-                if (r.Success) latency = r.LatencyMs;
+                _dispatch(() => host.RecordPing(r.Success ? r.LatencyMs : null));
+                if (i + 1 >= target) break;
+                try { await Task.Delay(interval, ct); }
+                catch (OperationCanceledException) { break; }
             }
-            _dispatch(() => host.SetLatency(latency));
         })));
     }
 
