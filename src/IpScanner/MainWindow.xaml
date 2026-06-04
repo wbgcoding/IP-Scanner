@@ -316,8 +316,8 @@
                                             <Grid Margin="0,2">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="38"/><ColumnDefinition Width="38"/>
-                                                    <ColumnDefinition Width="38"/><ColumnDefinition Width="38"/>
+                                                    <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
+                                                    <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="{Binding Name}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Grid.Column="1" Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
