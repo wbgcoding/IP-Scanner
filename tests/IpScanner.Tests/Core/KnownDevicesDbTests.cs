@@ -28,6 +28,33 @@ public class KnownDevicesDbTests
     }
 
     [Fact]
+    public void MergeFrom_CombinesDatabases_NewerWins()
+    {
+        string PathFor() => Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".db");
+        var mainPath = PathFor();
+        var otherPath = PathFor();
+        const string netMac = "AA:BB:CC:11:22:33";
+
+        var main = new KnownDevicesDb(mainPath);
+        main.Save(netMac, new List<Device> { new("192.168.1.5") { Mac = "DD:EE:FF:00:11:22", Hostname = "old-name" } }, "20260101_000000");
+
+        var other = new KnownDevicesDb(otherPath);
+        other.Save(netMac, new List<Device>
+        {
+            new("192.168.1.9") { Mac = "DD:EE:FF:00:11:22", Hostname = "new-name" },   // same device, newer
+            new("192.168.1.7") { Mac = "11:22:33:44:55:66", Hostname = "printer" },     // only in other
+        }, "20260601_000000");
+
+        int merged = main.MergeFrom(otherPath);
+
+        Assert.Equal(2, merged);
+        var loaded = main.Load(netMac);
+        Assert.Equal(2, loaded.Count);
+        Assert.Contains(loaded, d => d.Hostname == "new-name" && d.Ip == "192.168.1.9");
+        Assert.Contains(loaded, d => d.Hostname == "printer");
+    }
+
+    [Fact]
     public void GetNetworkMac_FindsGatewayMac()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".db");

@@ -69,11 +69,13 @@ public partial class MainWindow : Window
         ScanStopButton.Content = scanning ? Loc.Stop : Loc.Scan;
         ScanStopButton.Style = (Style)FindResource(scanning ? "DangerButton" : "AccentButton");
 
-        // Logo spins while a scan is running.
+        // Logo spins while a scan is running — faster with more threads.
         LogoImage.RenderTransform = _logoSpin;
         if (scanning)
         {
-            var spin = new System.Windows.Media.Animation.DoubleAnimation(0, 360, TimeSpan.FromSeconds(2.5))
+            int threads = _config.ScanThreads <= 0 ? 254 : _config.ScanThreads;
+            double seconds = Math.Clamp(120.0 / threads, 0.6, 6.0);
+            var spin = new System.Windows.Media.Animation.DoubleAnimation(0, 360, TimeSpan.FromSeconds(seconds))
             { RepeatBehavior = System.Windows.Media.Animation.RepeatBehavior.Forever };
             _logoSpin.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, spin);
         }
@@ -138,7 +140,11 @@ public partial class MainWindow : Window
             else
             {
                 ipPart = raw;
-                cidr = ParseCidr((CidrBox.SelectedItem as ComboBoxItem)?.Content?.ToString());
+                // Editable dropdown: free text wins, otherwise the selected item.
+                var cidrText = string.IsNullOrWhiteSpace(CidrBox.Text)
+                    ? (CidrBox.SelectedItem as ComboBoxItem)?.Content?.ToString()
+                    : CidrBox.Text;
+                cidr = ParseCidr(cidrText);
             }
             if (cidr < 24 && !ConfirmLargeRange(cidr)) return;
             _vm.ManualSubnet = $"{ipPart}/{cidr}";
@@ -167,6 +173,31 @@ public partial class MainWindow : Window
 
     private void OnSettingsCancel(object sender, RoutedEventArgs e)
         => SettingsOverlay.Visibility = Visibility.Collapsed;
+
+    // Clicking the dimmed background (not the panel) closes the overlay.
+    private void OnOverlayBackgroundClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (ReferenceEquals(e.OriginalSource, SettingsOverlay))
+            SettingsOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnResetDefaults(object sender, RoutedEventArgs e)
+        => LoadSettings(new ScanConfig());
+
+    private void OnMergeDb(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Datenbank (*.db)|*.db|*.*|*.*" };
+        if (dlg.ShowDialog(this) != true) return;
+        try
+        {
+            int n = new KnownDevicesDb(MainViewModel.DbPath).MergeFrom(dlg.FileName);
+            MessageBox.Show(this, Loc.MergeDone(n), Loc.MergeDb, MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, Loc.ScanError, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 
     private void OnSettingsSave(object sender, RoutedEventArgs e)
     {

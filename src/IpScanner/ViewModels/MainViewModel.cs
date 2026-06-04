@@ -56,6 +56,8 @@ public sealed class MainViewModel : ObservableObject
 
     public string? LastExportPath { get; private set; }
     public bool HasExport => !string.IsNullOrEmpty(LastExportPath);
+    /// <summary>"Threads: 50" info for the totals footer.</summary>
+    public string ThreadsText { get; private set; } = "";
     /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
     public string? ManualSubnet { get; set; }
 
@@ -110,6 +112,8 @@ public sealed class MainViewModel : ObservableObject
 
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
         Progress.InfinitePings = infinite;
+        ThreadsText = $"{Loc.Threads}: {(cfg.ScanThreads <= 0 ? Loc.MaxLabel : cfg.ScanThreads.ToString())}";
+        Raise(nameof(ThreadsText));
         int perIp = infinite ? 1 : Math.Max(1, cfg.PingCount);
         int hostsPerSubnet = Ipv4.LastHost - Ipv4.FirstHost + 1;
         _plannedDevices = Math.Max(1, prefixes.Count * hostsPerSubnet);

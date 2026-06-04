@@ -88,6 +88,13 @@ public static class Loc
     public static string ExportCsv => S("CSV exportieren", "Export CSV");
     public static string KnownDb => S("Known-Devices-Datenbank aktivieren", "Enable known-devices database");
     public static string ClearDb => S("Datenbank leeren", "Clear database");
+    public static string MergeDb => S("DB zusammenführen …", "Merge DB …");
+    public static string MergeDone(int n) => German
+        ? $"{n} Einträge zusammengeführt."
+        : $"{n} entries merged.";
+    public static string ResetDefaults => S("Auf Standard zurücksetzen", "Reset to defaults");
+    public static string Threads => S("Threads", "Threads");
+    public static string MaxLabel => S("max", "max");
     public static string ClearDbConfirm => S("Known-Devices-Datenbank wirklich leeren?", "Really clear the known-devices database?");
     public static string Confirm => S("Bestätigen", "Confirm");
 
@@ -140,6 +147,12 @@ public static class Loc
     public static string TipKnownDb => S(
         "Merkt sich gefundene Geräte je Netzwerk in scanner.db, damit bekannte Geräte beim nächsten Scan wiedererkannt werden.",
         "Remembers discovered devices per network in scanner.db so known devices are recognized on the next scan.");
+    public static string TipMergeDb => S(
+        "Wählt die scanner.db einer anderen Programm-Instanz und führt deren Geräte in die eigene Datenbank zusammen (neuere Einträge gewinnen).",
+        "Pick another instance's scanner.db and merge its devices into this database (newer entries win).");
+    public static string TipResetDefaults => S(
+        "Setzt alle Einstellungen auf die Standardwerte zurück (erst beim Speichern übernommen).",
+        "Resets all settings to their defaults (applied when you save).");
     public static string TipClearDb => S(
         "Löscht alle gespeicherten Geräte aus der Datenbank. Kann nicht rückgängig gemacht werden.",
         "Deletes all stored devices from the database. Cannot be undone.");

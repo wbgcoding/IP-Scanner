@@ -89,4 +89,46 @@ public sealed class KnownDevicesDb
         using var conn = Open();
         conn.CreateCommand("DELETE FROM known_devices").ExecuteNonQuery();
     }
+
+    /// <summary>Merge another instance's database into this one.
+    /// On conflicts the newer last_seen wins; hostnames never get lost.
+    /// Returns the number of merged rows.</summary>
+    public int MergeFrom(string otherDbPath)
+    {
+        using var src = new SqliteConnection($"Data Source={otherDbPath};Mode=ReadOnly");
+        src.Open();
+        var read = src.CreateCommand(
+            "SELECT network_mac, mac, ip, hostname, last_seen FROM known_devices");
+        using var r = read.ExecuteReader();
+
+        using var dst = Open();
+        using var tx = dst.BeginTransaction();
+        int count = 0;
+        while (r.Read())
+        {
+            using var cmd = dst.CreateCommand(
+                """
+                INSERT INTO known_devices (network_mac, mac, ip, hostname, last_seen)
+                VALUES ($n, $m, $ip, $h, $t)
+                ON CONFLICT(network_mac, mac) DO UPDATE SET
+                  ip = CASE WHEN excluded.last_seen >= known_devices.last_seen
+                            THEN excluded.ip ELSE known_devices.ip END,
+                  hostname = COALESCE(
+                      CASE WHEN excluded.last_seen >= known_devices.last_seen
+                           THEN excluded.hostname ELSE known_devices.hostname END,
+                      known_devices.hostname, excluded.hostname),
+                  last_seen = MAX(excluded.last_seen, known_devices.last_seen)
+                """);
+            cmd.Transaction = tx;
+            cmd.Parameters.AddWithValue("$n", r.GetString(0));
+            cmd.Parameters.AddWithValue("$m", r.GetString(1));
+            cmd.Parameters.AddWithValue("$ip", r.IsDBNull(2) ? DBNull.Value : (object)r.GetString(2));
+            cmd.Parameters.AddWithValue("$h", r.IsDBNull(3) ? DBNull.Value : (object)r.GetString(3));
+            cmd.Parameters.AddWithValue("$t", r.IsDBNull(4) ? "" : r.GetString(4));
+            cmd.ExecuteNonQuery();
+            count++;
+        }
+        tx.Commit();
+        return count;
+    }
 }
