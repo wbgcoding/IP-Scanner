@@ -34,15 +34,17 @@ public sealed class ScanEngine
     private readonly ConcurrentDictionary<string, Device> _devices = new();
     public IReadOnlyCollection<Device> Devices => _devices.Values.ToArray();
 
-    private int _activePings;
-    /// <summary>Number of ping operations in flight right now.</summary>
-    public int ActivePings => Volatile.Read(ref _activePings);
+    private int _activeWorkers;
+    /// <summary>Number of busy ping worker threads (discovery, analysis, recheck).</summary>
+    public int ActiveWorkers => Volatile.Read(ref _activeWorkers);
 
-    private PingResult Ping(string ip)
+    private PingResult Ping(string ip) => _ping(ip, IcmpTimeoutMs);
+
+    private readonly struct WorkerScope : IDisposable
     {
-        Interlocked.Increment(ref _activePings);
-        try { return _ping(ip, IcmpTimeoutMs); }
-        finally { Interlocked.Decrement(ref _activePings); }
+        private readonly ScanEngine _e;
+        public WorkerScope(ScanEngine e) { _e = e; Interlocked.Increment(ref e._activeWorkers); }
+        public void Dispose() => Interlocked.Decrement(ref _e._activeWorkers);
     }
 
     public async Task ScanAsync(IReadOnlyList<string> subnetPrefixes, ScanConfig cfg,
@@ -78,6 +80,7 @@ public sealed class ScanEngine
             ip =>
             {
                 if (ct.IsCancellationRequested) return;
+                using var _ = new WorkerScope(this);
                 var device = _devices.GetOrAdd(ip, x => new Device(x)
                 {
                     // Discovery target first (x/init pings); switches to the run
@@ -181,6 +184,7 @@ public sealed class ScanEngine
             await RunParallel(offline, workers, loopCt, ip =>
             {
                 if (loopCt.IsCancellationRequested) return;
+                using var _ = new WorkerScope(this);
                 var device = _devices[ip];
                 var r = Ping(ip);
                 device.RecordPing(r);
@@ -211,6 +215,7 @@ public sealed class ScanEngine
         {
             await Task.Run(() =>
             {
+                using var _ = new WorkerScope(this);
                 int target = infinite ? int.MaxValue : cfg.PingCount;
                 for (int i = 1; i < target && !ct.IsCancellationRequested; i++)
                 {

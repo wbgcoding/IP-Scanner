@@ -385,7 +385,7 @@ public sealed class MainViewModel : ObservableObject
                 vm?.Refresh();
             }
         }
-        ThreadsText = $"{Loc.Threads}: {engine.ActivePings}";
+        ThreadsText = $"{Loc.Threads}: {engine.ActiveWorkers}";
         Raise(nameof(ThreadsText));
 
         int discovered = all.Count;

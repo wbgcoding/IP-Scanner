@@ -30,6 +30,14 @@ public sealed class ScanConfig
     /// <summary>UI/text scale in percent (100 = default).</summary>
     public int UiScalePercent { get; set; } = 100;
 
+    // Progress-bar colors (clickable legend squares; persisted, not shown in settings).
+    public string ColorOnline { get; set; } = Palette.Green;
+    public string ColorOffline { get; set; } = Palette.Red;
+    public string ColorUnknown { get; set; } = Palette.Surface2;
+    public string ColorSuccess { get; set; } = Palette.Green;
+    public string ColorFailed { get; set; } = Palette.Red;
+    public string ColorSkipped { get; set; } = Palette.MidGray;
+
     public const int InfinitePingCount = -1;
 
     /// <summary>Copy with a different ping count (lists shared, read-only use).</summary>
@@ -43,5 +51,7 @@ public sealed class ScanConfig
         InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb,
         DatabasePath = DatabasePath, OutputDirectory = OutputDirectory, FileOutput = FileOutput,
         ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
+        ColorOnline = ColorOnline, ColorOffline = ColorOffline, ColorUnknown = ColorUnknown,
+        ColorSuccess = ColorSuccess, ColorFailed = ColorFailed, ColorSkipped = ColorSkipped,
     };
 }

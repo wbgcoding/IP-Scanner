@@ -52,6 +52,7 @@ public class ConfigManagerTests
             Subnets = new() { "192.168.5.0/24" },
             PinnedIps = new() { "192.168.5.1" },
             InternetHosts = new() { "1.1.1.1 Cloudflare" },
+            ColorOnline = "#112233", ColorFailed = "#AABBCC",
         };
         var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".conf");
         ConfigManager.Save(path, cfg);
@@ -75,5 +76,14 @@ public class ConfigManagerTests
         Assert.Equal(new[] { "192.168.5.0/24" }, loaded.Subnets);
         Assert.Equal(new[] { "192.168.5.1" }, loaded.PinnedIps);
         Assert.Equal(new[] { "1.1.1.1 Cloudflare" }, loaded.InternetHosts);
+        Assert.Equal("#112233", loaded.ColorOnline);
+        Assert.Equal("#AABBCC", loaded.ColorFailed);
+    }
+
+    [Fact]
+    public void Load_InfinitePingCount_RoundTrips()
+    {
+        var path = WriteTemp("ping_count = -1");
+        Assert.Equal(ScanConfig.InfinitePingCount, ConfigManager.Load(path).PingCount);
     }
 }

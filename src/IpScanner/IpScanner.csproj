@@ -3,6 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>IP-Scanner</AssemblyName>
@@ -21,6 +22,10 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="IpScanner.Tests" />
+    <!-- WinForms is only used for ColorDialog; drop its global using so
+         Application/Brush/TextBox don't collide with WPF types. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\oui.txt" />

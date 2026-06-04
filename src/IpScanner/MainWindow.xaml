@@ -40,7 +40,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{x:Static loc:Loc.Devices}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <ctrl:SegmentedProgressBar Grid.Column="1" Height="13"
+                        <ctrl:SegmentedProgressBar x:Name="DevBar" Grid.Column="1" Height="13"
                             Track="{StaticResource Surface}"
                             Color1="{StaticResource Green}" Color2="{StaticResource Red}" Color3="{StaticResource GrayBlock}"
                             Fraction1="{Binding Progress.OnlineFraction}"
@@ -49,13 +49,13 @@
                         <TextBlock Grid.Column="2" Text="{Binding Progress.DeviceCountText}"
                                    Foreground="{StaticResource Text}" FontSize="10" Margin="6,0,0,0" VerticalAlignment="Center"/>
                     </Grid>
-                    <!-- Geräte legend -->
+                    <!-- Geräte legend (squares are clickable color pickers) -->
                     <StackPanel Orientation="Horizontal" Margin="56,0,0,4">
-                        <Border Background="{StaticResource Green}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center"/>
+                        <Border x:Name="LegOnline" Tag="online" Background="{StaticResource Green}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="OnLegendColorClick"/>
                         <TextBlock Text="{Binding Progress.OnlineText}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="4,0,10,0"/>
-                        <Border Background="{StaticResource Red}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center"/>
+                        <Border x:Name="LegOffline" Tag="offline" Background="{StaticResource Red}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="OnLegendColorClick"/>
                         <TextBlock Text="{Binding Progress.OfflineText}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="4,0,10,0"/>
-                        <Border Background="{StaticResource GrayBlock}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center"/>
+                        <Border x:Name="LegUnknown" Tag="unknown" Background="{StaticResource GrayBlock}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="OnLegendColorClick"/>
                         <TextBlock Text="{Binding Progress.UnknownText}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="4,0,0,0"/>
                     </StackPanel>
                     <Grid>
@@ -64,22 +64,22 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{x:Static loc:Loc.Pings}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                        <ctrl:SegmentedProgressBar Grid.Column="1" Height="13"
+                        <ctrl:SegmentedProgressBar x:Name="PingBar" Grid.Column="1" Height="13"
                             Track="{StaticResource Surface}"
-                            Color1="{StaticResource Blue}" Color2="{StaticResource Peach}" Color3="{StaticResource MidGray}"
+                            Color1="{StaticResource Green}" Color2="{StaticResource Red}" Color3="{StaticResource MidGray}"
                             Fraction1="{Binding Progress.SuccessFraction}"
                             Fraction2="{Binding Progress.FailedFraction}"
                             Fraction3="{Binding Progress.SkippedFraction}"/>
                         <TextBlock Grid.Column="2" Text="{Binding Progress.PingCountText}"
                                    Foreground="{StaticResource Text}" FontSize="10" Margin="6,0,0,0" VerticalAlignment="Center"/>
                     </Grid>
-                    <!-- Pings legend -->
+                    <!-- Pings legend (squares are clickable color pickers) -->
                     <StackPanel Orientation="Horizontal" Margin="56,4,0,0">
-                        <Border Background="{StaticResource Blue}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center"/>
+                        <Border x:Name="LegSuccess" Tag="success" Background="{StaticResource Green}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="OnLegendColorClick"/>
                         <TextBlock Text="{Binding Progress.SuccessText}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="4,0,10,0"/>
-                        <Border Background="{StaticResource Peach}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center"/>
+                        <Border x:Name="LegFailed" Tag="failed" Background="{StaticResource Red}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="OnLegendColorClick"/>
                         <TextBlock Text="{Binding Progress.FailedText}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="4,0,10,0"/>
-                        <Border Background="{StaticResource MidGray}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center"/>
+                        <Border x:Name="LegSkipped" Tag="skipped" Background="{StaticResource MidGray}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="OnLegendColorClick"/>
                         <TextBlock Text="{Binding Progress.SkippedText}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="4,0,0,0"/>
                     </StackPanel>
                 </StackPanel>
@@ -100,10 +100,10 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <TextBlock Text="{x:Static loc:Loc.PingsLabel}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    VerticalAlignment="Center" Margin="0,0,4,0"/>
-                        <ComboBox x:Name="PingCountBox" Width="80" Margin="0,0,6,0" SelectedIndex="0">
-                            <ComboBoxItem>10</ComboBoxItem><ComboBoxItem>100</ComboBoxItem>
-                            <ComboBoxItem>1000</ComboBoxItem><ComboBoxItem>10000</ComboBoxItem>
-                            <ComboBoxItem>100000</ComboBoxItem><ComboBoxItem>∞</ComboBoxItem>
+                        <ComboBox x:Name="PingCountBox" Width="80" Margin="0,0,6,0" SelectedIndex="0" IsEditable="True">
+                            <sys:String>10</sys:String><sys:String>100</sys:String>
+                            <sys:String>1000</sys:String><sys:String>10000</sys:String>
+                            <sys:String>100000</sys:String><sys:String>∞</sys:String>
                         </ComboBox>
                         <Button x:Name="ScanStopButton" Content="{x:Static loc:Loc.Scan}" Click="OnScanStopClick"
                                 Style="{StaticResource AccentButton}" MinWidth="86"/>
@@ -298,19 +298,32 @@
                         <Border Padding="13,12" BorderBrush="{StaticResource Surface}" BorderThickness="0,0,0,1">
                             <StackPanel>
                                 <TextBlock Text="{x:Static loc:Loc.InternetLatency}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="0,0,0,7"/>
+                                <!-- Header row, columns match the item template below -->
+                                <Grid Margin="0,0,0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="38"/><ColumnDefinition Width="38"/>
+                                        <ColumnDefinition Width="38"/><ColumnDefinition Width="38"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="1" Text="{x:Static loc:Loc.Avg}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="2" Text="{x:Static loc:Loc.Min}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="3" Text="{x:Static loc:Loc.Max}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="4" Text="{x:Static loc:Loc.Last}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Right"/>
+                                </Grid>
                                 <ItemsControl ItemsSource="{Binding InternetHosts}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Margin="0,4">
-                                                <TextBlock Text="{Binding Name}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                                    <TextBlock Text="Ø" Foreground="{StaticResource MidGray}" FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}" FontSize="10" FontWeight="SemiBold" Margin="3,0,8,0" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Min" Foreground="{StaticResource MidGray}" FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding MinDisplay}" Foreground="{Binding MinColor}" FontSize="10" Margin="3,0,8,0" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Max" Foreground="{StaticResource MidGray}" FontSize="10" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding MaxDisplay}" Foreground="{Binding MaxColor}" FontSize="10" Margin="3,0,0,0" VerticalAlignment="Center"/>
-                                                </StackPanel>
+                                            <Grid Margin="0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="38"/><ColumnDefinition Width="38"/>
+                                                    <ColumnDefinition Width="38"/><ColumnDefinition Width="38"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Name}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding AvgDisplay}" Foreground="{Binding AvgColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding MinDisplay}" Foreground="{Binding MinColor}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding MaxDisplay}" Foreground="{Binding MaxColor}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="4" Text="{Binding LastDisplay}" Foreground="{Binding LastColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -415,6 +428,10 @@
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="OfflineRecheckBox" Width="70" FontSize="13" TextAlignment="Right"/><TextBlock Text="s" Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
                                     <TextBlock Text="{x:Static loc:Loc.OfflineRecheck}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
                                 </DockPanel>
+                                <DockPanel Grid.Row="3" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipDefaultPings}">
+                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="DefaultPingsBox" Width="70" FontSize="13" TextAlignment="Right"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
+                                    <TextBlock Text="{x:Static loc:Loc.DefaultPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                </DockPanel>
                             </Grid>
 
                             <!-- Internet -->
@@ -430,19 +447,23 @@
                             <TextBlock Text="{x:Static loc:Loc.InternetHosts}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,12,0,4" ToolTip="{x:Static loc:Loc.TipInternetHosts}"/>
                             <Grid>
                                 <TextBox x:Name="InternetHostsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
-                                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipInternetHosts}"/>
+                                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipInternetHosts}"
+                                         TextChanged="OnHostsValidate"/>
                                 <TextBlock Text="8.8.8.8 Google, 1.1.1.1 Cloudflare" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=InternetHostsBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>
+
+                            <TextBlock x:Name="InternetHostsError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
 
                             <!-- Ausgabe -->
                             <TextBlock Text="{x:Static loc:Loc.TabOutput}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <TextBlock Text="{x:Static loc:Loc.OutputDir}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipOutputDir}"/>
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowse" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
-                                <TextBox x:Name="OutputDirBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipOutputDir}"/>
+                                <TextBox x:Name="OutputDirBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipOutputDir}" TextChanged="OnOutputDirValidate"/>
                             </DockPanel>
+                            <TextBlock x:Name="OutputDirError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                                 <CheckBox x:Name="FileOutputBox" Content="{x:Static loc:Loc.WriteTxt}" Foreground="{StaticResource Text}" FontSize="13" ToolTip="{x:Static loc:Loc.TipWriteTxt}"/>
                                 <CheckBox x:Name="ExportCsvBox" Content="{x:Static loc:Loc.ExportCsv}" Foreground="{StaticResource Text}" FontSize="13" Margin="24,0,0,0" ToolTip="{x:Static loc:Loc.TipExportCsv}"/>
@@ -452,11 +473,12 @@
                             <TextBlock Text="{x:Static loc:Loc.TabDatabase}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <TextBlock Text="{x:Static loc:Loc.ConfNote}" Foreground="{StaticResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
                             <TextBlock Text="{x:Static loc:Loc.DbFile}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipDbFile}"/>
-                            <DockPanel Margin="0,0,0,12">
-                                <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowseDb" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
-                                <TextBox x:Name="DbPathBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipDbFile}"/>
-                            </DockPanel>
                             <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowseDb" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
+                                <TextBox x:Name="DbPathBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipDbFile}" TextChanged="OnDbPathValidate"/>
+                            </DockPanel>
+                            <TextBlock x:Name="DbPathError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,12"/>
+                            <DockPanel Margin="0,12,0,0">
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                                     <Button Content="{x:Static loc:Loc.MergeDb}" Click="OnMergeDb" Style="{StaticResource GhostButton}" ToolTip="{x:Static loc:Loc.TipMergeDb}"/>
                                     <Button Content="{x:Static loc:Loc.ClearDb}" Click="OnClearDb" Style="{StaticResource DangerButton}" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipClearDb}"/>

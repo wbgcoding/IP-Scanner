@@ -21,7 +21,7 @@ public static class ConfigManager
         {
             switch (key)
             {
-                case "ping_count":                  cfg.PingCount = ParseInt(value, 1, 10_000_000, 10); break;
+                case "ping_count":                  cfg.PingCount = ParseInt(value, -1, 10_000_000, 10); break;
                 case "ping_interval_ms":            cfg.PingIntervalMs = ParseInt(value, 0, 10_000, 100); break;
                 case "offline_after_failed_pings":  cfg.OfflineAfterFailedPings = ParseInt(value, 1, 100, 5); break;
                 case "init_ping_count":             cfg.InitPingCount = ParseInt(value, 1, 100, 1); break;
@@ -38,6 +38,12 @@ public static class ConfigManager
                 case "scan_threads":                cfg.ScanThreads = ParseInt(value, 0, 1000, 100); break;
                 case "ui_scale":                    cfg.UiScalePercent = ParseInt(value, 50, 200, 100); break;
                 case "pinned_ips":                  cfg.PinnedIps = ParseIpList(value); break;
+                case "color_online":                cfg.ColorOnline = ParseColor(value, cfg.ColorOnline); break;
+                case "color_offline":               cfg.ColorOffline = ParseColor(value, cfg.ColorOffline); break;
+                case "color_unknown":               cfg.ColorUnknown = ParseColor(value, cfg.ColorUnknown); break;
+                case "color_success":               cfg.ColorSuccess = ParseColor(value, cfg.ColorSuccess); break;
+                case "color_failed":                cfg.ColorFailed = ParseColor(value, cfg.ColorFailed); break;
+                case "color_skipped":               cfg.ColorSkipped = ParseColor(value, cfg.ColorSkipped); break;
                 default:
                     var m = Regex.Match(key, @"^subnet(?:_(\d+))?$");
                     if (m.Success && value.Length > 0)
@@ -116,6 +122,17 @@ public static class ConfigManager
         sb.AppendLine($"scan_threads = {c.ScanThreads}");
         sb.AppendLine("# ui_scale  Textgroesse in Prozent (50-200). Standard 100.");
         sb.AppendLine($"ui_scale = {c.UiScalePercent}");
+        sb.AppendLine();
+
+        // Hex without '#' — the parser treats '#' as a comment marker.
+        string H(string color) => color.TrimStart('#');
+        sb.AppendLine("# -- Farben (Fortschrittsbalken, per Klick auf die Legende aenderbar; RRGGBB) --");
+        sb.AppendLine($"color_online = {H(c.ColorOnline)}");
+        sb.AppendLine($"color_offline = {H(c.ColorOffline)}");
+        sb.AppendLine($"color_unknown = {H(c.ColorUnknown)}");
+        sb.AppendLine($"color_success = {H(c.ColorSuccess)}");
+        sb.AppendLine($"color_failed = {H(c.ColorFailed)}");
+        sb.AppendLine($"color_skipped = {H(c.ColorSkipped)}");
 
         File.WriteAllText(path, sb.ToString());
     }
@@ -141,6 +158,12 @@ public static class ConfigManager
 
     private static int ParseInt(string s, int lo, int hi, int fallback)
         => int.TryParse(s.Trim(), out var v) ? Clamp(v, lo, hi) : fallback;
+
+    private static string ParseColor(string s, string fallback)
+    {
+        var hex = s.Trim().TrimStart('#');
+        return Regex.IsMatch(hex, "^[0-9A-Fa-f]{6}$") ? "#" + hex.ToUpperInvariant() : fallback;
+    }
 
     private static bool ParseBool(string s)
         => s.Trim().ToLowerInvariant() is "true" or "yes" or "1" or "on" or "enabled";

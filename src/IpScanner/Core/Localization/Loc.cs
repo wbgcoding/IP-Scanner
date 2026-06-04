@@ -75,6 +75,8 @@ public static class Loc
     public static string OfflineAfter => S("Offline nach X Fehlversuchen", "Offline after X failures");
     public static string InitPings => S("Such-Pings je IP", "Discovery pings per IP");
     public static string StartupPings => S("Pings bei Start", "Pings at startup");
+    public static string DefaultPings => S("Standard-Pings (-1 = ∞)", "Default pings (-1 = ∞)");
+    public static string InvalidPath => S("Ungültiger Pfad", "Invalid path");
     public static string ScanThreads => S("Threads pro Scan (0 = max)", "Threads per scan (0 = max)");
     public static string TextScale => S("Textgröße", "Text size");
     public static string OfflineRecheck => S("Offline-Recheck (0 = aus)", "Offline recheck (0 = off)");
@@ -138,6 +140,9 @@ public static class Loc
     public static string TipInternetHosts => S(
         "Öffentliche IPs für die Internet-Latenzmessung. Format: IP Leerzeichen Name, z.B. \"8.8.8.8 Google\". Ohne Name wird die IP angezeigt.",
         "Public IPs for the internet latency check. Format: IP space name, e.g. \"8.8.8.8 Google\". Without a name the IP is shown.");
+    public static string TipDefaultPings => S(
+        "Vorbelegung des Ping-Dropdowns oben rechts beim Programmstart. -1 = endlos.",
+        "Preset for the ping dropdown at the top right when the app starts. -1 = endless.");
     public static string TipStartupPings => S(
         "Ping-Anzahl je Gerät für den automatischen Scan direkt nach dem Programmstart. 0 = nur Geräte suchen.",
         "Ping count per device for the automatic scan right after startup. 0 = discovery only.");

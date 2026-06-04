@@ -55,7 +55,9 @@ public partial class MainWindow : Window
         };
         LogoImage.RenderTransform = _logoSpin;
         System.Windows.Media.CompositionTarget.Rendering += OnSpinTick;
-        ApplyUiScale();   // persisted text-scale takes effect at startup
+        ApplyUiScale();          // persisted text-scale takes effect at startup
+        ApplyBarColors();        // persisted bar colors
+        ApplyDefaultPingCount(); // persisted default ping count into the dropdown
 
         // On startup, immediately run a discovery sweep of the local network so
         // the sidebar network info and online devices show up without a manual scan.
@@ -104,6 +106,66 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Scale the whole UI (text included) by the configured percent.</summary>
+    // ── Progress-bar colors (legend squares act as color pickers) ──
+    private void ApplyBarColors()
+    {
+        static System.Windows.Media.SolidColorBrush B(string hex) =>
+            new((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex));
+        DevBar.Color1 = B(_config.ColorOnline);  LegOnline.Background = B(_config.ColorOnline);
+        DevBar.Color2 = B(_config.ColorOffline); LegOffline.Background = B(_config.ColorOffline);
+        DevBar.Color3 = B(_config.ColorUnknown); LegUnknown.Background = B(_config.ColorUnknown);
+        PingBar.Color1 = B(_config.ColorSuccess); LegSuccess.Background = B(_config.ColorSuccess);
+        PingBar.Color2 = B(_config.ColorFailed);  LegFailed.Background = B(_config.ColorFailed);
+        PingBar.Color3 = B(_config.ColorSkipped); LegSkipped.Background = B(_config.ColorSkipped);
+    }
+
+    private void OnLegendColorClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.Border { Tag: string key }) return;
+        string current = GetBarColor(key);
+        var c = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(current);
+        using var dlg = new System.Windows.Forms.ColorDialog
+        {
+            FullOpen = true,
+            Color = System.Drawing.Color.FromArgb(c.R, c.G, c.B),
+        };
+        if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+        SetBarColor(key, $"#{dlg.Color.R:X2}{dlg.Color.G:X2}{dlg.Color.B:X2}");
+        ApplyBarColors();
+        PersistConfig();
+    }
+
+    private string GetBarColor(string key) => key switch
+    {
+        "online" => _config.ColorOnline, "offline" => _config.ColorOffline,
+        "unknown" => _config.ColorUnknown, "success" => _config.ColorSuccess,
+        "failed" => _config.ColorFailed, _ => _config.ColorSkipped,
+    };
+
+    private void SetBarColor(string key, string hex)
+    {
+        switch (key)
+        {
+            case "online": _config.ColorOnline = hex; break;
+            case "offline": _config.ColorOffline = hex; break;
+            case "unknown": _config.ColorUnknown = hex; break;
+            case "success": _config.ColorSuccess = hex; break;
+            case "failed": _config.ColorFailed = hex; break;
+            default: _config.ColorSkipped = hex; break;
+        }
+    }
+
+    private void PersistConfig()
+    {
+        try
+        {
+            var path = ConfPathFor(_config.DatabasePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            ConfigManager.Save(path, _config);
+        }
+        catch { /* persisting is best-effort */ }
+    }
+
     private void ApplyUiScale()
     {
         double f = Math.Clamp(_config.UiScalePercent, 50, 200) / 100.0;
@@ -256,15 +318,15 @@ public partial class MainWindow : Window
         _config = ReadSettings();
         _vm.Config = _config;
         ApplyUiScale();
-        try
-        {
-            var path = ConfPathFor(_config.DatabasePath);
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            ConfigManager.Save(path, _config);
-        }
-        catch { /* persisting is best-effort */ }
+        ApplyDefaultPingCount();
+        PersistConfig();
         SettingsOverlay.Visibility = Visibility.Collapsed;
     }
+
+    /// <summary>Preset the ping dropdown from the configured default.</summary>
+    private void ApplyDefaultPingCount()
+        => PingCountBox.Text = _config.PingCount == ScanConfig.InfinitePingCount
+            ? "∞" : _config.PingCount.ToString();
 
     private void OnExportConf(object sender, RoutedEventArgs e)
     {
@@ -298,6 +360,7 @@ public partial class MainWindow : Window
         OfflineAfterBox.Text = c.OfflineAfterFailedPings.ToString();
         InitPingCountBox.Text = c.InitPingCount.ToString();
         StartupPingsBox.Text = c.StartupPingCount.ToString();
+        DefaultPingsBox.Text = c.PingCount.ToString();
         OfflineRecheckBox.Text = c.OfflineRecheckSeconds.ToString();
         EnableInternetBox.IsChecked = c.EnableInternetPing;
         InternetTimeoutBox.Text = c.InternetTimeoutMs.ToString();
@@ -320,6 +383,42 @@ public partial class MainWindow : Window
 
     private void OnPinnedValidate(object sender, TextChangedEventArgs e)
         => ValidateList(PinnedBox, PinnedError, Core.Net.Ipv4.IsValid);
+
+    private void OnHostsValidate(object sender, TextChangedEventArgs e)
+        => ValidateList(InternetHostsBox, InternetHostsError, IsValidHostEntry);
+
+    private void OnOutputDirValidate(object sender, TextChangedEventArgs e)
+        => ValidatePath(OutputDirBox, OutputDirError);
+
+    private void OnDbPathValidate(object sender, TextChangedEventArgs e)
+        => ValidatePath(DbPathBox, DbPathError);
+
+    /// <summary>"ip" or "ip name" — the first token must be a valid IPv4.</summary>
+    private static bool IsValidHostEntry(string entry)
+        => Core.Net.Ipv4.IsValid(entry.Split(' ', 2)[0].Trim());
+
+    private static bool IsValidPathText(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+        if (path.IndexOfAny(Path.GetInvalidPathChars()) >= 0) return false;
+        try { Path.GetFullPath(path); return true; }
+        catch { return false; }
+    }
+
+    private void ValidatePath(TextBox box, TextBlock error)
+    {
+        if (IsValidPathText(box.Text))
+        {
+            box.ClearValue(System.Windows.Controls.Control.BorderBrushProperty);
+            error.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            box.BorderBrush = (System.Windows.Media.Brush)FindResource("Red");
+            error.Text = Loc.InvalidPath;
+            error.Visibility = Visibility.Visible;
+        }
+    }
 
     /// <summary>"a.b.c.d" or "a.b.c.d/1..32".</summary>
     private static bool IsValidSubnetEntry(string entry)
@@ -350,11 +449,12 @@ public partial class MainWindow : Window
     {
         int I(string s, int d) => int.TryParse(s.Trim(), out var v) ? v : d;
 
+        int defaultPings = I(DefaultPingsBox.Text, 10);
         return new ScanConfig
         {
             Subnets = Items(SubnetsBox.Text),
             PinnedIps = Items(PinnedBox.Text),
-            PingCount = _config.PingCount,        // chosen in the main header
+            PingCount = defaultPings is ScanConfig.InfinitePingCount or > 0 ? defaultPings : 10,
             ScanThreads = I(ScanThreadsBox.Text, 50),
             UiScalePercent = Math.Clamp(I(UiScaleBox.Text, 100), 50, 200),
             PingIntervalMs = I(IntervalBox.Text, 100),
@@ -370,6 +470,10 @@ public partial class MainWindow : Window
             FileOutput = FileOutputBox.IsChecked == true,
             ExportCsv = ExportCsvBox.IsChecked == true,
             KnownDevicesDb = KnownDbBox.IsChecked == true,
+            // Colors have no settings UI — carry them over from the live config.
+            ColorOnline = _config.ColorOnline, ColorOffline = _config.ColorOffline,
+            ColorUnknown = _config.ColorUnknown, ColorSuccess = _config.ColorSuccess,
+            ColorFailed = _config.ColorFailed, ColorSkipped = _config.ColorSkipped,
         };
     }
 
@@ -419,8 +523,11 @@ public partial class MainWindow : Window
 
     private void ApplySelectedPingCount()
     {
-        var text = (PingCountBox.SelectedItem as ComboBoxItem)?.Content?.ToString();
-        _config.PingCount = text == "∞" ? ScanConfig.InfinitePingCount
-            : int.TryParse(text, out var n) ? n : 10;
+        // Editable dropdown: free text wins, fall back to the selected item.
+        var text = string.IsNullOrWhiteSpace(PingCountBox.Text)
+            ? PingCountBox.SelectedItem?.ToString()
+            : PingCountBox.Text.Trim();
+        _config.PingCount = text == "∞" || text == "-1" ? ScanConfig.InfinitePingCount
+            : int.TryParse(text, out var n) && n > 0 ? n : 10;
     }
 }
