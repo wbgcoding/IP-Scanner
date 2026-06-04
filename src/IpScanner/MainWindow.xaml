@@ -206,32 +206,46 @@
                                                 <TextBlock Text="{Binding Cidr}" Foreground="{StaticResource Blue}"
                                                            FontSize="11" Margin="7,0,0,0" VerticalAlignment="Center"/>
                                             </StackPanel>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="20"/><RowDefinition Height="20"/><RowDefinition Height="20"/><RowDefinition Height="Auto"/><RowDefinition Height="20"/><RowDefinition Height="20"/>
-                                                    <RowDefinition Height="8"/>
-                                                    <RowDefinition Height="20"/><RowDefinition Height="20"/><RowDefinition Height="20"/>
-                                                </Grid.RowDefinitions>
-                                                <TextBlock Text="{x:Static loc:Loc.OwnIp}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Ip}" Foreground="{StaticResource Text}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Row="1" Text="{x:Static loc:Loc.Gateway}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Gateway}" Foreground="{StaticResource Green}" FontSize="11" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Row="2" Text="{x:Static loc:Loc.Mask}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SubnetMask}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Row="3" Text="{x:Static loc:Loc.Dns}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Dns}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right" TextWrapping="Wrap"/>
-                                                <TextBlock Grid.Row="4" Text="{x:Static loc:Loc.Mac}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Mac}" Foreground="{StaticResource MidGray}" FontSize="11" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Row="5" Text="{x:Static loc:Loc.Interface}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Interface}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Row="7" Text="{x:Static loc:Loc.Online}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding OnlineCount}" Foreground="{StaticResource Green}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Row="8" Text="{x:Static loc:Loc.Offline}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding OfflineCount}" Foreground="{StaticResource Subtext}" FontSize="11" HorizontalAlignment="Right"/>
-                                                <TextBlock Grid.Row="9" Text="{x:Static loc:Loc.AvgLatency}" Foreground="{StaticResource Subtext}" FontSize="11"/>
-                                                <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding AvgLatency}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
-                                            </Grid>
+                                            <StackPanel>
+                                                <!-- Rows collapse when the value wasn't detected (extra subnets). -->
+                                                <Grid Height="20" Visibility="{Binding HasIp, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{x:Static loc:Loc.OwnIp}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Ip}" Foreground="{StaticResource Text}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <Grid Height="20" Visibility="{Binding HasGateway, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{x:Static loc:Loc.Gateway}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Gateway}" Foreground="{StaticResource Green}" FontSize="11" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <Grid Height="20" Visibility="{Binding HasMask, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{x:Static loc:Loc.Mask}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding SubnetMask}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <Grid Visibility="{Binding HasDns, Converter={StaticResource BoolToVis}}" MinHeight="20">
+                                                    <TextBlock Text="{x:Static loc:Loc.Dns}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Dns}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right" TextWrapping="Wrap" MaxWidth="170"/>
+                                                </Grid>
+                                                <Grid Height="20" Visibility="{Binding HasMac, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{x:Static loc:Loc.Mac}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Mac}" Foreground="{StaticResource MidGray}" FontSize="11" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <Grid Height="20" Visibility="{Binding HasInterface, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{x:Static loc:Loc.Interface}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Interface}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <Border Height="8"/>
+                                                <Grid Height="20">
+                                                    <TextBlock Text="{x:Static loc:Loc.Online}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding OnlineCount}" Foreground="{StaticResource Green}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <Grid Height="20">
+                                                    <TextBlock Text="{x:Static loc:Loc.Offline}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding OfflineCount}" Foreground="{StaticResource Subtext}" FontSize="11" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <Grid Height="20">
+                                                    <TextBlock Text="{x:Static loc:Loc.AvgLatency}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding AvgLatency}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>

@@ -99,7 +99,8 @@ public sealed class MainViewModel : ObservableObject
             for (int i = 0; i < prefixes.Count; i++)
             {
                 var ni = i == 0 ? info : new NetworkInfo { Ip = prefixes[i] + ".0" };
-                Networks.Add(new NetworkInfoViewModel(i + 1, ni, GroupColorPalette.ColorForIndex(i)));
+                Networks.Add(new NetworkInfoViewModel(i + 1, ni, GroupColorPalette.ColorForIndex(i),
+                                                      primary: i == 0));
             }
             Progress.Phase = Loc.PhaseSearching;
         });
@@ -110,7 +111,18 @@ public sealed class MainViewModel : ObservableObject
 
         var engine = new ScanEngine(_pingFunc, _enrich);
         engine.DeviceUpdated += OnDeviceUpdated;
-        engine.Progress.Changed += () => _dispatch(() => UpdateProgress(engine));
+        // Per-device row refreshes stay immediate (OnDeviceUpdated); the heavy
+        // aggregate pass (bars, groups, extremes) is throttled so a fast ping
+        // stream can't flood the UI thread and stall the table.
+        long lastAggregate = 0;
+        engine.Progress.Changed += () =>
+        {
+            long now = Environment.TickCount64;
+            long last = Interlocked.Read(ref lastAggregate);
+            if (now - last < 100 ||
+                Interlocked.CompareExchange(ref lastAggregate, now, last) != last) return;
+            _dispatch(() => UpdateProgress(engine));
+        };
 
         try
         {

@@ -4,7 +4,7 @@ namespace IpScanner.ViewModels;
 
 public sealed class NetworkInfoViewModel : ObservableObject
 {
-    public NetworkInfoViewModel(int index, NetworkInfo info, string badgeColor)
+    public NetworkInfoViewModel(int index, NetworkInfo info, string badgeColor, bool primary = true)
     {
         Index = index; BadgeColor = badgeColor;
         Cidr       = info.Cidr       ?? "—";
@@ -14,6 +14,15 @@ public sealed class NetworkInfoViewModel : ObservableObject
         SubnetMask = info.SubnetMask ?? "—";
         Dns        = info.DnsServers.Count > 0 ? string.Join(", ", info.DnsServers) : "—";
         Interface  = info.Interface;
+
+        // Rows with no detected value are hidden in the sidebar. "Own IP" only
+        // makes sense for the primary (auto-detected) network.
+        HasIp        = primary && info.Ip is not null;
+        HasMac       = info.Mac is not null;
+        HasGateway   = info.Gateway is not null;
+        HasMask      = info.SubnetMask is not null;
+        HasDns       = info.DnsServers.Count > 0;
+        HasInterface = primary && !string.IsNullOrEmpty(info.Interface);
     }
 
     public int    Index      { get; }
@@ -26,6 +35,13 @@ public sealed class NetworkInfoViewModel : ObservableObject
     public string SubnetMask { get; }
     public string Dns        { get; }
     public string Interface  { get; }
+
+    public bool HasIp        { get; }
+    public bool HasMac       { get; }
+    public bool HasGateway   { get; }
+    public bool HasMask      { get; }
+    public bool HasDns       { get; }
+    public bool HasInterface { get; }
 
     private int     _online, _offline;
     private double? _avg;

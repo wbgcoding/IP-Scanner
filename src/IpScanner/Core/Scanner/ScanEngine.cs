@@ -76,22 +76,7 @@ public sealed class ScanEngine
                 {
                     // First reply: resolve MAC + hostname OFF the critical path so
                     // discovery finishes fast and analysis pings start without delay.
-                    if (_enrich is not null)
-                    {
-                        var d = device;
-                        var addr = ip;
-                        _ = Task.Run(() =>
-                        {
-                            try
-                            {
-                                var (mac, host) = _enrich(addr);
-                                if (!string.IsNullOrEmpty(mac)) d.Mac = mac;
-                                if (!string.IsNullOrEmpty(host)) d.Hostname = host;
-                                DeviceUpdated?.Invoke(d);
-                            }
-                            catch { /* enrichment is best-effort */ }
-                        });
-                    }
+                    TryEnrich(device);
                     if (infinite || analysisPerIp > 0)
                         analysisTasks.Add(AnalyzeDeviceAsync(device, cfg, infinite, analysisSem, ct));
                 }
@@ -126,6 +111,11 @@ public sealed class ScanEngine
                     if (ar.Success) Progress.AddSuccess(); else Progress.AddFailed();
                     Progress.NotifyChanged();
                     DeviceUpdated?.Invoke(device);
+                    // Retry MAC/hostname a few pings in — the first attempt often
+                    // misses for routed/other-subnet devices (slow DNS/NetBIOS).
+                    if ((i == 5 || i == 60 || i == 600) &&
+                        (device.Mac is null || device.Hostname is null))
+                        TryEnrich(device);
                 }
             }, ct).ConfigureAwait(false);
         }
@@ -147,6 +137,23 @@ public sealed class ScanEngine
         });
         try { await Task.WhenAll(tasks).ConfigureAwait(false); }
         catch (OperationCanceledException) { }
+    }
+
+    /// <summary>Fire-and-forget MAC/hostname resolution; never blocks the ping path.</summary>
+    private void TryEnrich(Device device)
+    {
+        if (_enrich is null) return;
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                var (mac, host) = _enrich(device.Ip);
+                if (!string.IsNullOrEmpty(mac)) device.Mac = mac;
+                if (!string.IsNullOrEmpty(host)) device.Hostname = host;
+                DeviceUpdated?.Invoke(device);
+            }
+            catch { /* enrichment is best-effort */ }
+        });
     }
 
     private static void InterruptibleSleep(int ms, CancellationToken ct)
