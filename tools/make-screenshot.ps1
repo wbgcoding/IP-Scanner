@@ -86,13 +86,13 @@ $g.FillRectangle($green, $bx, 72, 9, 9); Draw 'Erfolg 498' ($bx + 13) 69 (F 8) $
 $g.FillRectangle($red, ($bx + 80), 72, 9, 9); Draw 'Fehlschlag 14' ($bx + 93) 69 (F 8) $sub
 $g.FillRectangle($gray, ($bx + 185), 72, 9, 9); Draw "$($UUML)bersprungen 0" ($bx + 198) 69 (F 8) $sub
 
-# right controls: subnet row above ping row
-Round 1010 10 170 30 6 $bgAlt; Draw '192.0.2.0' 1022 16 (F 10) $text
-Round 1188 10 80 30 6 $bgAlt;  Draw '/24' 1212 16 (F 10) $text
-DrawR 'Pings:' 1062 56 (F 9) $sub
-Round 1070 50 80 30 6 $bgAlt;  Draw '100' 1098 56 (F 10) $text
-Round 1158 50 78 30 7 $green;  DrawC "$PLAY Scan" 1197 56 (F 10 'Bold') $dark
-Round 1244 50 40 30 7 $surface; DrawC $GEAR 1264 54 (F 11) $text
+# right controls: subnet row above ping row, right-aligned to the window edge
+Round 1092 10 170 30 6 $bgAlt; Draw '192.0.2.0' 1104 16 (F 10) $text
+Round 1270 10 80 30 6 $bgAlt;  Draw '/24' 1294 16 (F 10) $text
+DrawR 'Pings:' 1128 56 (F 9) $sub
+Round 1136 50 80 30 6 $bgAlt;  Draw '100' 1164 56 (F 10) $text
+Round 1224 50 78 30 7 $green;  DrawC "$PLAY Scan" 1263 56 (F 10 'Bold') $dark
+Round 1310 50 40 30 7 $surface; DrawC $GEAR 1330 54 (F 11) $text
 
 # ══ Table ══
 $tw = $W - $SIDEBAR
