@@ -82,6 +82,7 @@ public partial class MainWindow : Window
     // Logo spin: speed eases toward a target so starting/stopping never jumps.
     private readonly System.Windows.Media.RotateTransform _logoSpin = new();
     private double _spinAngle, _spinSpeed, _spinTarget;   // deg, deg/s
+    private double _spinRef = 1;                          // last nonzero target (glow scale)
     private long _spinLastTick = System.Diagnostics.Stopwatch.GetTimestamp();
 
     private void OnSpinTick(object? sender, EventArgs e)
@@ -95,6 +96,12 @@ public partial class MainWindow : Window
         if (_spinTarget == 0 && Math.Abs(_spinSpeed) < 3) _spinSpeed = 0;
         _spinAngle = (_spinAngle + _spinSpeed * dt) % 360;
         _logoSpin.Angle = _spinAngle;
+
+        // Centre dot glow: brightness follows the eased spin speed, pulsing
+        // twice per revolution so it breathes in sync with the rotation.
+        double norm = Math.Clamp(_spinSpeed / _spinRef, 0, 1);
+        double pulse = 0.45 + 0.55 * (0.5 + 0.5 * Math.Sin(_spinAngle * Math.PI / 90));
+        LogoGlow.Opacity = norm * pulse;
     }
 
     private void UpdateScanButton()
@@ -107,6 +114,7 @@ public partial class MainWindow : Window
         int threads = _config.ScanThreads <= 0 ? 254 : _config.ScanThreads;
         double seconds = Math.Clamp(120.0 / threads, 0.6, 6.0);
         _spinTarget = scanning ? 360.0 / seconds : 0.0;
+        if (_spinTarget > 0) _spinRef = _spinTarget;   // glow scales against full speed
     }
 
     /// <summary>Scale the whole UI (text included) by the configured percent.</summary>

@@ -26,10 +26,18 @@
                 <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
                     <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="16" HorizontalAlignment="Center"/>
-                    <Image x:Name="LogoImage" Source="/Resources/logo.png" Width="42" Height="42"
-                           Margin="0,5,0,0" HorizontalAlignment="Center"
-                           RenderTransformOrigin="0.5,0.5"
-                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Grid Width="42" Height="42" Margin="0,5,0,0" HorizontalAlignment="Center">
+                        <Image x:Name="LogoImage" Source="/Resources/logo.png"
+                               RenderTransformOrigin="0.5,0.5"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <!-- Centre dot glow, pulses with the spin animation -->
+                        <Ellipse x:Name="LogoGlow" Width="11" Height="11" Fill="{StaticResource Green}"
+                                 Opacity="0" IsHitTestVisible="False">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#A6E3A1" BlurRadius="14" ShadowDepth="0"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                    </Grid>
                 </StackPanel>
 
                 <!-- Center: progress bars -->
