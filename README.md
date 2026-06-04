@@ -5,6 +5,10 @@ resolves hostnames and MAC addresses, and shows live latency statistics in a
 dark, table-focused UI. Built with C# / WPF on .NET 8, ships as a single
 self-contained exe.
 
+![IP-Scanner](docs/screenshot.png)
+
+*The screenshot shows synthetic sample data (TEST-NET addresses), not a real network.*
+
 ## Features
 
 - Two-phase scan: fast discovery sweep, then a configurable number of analysis

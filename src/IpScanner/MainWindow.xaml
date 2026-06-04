@@ -30,11 +30,11 @@
                         <Image x:Name="LogoImage" Source="/Resources/logo.png"
                                RenderTransformOrigin="0.5,0.5"
                                RenderOptions.BitmapScalingMode="HighQuality"/>
-                        <!-- Centre dot glow, pulses with the spin animation -->
-                        <Ellipse x:Name="LogoGlow" Width="11" Height="11" Fill="{StaticResource Green}"
+                        <!-- Centre dot brightens with the spin (color only, same size) -->
+                        <Ellipse x:Name="LogoGlow" Width="8" Height="8" Fill="#DCFFD2"
                                  Opacity="0" IsHitTestVisible="False">
                             <Ellipse.Effect>
-                                <DropShadowEffect Color="#A6E3A1" BlurRadius="14" ShadowDepth="0"/>
+                                <DropShadowEffect Color="#A6E3A1" BlurRadius="4" ShadowDepth="0"/>
                             </Ellipse.Effect>
                         </Ellipse>
                     </Grid>
