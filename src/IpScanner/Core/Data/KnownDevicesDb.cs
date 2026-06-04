@@ -68,7 +68,8 @@ public sealed class KnownDevicesDb
         using var r = cmd.ExecuteReader();
         while (r.Read())
         {
-            result.Add(new Device(r.IsDBNull(0) ? Device.Unknown : r.GetString(0))
+            if (r.IsDBNull(0)) continue;   // a device without IP is useless
+            result.Add(new Device(r.GetString(0))
             {
                 Mac = r.IsDBNull(1) ? Device.Unknown : r.GetString(1),
                 Hostname = r.IsDBNull(2) ? Device.Unknown : r.GetString(2),

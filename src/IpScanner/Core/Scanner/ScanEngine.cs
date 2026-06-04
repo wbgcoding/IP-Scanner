@@ -302,8 +302,7 @@ public sealed class ScanEngine
 
     private static void InterruptibleSleep(int ms, CancellationToken ct)
     {
-        try { Task.Delay(ms, ct).Wait(ct); }
-        catch (OperationCanceledException) { }
-        catch (AggregateException) { }
+        try { Task.Delay(ms, ct).Wait(); }
+        catch (AggregateException) { /* cancelled */ }
     }
 }

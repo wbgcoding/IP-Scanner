@@ -78,6 +78,7 @@ public static class MdnsHelper
             for (int i = 0; i < an; i++)
             {
                 SkipName(p, ref pos);
+                if (pos + 10 > p.Length) return null;       // type+class+ttl+rdlen
                 int type = (p[pos] << 8) | p[pos + 1];
                 pos += 8;                                   // type + class + ttl
                 int rdlen = (p[pos] << 8) | p[pos + 1];
@@ -120,7 +121,7 @@ public static class MdnsHelper
             if (len == 0) { if (!jumped) pos = cur + 1; break; }
             if ((len & 0xC0) == 0xC0)
             {
-                if (++jumps > 8) break;                      // loop guard
+                if (++jumps > 8 || cur + 1 >= p.Length) break;   // loop/bounds guard
                 int target = ((len & 0x3F) << 8) | p[cur + 1];
                 if (!jumped) pos = cur + 2;
                 cur = target;
