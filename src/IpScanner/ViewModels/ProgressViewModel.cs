@@ -44,5 +44,10 @@ public sealed class ProgressViewModel : ObservableObject
     public string SuccessText => $"{Loc.Success} {NumberFormat.Short(_success)}";
     public string FailedText  => $"{Loc.Fail} {NumberFormat.Short(_failed)}";
     public string SkippedText => $"{Loc.Skipped} {NumberFormat.Short(_skipped)}";
-    public string PingCountText => $"{NumberFormat.Short(_success + _failed + _skipped)} / {NumberFormat.Short(_pingTotal)}";
+
+    /// <summary>Endless run: the ping total shows ∞ instead of a number.</summary>
+    public bool InfinitePings { get; set; }
+
+    public string PingCountText =>
+        $"{NumberFormat.Short(_success + _failed + _skipped)} / {(InfinitePings ? "∞" : NumberFormat.Short(_pingTotal))}";
 }

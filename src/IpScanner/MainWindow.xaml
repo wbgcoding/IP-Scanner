@@ -6,7 +6,7 @@
         Title="IP-Scanner" Height="720" Width="1320" MinWidth="700" MinHeight="480"
         Icon="Resources/network.ico" Background="{StaticResource Bg}"
         WindowStartupLocation="Manual">
-    <Grid>
+    <Grid x:Name="RootLayout">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -25,8 +25,9 @@
                 <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
                     <TextBlock Text="IP-Scanner" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="16" HorizontalAlignment="Center"/>
-                    <Image Source="/Resources/network.ico" Width="40" Height="40"
+                    <Image x:Name="LogoImage" Source="/Resources/logo.png" Width="42" Height="42"
                            Margin="0,5,0,0" HorizontalAlignment="Center"
+                           RenderTransformOrigin="0.5,0.5"
                            RenderOptions.BitmapScalingMode="HighQuality"/>
                 </StackPanel>
 
@@ -34,7 +35,7 @@
                 <StackPanel Grid.Column="1" Margin="18,0" VerticalAlignment="Center">
                     <Grid Margin="0,0,0,2">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="50"/><ColumnDefinition Width="*"/><ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{x:Static loc:Loc.Devices}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
@@ -58,7 +59,7 @@
                     </StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="50"/><ColumnDefinition Width="*"/><ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{x:Static loc:Loc.Pings}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
@@ -105,7 +106,8 @@
                         </ComboBox>
                         <Button x:Name="ScanStopButton" Content="{x:Static loc:Loc.Scan}" Click="OnScanStopClick"
                                 Style="{StaticResource AccentButton}" MinWidth="86"/>
-                        <Button x:Name="SettingsButton" Content="⚙" Click="OnSettingsClick" Style="{StaticResource GhostButton}"/>
+                        <Button x:Name="SettingsButton" Content="&#xE713;" FontFamily="Segoe MDL2 Assets"
+                                Click="OnSettingsClick" Style="{StaticResource GhostButton}"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -130,14 +132,14 @@
                       BorderThickness="0" EnableRowVirtualization="True"
                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.IpAddress}" Width="Auto" MinWidth="120">
+                    <DataGridTemplateColumn Header="{x:Static loc:Loc.IpAddress}" Width="Auto" MinWidth="132">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding IpDisplay}" Foreground="{Binding IpColor}" FontWeight="SemiBold"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Status}" Width="Auto" MinWidth="74">
+                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Status}" Width="Auto" MinWidth="84">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
@@ -145,7 +147,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Group}" Width="Auto" MinWidth="56">
+                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Group}" Width="Auto" MinWidth="64">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border Width="14" Height="14" CornerRadius="2" HorizontalAlignment="Center"
@@ -153,8 +155,8 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="{x:Static loc:Loc.Hostname}" Binding="{Binding Hostname}" Width="Auto" MinWidth="90"/>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Avg}" Width="Auto" MinWidth="55">
+                    <DataGridTextColumn Header="{x:Static loc:Loc.Hostname}" Binding="{Binding Hostname}" Width="Auto" MinWidth="110"/>
+                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Avg}" Width="Auto" MinWidth="80">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -164,7 +166,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Min}" Width="Auto" MinWidth="48">
+                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Min}" Width="Auto" MinWidth="72">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -174,7 +176,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Max}" Width="Auto" MinWidth="48">
+                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Max}" Width="Auto" MinWidth="72">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -184,7 +186,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Last}" Width="Auto" MinWidth="55">
+                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Last}" Width="Auto" MinWidth="84">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -194,9 +196,9 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="{x:Static loc:Loc.Progress}" Binding="{Binding ProgressDisplay}" Width="Auto" MinWidth="70"
+                    <DataGridTextColumn Header="{x:Static loc:Loc.Progress}" Binding="{Binding ProgressDisplay}" Width="Auto" MinWidth="84"
                                         ElementStyle="{StaticResource CenterCell}"/>
-                    <DataGridTextColumn Header="{x:Static loc:Loc.Mac}" Binding="{Binding Mac}" Width="Auto" MinWidth="120"
+                    <DataGridTextColumn Header="{x:Static loc:Loc.Mac}" Binding="{Binding Mac}" Width="Auto" MinWidth="136"
                                         ElementStyle="{StaticResource CenterCell}"/>
                 </DataGrid.Columns>
             </DataGrid>
@@ -361,6 +363,7 @@
                             <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipPingInterval}"><TextBlock Text="{x:Static loc:Loc.PingInterval}" Foreground="{StaticResource Text}" FontSize="13" Width="280" VerticalAlignment="Center"/><TextBox x:Name="IntervalBox" Width="130" FontSize="13"/></DockPanel>
                             <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineAfter}"><TextBlock Text="{x:Static loc:Loc.OfflineAfter}" Foreground="{StaticResource Text}" FontSize="13" Width="280" VerticalAlignment="Center"/><TextBox x:Name="OfflineAfterBox" Width="130" FontSize="13"/></DockPanel>
                             <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipInitPings}"><TextBlock Text="{x:Static loc:Loc.InitPings}" Foreground="{StaticResource Text}" FontSize="13" Width="280" VerticalAlignment="Center"/><TextBox x:Name="InitPingCountBox" Width="130" FontSize="13"/></DockPanel>
+                            <DockPanel Margin="0,5" ToolTip="{x:Static loc:Loc.TipTextScale}"><TextBlock Text="{x:Static loc:Loc.TextScale}" Foreground="{StaticResource Text}" FontSize="13" Width="280" VerticalAlignment="Center"/><TextBox x:Name="UiScaleBox" Width="130" FontSize="13"/></DockPanel>
 
                             <!-- Internet -->
                             <TextBlock Text="{x:Static loc:Loc.TabInternet}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
@@ -369,7 +372,7 @@
                             <Grid>
                                 <TextBox x:Name="InternetHostsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
                                          VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipInternetHosts}"/>
-                                <TextBlock Text="8.8.8.8, 1.1.1.1" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="8.8.8.8 Google, 1.1.1.1 Cloudflare" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="10,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=InternetHostsBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>

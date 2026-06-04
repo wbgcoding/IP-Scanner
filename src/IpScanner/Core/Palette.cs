@@ -14,6 +14,8 @@ public static class Palette
     public const string Red = "#F38BA8";
     public const string Mauve = "#CBA6F7";
     public const string Blue = "#89B4FA";
+    /// <summary>Ubiquiti brand blue (gateway color for UniFi hostnames).</summary>
+    public const string UnifiBlue = "#0559C9";
     public const string Transparent = "#00000000";
 
     /// <summary>Latency heatmap: green (fast) -> red (slow). Mirrors Python thresholds.</summary>

@@ -22,5 +22,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\oui.txt" />
     <Resource Include="Resources\network.ico" />
+    <Resource Include="Resources\logo.png" />
   </ItemGroup>
 </Project>

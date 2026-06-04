@@ -61,11 +61,35 @@ public partial class MainWindow : Window
         };
     }
 
+    private readonly System.Windows.Media.RotateTransform _logoSpin = new();
+
     private void UpdateScanButton()
     {
         bool scanning = _vm.IsScanning;
         ScanStopButton.Content = scanning ? Loc.Stop : Loc.Scan;
         ScanStopButton.Style = (Style)FindResource(scanning ? "DangerButton" : "AccentButton");
+
+        // Logo spins while a scan is running.
+        LogoImage.RenderTransform = _logoSpin;
+        if (scanning)
+        {
+            var spin = new System.Windows.Media.Animation.DoubleAnimation(0, 360, TimeSpan.FromSeconds(2.5))
+            { RepeatBehavior = System.Windows.Media.Animation.RepeatBehavior.Forever };
+            _logoSpin.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, spin);
+        }
+        else
+        {
+            _logoSpin.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, null);
+            _logoSpin.Angle = 0;
+        }
+    }
+
+    /// <summary>Scale the whole UI (text included) by the configured percent.</summary>
+    private void ApplyUiScale()
+    {
+        double f = Math.Clamp(_config.UiScalePercent, 50, 200) / 100.0;
+        RootLayout.LayoutTransform = f == 1.0 ? null
+            : new System.Windows.Media.ScaleTransform(f, f);
     }
 
     // Resolve MAC + hostname for an online device: ARP + reverse DNS, with a
@@ -148,6 +172,7 @@ public partial class MainWindow : Window
     {
         _config = ReadSettings();
         _vm.Config = _config;
+        ApplyUiScale();
         SettingsOverlay.Visibility = Visibility.Collapsed;
     }
 
@@ -176,6 +201,7 @@ public partial class MainWindow : Window
         SubnetsBox.Text = string.Join(Environment.NewLine, c.Subnets);
         PinnedBox.Text = string.Join(Environment.NewLine, c.PinnedIps);
         ScanThreadsBox.Text = c.ScanThreads.ToString();
+        UiScaleBox.Text = c.UiScalePercent.ToString();
         IntervalBox.Text = c.PingIntervalMs.ToString();
         OfflineAfterBox.Text = c.OfflineAfterFailedPings.ToString();
         InitPingCountBox.Text = c.InitPingCount.ToString();
@@ -201,6 +227,7 @@ public partial class MainWindow : Window
             PinnedIps = Items(PinnedBox.Text),
             PingCount = _config.PingCount,        // chosen in the main header
             ScanThreads = I(ScanThreadsBox.Text, 50),
+            UiScalePercent = Math.Clamp(I(UiScaleBox.Text, 100), 50, 200),
             PingIntervalMs = I(IntervalBox.Text, 100),
             OfflineAfterFailedPings = I(OfflineAfterBox.Text, 5),
             InitPingCount = I(InitPingCountBox.Text, 1),

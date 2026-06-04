@@ -10,7 +10,8 @@ namespace IpScanner.Core.Export;
 public static class TxtExporter
 {
     public static string Write(IEnumerable<Device> devices, NetworkInfo info,
-                               string outputDir, string timestamp, string gatewaySlug)
+                               string outputDir, string timestamp, string gatewaySlug,
+                               string? displayTime = null)
     {
         Directory.CreateDirectory(outputDir);
         var suffix = string.IsNullOrEmpty(gatewaySlug) ? "" : $"-{gatewaySlug}";
@@ -19,7 +20,7 @@ public static class TxtExporter
         var sb = new StringBuilder();
         sb.AppendLine(new string('=', 80));
         sb.AppendLine("NETWORK SCAN REPORT");
-        sb.AppendLine($"Timestamp: {timestamp}");
+        sb.AppendLine($"Timestamp: {displayTime ?? timestamp}");
         sb.AppendLine(new string('=', 80));
         sb.AppendLine();
         sb.AppendLine("Network Information:");

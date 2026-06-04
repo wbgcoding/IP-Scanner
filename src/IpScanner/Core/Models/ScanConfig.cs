@@ -10,14 +10,17 @@ public sealed class ScanConfig
     public int OfflineAfterFailedPings { get; set; } = 5;
     public int InitPingCount { get; set; } = 1;
     public bool EnableInternetPing { get; set; } = true;
+    /// <summary>Entries: "ip" or "ip name", e.g. "8.8.8.8 Google 1".</summary>
     public List<string> InternetHosts { get; set; } =
-        new() { "8.8.8.8", "8.8.4.4", "1.1.1.1", "9.9.9.9" };
+        new() { "8.8.8.8 Google 1", "8.8.4.4 Google 2", "1.1.1.1 Cloudflare", "9.9.9.9 Quad9" };
     public bool KnownDevicesDb { get; set; } = true;
     public string OutputDirectory { get; set; } = "./Scans";
     public bool FileOutput { get; set; }          // TXT report off by default
     public bool ExportCsv { get; set; }
     /// <summary>Parallel ping workers per scan. 0 = one thread per device (max).</summary>
     public int ScanThreads { get; set; } = 50;
+    /// <summary>UI/text scale in percent (100 = default).</summary>
+    public int UiScalePercent { get; set; } = 100;
 
     public const int InfinitePingCount = -1;
 
@@ -29,6 +32,6 @@ public sealed class ScanConfig
         InitPingCount = InitPingCount, EnableInternetPing = EnableInternetPing,
         InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb,
         OutputDirectory = OutputDirectory, FileOutput = FileOutput,
-        ExportCsv = ExportCsv, ScanThreads = ScanThreads,
+        ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
     };
 }

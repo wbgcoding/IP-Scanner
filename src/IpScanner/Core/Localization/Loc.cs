@@ -43,7 +43,7 @@ public static class Loc
     public static string Avg => S("Ø", "Avg");
     public static string Min => S("Min", "Min");
     public static string Max => S("Max", "Max");
-    public static string Last => S("Letzt", "Last");
+    public static string Last => S("Letzter", "Last");
     public static string Progress => S("Fortschritt", "Progress");
     public static string Mac => S("MAC", "MAC");
 
@@ -75,6 +75,7 @@ public static class Loc
     public static string OfflineAfter => S("Offline nach N Fehlversuchen", "Offline after N failures");
     public static string InitPings => S("Such-Pings je IP", "Discovery pings per IP");
     public static string ScanThreads => S("Threads pro Scan (0 = max)", "Threads per scan (0 = max)");
+    public static string TextScale => S("Textgröße (%)", "Text size (%)");
     public static string ExportConf => S("Einstellungen exportieren …", "Export settings …");
     public static string ImportConf => S("Einstellungen importieren …", "Import settings …");
     public static string TabConfig => S("Konfigurationsdatei", "Configuration file");
@@ -118,8 +119,11 @@ public static class Loc
         "Misst nebenbei die Latenz zu öffentlichen Hosts (Sidebar) — zeigt, ob die Internetverbindung steht.",
         "Also measures latency to public hosts (sidebar) — shows whether the internet connection is up.");
     public static string TipInternetHosts => S(
-        "Öffentliche IPs für die Internet-Latenzmessung, z.B. 8.8.8.8 (Google) oder 1.1.1.1 (Cloudflare).",
-        "Public IPs used for the internet latency check, e.g. 8.8.8.8 (Google) or 1.1.1.1 (Cloudflare).");
+        "Öffentliche IPs für die Internet-Latenzmessung. Format: IP Leerzeichen Name, z.B. \"8.8.8.8 Google\". Ohne Name wird die IP angezeigt.",
+        "Public IPs for the internet latency check. Format: IP space name, e.g. \"8.8.8.8 Google\". Without a name the IP is shown.");
+    public static string TipTextScale => S(
+        "Skaliert die gesamte Oberfläche inklusive aller Texte. 100 = Standardgröße.",
+        "Scales the whole interface including all text. 100 = default size.");
     public static string TipOutputDir => S(
         "Ordner, in dem TXT-/CSV-Berichte nach einem Scan gespeichert werden.",
         "Folder where TXT/CSV reports are written after a scan.");

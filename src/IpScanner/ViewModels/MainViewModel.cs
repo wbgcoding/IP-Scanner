@@ -22,11 +22,12 @@ public sealed class MainViewModel : ObservableObject
 
     internal const string DbPath = "scanner.db";
 
-    private static readonly Dictionary<string, string> KnownHostNames = new()
+    /// <summary>Split an "ip name" config entry; without a name the IP doubles as name.</summary>
+    private static (string ip, string name) ParseHostEntry(string entry)
     {
-        ["1.1.1.1"] = "Cloudflare", ["8.8.8.8"] = "Google",
-        ["8.8.4.4"] = "Google DNS", ["9.9.9.9"] = "Quad9",
-    };
+        var parts = entry.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return parts.Length == 2 ? (parts[0], parts[1]) : (entry.Trim(), entry.Trim());
+    }
 
     public MainViewModel(Func<string, int, PingResult> pingFunc,
                          Func<NetworkInfo> detectNetwork,
@@ -108,6 +109,7 @@ public sealed class MainViewModel : ObservableObject
         var prefixes = subnetOverride ?? BuildPrefixes(info, cfg.Subnets);
 
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
+        Progress.InfinitePings = infinite;
         int perIp = infinite ? 1 : Math.Max(1, cfg.PingCount);
         int hostsPerSubnet = Ipv4.LastHost - Ipv4.FirstHost + 1;
         _plannedDevices = Math.Max(1, prefixes.Count * hostsPerSubnet);
@@ -154,7 +156,9 @@ public sealed class MainViewModel : ObservableObject
 
         if (persist)
         {
-            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var now = DateTime.Now;
+            var timestamp = now.ToString("yyyyMMdd_HHmmss");          // filename-safe
+            var displayTime = now.ToString("dd.MM.yyyy HH:mm:ss");    // report header
             // Prefer the gateway's hostname for the filename; fall back to its IP.
             var gwDev = devices.FirstOrDefault(d => d.Ip == info.Gateway);
             var gwName = gwDev?.Hostname is { } h && h != Device.Unknown ? h : info.Gateway;
@@ -162,7 +166,7 @@ public sealed class MainViewModel : ObservableObject
 
             if (cfg.FileOutput && devices.Count > 0)
             {
-                LastExportPath = TxtExporter.Write(devices, info, cfg.OutputDirectory, timestamp, gatewaySlug);
+                LastExportPath = TxtExporter.Write(devices, info, cfg.OutputDirectory, timestamp, gatewaySlug, displayTime);
                 if (cfg.ExportCsv)
                     CsvExporter.Write(devices, cfg.OutputDirectory, timestamp, gatewaySlug);
                 Raise(nameof(LastExportPath));
@@ -197,7 +201,7 @@ public sealed class MainViewModel : ObservableObject
         // Build the list synchronously (don't snapshot the ObservableCollection
         // after an async dispatch — it would still be empty and ping nothing).
         var hosts = Config.InternetHosts
-            .Select(ip => new InternetHostViewModel(KnownHostNames.GetValueOrDefault(ip, ip), ip))
+            .Select(e => { var (ip, name) = ParseHostEntry(e); return new InternetHostViewModel(name, ip); })
             .ToList();
         _dispatch(() =>
         {

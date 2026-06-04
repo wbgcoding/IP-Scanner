@@ -19,6 +19,8 @@ public sealed class Device
 
     public int SuccessCount { get; private set; }
     public int FailCount { get; private set; }
+    /// <summary>True when the most recent ping failed (table shows N/A).</summary>
+    public bool LastFailed { get; private set; }
     public double? MinMs { get; private set; }
     public double? MaxMs { get; private set; }
     public double? AvgMs { get; private set; }
@@ -40,6 +42,7 @@ public sealed class Device
             WentOffline = false;
             _consecutiveFails = 0;
             SuccessCount++;
+            LastFailed = false;
             if (r.LatencyMs is { } ms)
             {
                 LastMs = ms;
@@ -52,6 +55,7 @@ public sealed class Device
         else
         {
             FailCount++;
+            LastFailed = true;
             _consecutiveFails++;
             if (Seen && _consecutiveFails >= OfflineAfterFailures)
             {

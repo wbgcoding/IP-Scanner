@@ -48,7 +48,7 @@ public sealed class DeviceViewModel : ObservableObject
     private static string GatewayColor(string? hostname)
     {
         var h = (hostname ?? "").ToLowerInvariant();
-        if (h.Contains("unifi")) return Core.Palette.Blue;
+        if (h.Contains("unifi")) return Core.Palette.UnifiBlue;
         if (h.Contains("fritz")) return Core.Palette.Red;
         return Core.Palette.Mauve;
     }
@@ -56,13 +56,13 @@ public sealed class DeviceViewModel : ObservableObject
     public string AvgDisplay => Fmt(_device.AvgMs);
     public string MinDisplay => Fmt(_device.MinMs);
     public string MaxDisplay => Fmt(_device.MaxMs);
-    public string LastDisplay => Fmt(_device.LastMs);
+    public string LastDisplay => _device.LastFailed ? "N/A" : Fmt(_device.LastMs);
 
     // Raw latency values (for cross-row best/worst comparison).
     public double? AvgRaw => _device.AvgMs;
     public double? MinRaw => _device.MinMs;
     public double? MaxRaw => _device.MaxMs;
-    public double? LastRaw => _device.LastMs;
+    public double? LastRaw => _device.LastFailed ? null : _device.LastMs;
 
     // Best (lowest) / worst (highest) marker per column: green ● best, red ● worst.
     private const string Best = "▼", Worst = "▲";
@@ -91,7 +91,7 @@ public sealed class DeviceViewModel : ObservableObject
     public string AvgColor => Core.Palette.Heat(_device.AvgMs);
     public string MinColor => Core.Palette.Heat(_device.MinMs);
     public string MaxColor => Core.Palette.Heat(_device.MaxMs);
-    public string LastColor => Core.Palette.Heat(_device.LastMs);
+    public string LastColor => _device.LastFailed ? Core.Palette.Red : Core.Palette.Heat(_device.LastMs);
     public string ProgressDisplay =>
         _device.TargetPings == ScanConfig.InfinitePingCount
             ? $"{Core.NumberFormat.Short(_device.CurrentPings)}/∞"
