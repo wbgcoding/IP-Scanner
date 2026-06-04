@@ -40,23 +40,39 @@ public class ConfigManagerTests
     }
 
     [Fact]
-    public void Save_ThenLoad_RoundTrips()
+    public void Save_ThenLoad_RoundTrips_AllSettings()
     {
         var cfg = new ScanConfig
         {
-            PingCount = 100, PingIntervalMs = 250, ExportCsv = true,
+            PingCount = 100, PingIntervalMs = 250, ExportCsv = true, FileOutput = true,
+            OfflineAfterFailedPings = 7, InitPingCount = 3, OfflineRecheckSeconds = 9,
+            EnableInternetPing = false, InternetTimeoutMs = 2200,
+            KnownDevicesDb = false, DatabasePath = "./Data/other.db",
+            OutputDirectory = "./Out", ScanThreads = 77, UiScalePercent = 120,
             Subnets = new() { "192.168.5.0/24" },
             PinnedIps = new() { "192.168.5.1" },
-            InternetHosts = new() { "1.1.1.1" },
+            InternetHosts = new() { "1.1.1.1 Cloudflare" },
         };
         var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".conf");
         ConfigManager.Save(path, cfg);
         var loaded = ConfigManager.Load(path);
+
         Assert.Equal(100, loaded.PingCount);
         Assert.Equal(250, loaded.PingIntervalMs);
         Assert.True(loaded.ExportCsv);
+        Assert.True(loaded.FileOutput);
+        Assert.Equal(7, loaded.OfflineAfterFailedPings);
+        Assert.Equal(3, loaded.InitPingCount);
+        Assert.Equal(9, loaded.OfflineRecheckSeconds);
+        Assert.False(loaded.EnableInternetPing);
+        Assert.Equal(2200, loaded.InternetTimeoutMs);
+        Assert.False(loaded.KnownDevicesDb);
+        Assert.Equal("./Data/other.db", loaded.DatabasePath);
+        Assert.Equal("./Out", loaded.OutputDirectory);
+        Assert.Equal(77, loaded.ScanThreads);
+        Assert.Equal(120, loaded.UiScalePercent);
         Assert.Equal(new[] { "192.168.5.0/24" }, loaded.Subnets);
         Assert.Equal(new[] { "192.168.5.1" }, loaded.PinnedIps);
-        Assert.Equal(new[] { "1.1.1.1" }, loaded.InternetHosts);
+        Assert.Equal(new[] { "1.1.1.1 Cloudflare" }, loaded.InternetHosts);
     }
 }

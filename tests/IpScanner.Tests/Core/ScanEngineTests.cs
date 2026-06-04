@@ -69,6 +69,18 @@ public class ScanEngineTests
     }
 
     [Fact]
+    public async Task Scan_InitPingCount_ControlsDiscoveryAttempts()
+    {
+        var engine = new ScanEngine((_, _) => new PingResult(false, null, null));
+        var cfg = new ScanConfig { PingCount = 0, InitPingCount = 3, ScanThreads = 64, OfflineRecheckSeconds = 0 };
+
+        await engine.ScanAsync(new[] { "10.0.0" }, cfg, CancellationToken.None);
+
+        // Every offline IP gets exactly InitPingCount discovery attempts.
+        Assert.Equal(254L * 3, engine.Progress.FailedPings);
+    }
+
+    [Fact]
     public async Task Enrichers_RunParallel_BetterRankReplacesWorse()
     {
         PingResult Fake(string ip, int _) =>

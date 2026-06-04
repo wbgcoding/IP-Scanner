@@ -55,6 +55,7 @@ public partial class MainWindow : Window
         };
         LogoImage.RenderTransform = _logoSpin;
         System.Windows.Media.CompositionTarget.Rendering += OnSpinTick;
+        ApplyUiScale();   // persisted text-scale takes effect at startup
 
         // On startup, immediately run a discovery sweep of the local network so
         // the sidebar network info and online devices show up without a manual scan.
@@ -327,7 +328,7 @@ public partial class MainWindow : Window
             InitPingCount = I(InitPingCountBox.Text, 1),
             OfflineRecheckSeconds = Math.Clamp(I(OfflineRecheckBox.Text, 2), 0, 3600),
             EnableInternetPing = EnableInternetBox.IsChecked == true,
-            InternetTimeoutMs = Math.Clamp(I(InternetTimeoutBox.Text, 1500), 100, 10_000),
+            InternetTimeoutMs = Math.Clamp(I(InternetTimeoutBox.Text, 1000), 100, 10_000),
             InternetHosts = Items(InternetHostsBox.Text),
             OutputDirectory = OutputDirBox.Text.Trim(),
             DatabasePath = DbPathBox.Text.Trim().Length > 0 ? DbPathBox.Text.Trim() : "./Scans/scanner.db",

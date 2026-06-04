@@ -13,7 +13,7 @@ public sealed class ScanConfig
     public int OfflineRecheckSeconds { get; set; } = 2;
     public bool EnableInternetPing { get; set; } = true;
     /// <summary>ICMP timeout for the internet host pings (ms).</summary>
-    public int InternetTimeoutMs { get; set; } = 1500;
+    public int InternetTimeoutMs { get; set; } = 1000;
     /// <summary>Entries: "ip" or "ip name", e.g. "8.8.8.8 Google 1".</summary>
     public List<string> InternetHosts { get; set; } =
         new() { "8.8.8.8 Google 1", "8.8.4.4 Google 2", "1.1.1.1 Cloudflare", "9.9.9.9 Quad9" };

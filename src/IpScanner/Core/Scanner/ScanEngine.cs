@@ -119,6 +119,12 @@ public sealed class ScanEngine
             ? RecheckOfflineLoopAsync(cfg, infinite, analysisPerIp, workers, analysisSem,
                                       analysisTasks, analyzing, ct, recheckCts.Token)
             : Task.CompletedTask;
+        // Supervisor: periodically re-runs enrichment for online devices that
+        // still miss MAC or hostname (first attempts often lose the race
+        // against scan load); up to 5 extra attempts per device.
+        var enrichTask = _enrichers is { Count: > 0 }
+            ? EnrichMissingLoopAsync(recheckCts.Token)
+            : Task.CompletedTask;
 
         // Wait until no analysis task is left — rechecks may add new ones mid-wait.
         while (true)
@@ -128,8 +134,29 @@ public sealed class ScanEngine
             if (snapshot.Length == analysisTasks.Count) break;
         }
         recheckCts.Cancel();
-        try { await recheckTask.ConfigureAwait(false); } catch (OperationCanceledException) { }
+        try { await Task.WhenAll(recheckTask, enrichTask).ConfigureAwait(false); }
+        catch (OperationCanceledException) { }
         await Task.WhenAll(analysisTasks.ToArray()).ConfigureAwait(false);
+    }
+
+    /// <summary>Every few seconds, retry enrichment for online devices still
+    /// missing MAC or hostname (max 5 retries per device).</summary>
+    private async Task EnrichMissingLoopAsync(CancellationToken ct)
+    {
+        var attempts = new Dictionary<string, int>();
+        while (!ct.IsCancellationRequested)
+        {
+            try { await Task.Delay(4000, ct).ConfigureAwait(false); }
+            catch (OperationCanceledException) { return; }
+            foreach (var d in _devices.Values)
+            {
+                if (!d.IsOnline || (d.Mac is not null && d.Hostname is not null)) continue;
+                int n = attempts.GetValueOrDefault(d.Ip);
+                if (n >= 5) continue;
+                attempts[d.Ip] = n + 1;
+                TryEnrich(d);
+            }
+        }
     }
 
     /// <summary>Every OfflineRecheckSeconds, ping all still-offline IPs once;
@@ -190,11 +217,6 @@ public sealed class ScanEngine
                     if (ar.Success) Progress.AddSuccess(); else Progress.AddFailed();
                     Progress.NotifyChanged();
                     DeviceUpdated?.Invoke(device);
-                    // Retry MAC/hostname a few pings in — the first attempt often
-                    // misses for routed/other-subnet devices (slow DNS/NetBIOS).
-                    if ((i == 5 || i == 60 || i == 600) &&
-                        (device.Mac is null || device.Hostname is null))
-                        TryEnrich(device);
                 }
             }, ct).ConfigureAwait(false);
         }
@@ -220,7 +242,7 @@ public sealed class ScanEngine
 
     // At most N devices enrich at once — hundreds in parallel exhaust sockets
     // and nbtstat processes, and every lookup then dies in its timeout.
-    private static readonly SemaphoreSlim EnrichGate = new(12);
+    private static readonly SemaphoreSlim EnrichGate = new(24);
     private readonly ConcurrentDictionary<string, byte> _enriching = new();
 
     /// <summary>Fire-and-forget MAC/hostname resolution. Every technique runs on

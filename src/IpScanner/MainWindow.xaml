@@ -355,7 +355,7 @@
                             <Grid>
                                 <TextBox x:Name="SubnetsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="120" FontSize="13"
                                          VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipSubnets}"/>
-                                <TextBlock Text="192.168.2.0/24" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="192.168.2.0/24" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetsBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>
@@ -363,7 +363,7 @@
                             <Grid>
                                 <TextBox x:Name="PinnedBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
                                          VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipPinnedIps}"/>
-                                <TextBlock Text="192.168.2.10, 192.168.2.20" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="192.168.2.10, 192.168.2.20" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>
@@ -391,7 +391,7 @@
                             <Grid>
                                 <TextBox x:Name="InternetHostsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
                                          VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipInternetHosts}"/>
-                                <TextBlock Text="8.8.8.8 Google, 1.1.1.1 Cloudflare" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="8.8.8.8 Google, 1.1.1.1 Cloudflare" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=InternetHostsBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                 </TextBlock>
                             </Grid>

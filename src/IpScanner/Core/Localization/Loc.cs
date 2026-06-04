@@ -153,8 +153,8 @@ public static class Loc
         "Merkt sich gefundene Geräte je Netzwerk in scanner.db, damit bekannte Geräte beim nächsten Scan wiedererkannt werden.",
         "Remembers discovered devices per network in scanner.db so known devices are recognized on the next scan.");
     public static string TipInternetTimeout => S(
-        "ICMP-Timeout für die Internet-Host-Pings in Millisekunden. Standard 1500.",
-        "ICMP timeout for the internet host pings in milliseconds. Default 1500.");
+        "ICMP-Timeout für die Internet-Host-Pings in Millisekunden. Standard 1000.",
+        "ICMP timeout for the internet host pings in milliseconds. Default 1000.");
     public static string TipDbFile => S(
         "Pfad der Known-Devices-Datenbank. Liegt standardmäßig im Scans-Ordner.",
         "Path of the known-devices database. Lives in the scans folder by default.");
