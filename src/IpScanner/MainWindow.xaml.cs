@@ -140,7 +140,8 @@ public partial class MainWindow : Window
     }
 
     // ── Themed color picker (popup with palette swatches + hex field) ──
-    private string _pickerKey = "";
+    // The OK button routes the chosen color to whoever opened the popup.
+    private Action<string>? _pickerApply;
 
     private static readonly string[] SwatchColors =
     {
@@ -171,9 +172,19 @@ public partial class MainWindow : Window
     private void OnLegendColorClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (sender is not System.Windows.Controls.Border { Tag: string key } square) return;
-        _pickerKey = key;
-        HexBox.Text = GetBarColor(key);
-        ColorPickerPopup.PlacementTarget = square;
+        OpenColorPicker(square, GetBarColor(key), hex =>
+        {
+            SetBarColor(key, hex);
+            ApplyBarColors();
+            PersistConfig();
+        });
+    }
+
+    private void OpenColorPicker(UIElement target, string currentHex, Action<string> apply)
+    {
+        _pickerApply = apply;
+        HexBox.Text = currentHex;
+        ColorPickerPopup.PlacementTarget = target;
         ColorPickerPopup.IsOpen = true;
     }
 
@@ -212,11 +223,99 @@ public partial class MainWindow : Window
 
     private void ApplyPickedColor(string hex)
     {
-        if (_pickerKey.Length == 0) return;
-        SetBarColor(_pickerKey, hex);
-        ApplyBarColors();
-        PersistConfig();
+        _pickerApply?.Invoke(hex);
         ColorPickerPopup.IsOpen = false;
+    }
+
+    // ── Chip editors for subnets and pinned IPs (settings) ──
+    private readonly List<NetEntry> _subnetEntries = new();
+    private readonly List<NetEntry> _pinnedEntries = new();
+    private string _subnetColor = "", _pinnedColor = "";
+
+    private void OnSubnetColorClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        => OpenColorPicker(SubnetColorBtn, _subnetColor, hex =>
+        { _subnetColor = hex; SubnetColorBtn.Background = BrushFor(hex); });
+
+    private void OnPinnedColorClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        => OpenColorPicker(PinnedColorBtn, _pinnedColor, hex =>
+        { _pinnedColor = hex; PinnedColorBtn.Background = BrushFor(hex); });
+
+    private void OnSubnetInputKey(object sender, System.Windows.Input.KeyEventArgs e)
+    { if (e.Key == System.Windows.Input.Key.Enter) OnSubnetAdd(sender, e); }
+
+    private void OnPinnedInputKey(object sender, System.Windows.Input.KeyEventArgs e)
+    { if (e.Key == System.Windows.Input.Key.Enter) OnPinnedAdd(sender, e); }
+
+    private void OnSubnetAdd(object sender, RoutedEventArgs e)
+    {
+        if (!AddChipEntry(_subnetEntries, SubnetNetBox, SubnetNameBox, _subnetColor,
+                          IsValidSubnetEntry, SubnetsError, SubnetChips)) return;
+        _subnetColor = "";
+        SubnetColorBtn.Background = (System.Windows.Media.Brush)FindResource("Surface");
+    }
+
+    private void OnPinnedAdd(object sender, RoutedEventArgs e)
+    {
+        if (!AddChipEntry(_pinnedEntries, PinnedIpBox, PinnedNameBox, _pinnedColor,
+                          Core.Net.Ipv4.IsValid, PinnedError, PinnedChips)) return;
+        _pinnedColor = "";
+        PinnedColorBtn.Background = (System.Windows.Media.Brush)FindResource("Surface");
+    }
+
+    private bool AddChipEntry(List<NetEntry> list, TextBox targetBox, TextBox nameBox, string color,
+                              Func<string, bool> isValid, TextBlock error, System.Windows.Controls.WrapPanel panel)
+    {
+        var target = targetBox.Text.Trim();
+        if (!isValid(target))
+        {
+            error.Text = Loc.InvalidEntry(target);
+            error.Visibility = Visibility.Visible;
+            return false;
+        }
+        error.Visibility = Visibility.Collapsed;
+        list.RemoveAll(en => en.Target == target);   // re-adding replaces
+        list.Add(new NetEntry(target, nameBox.Text.Trim(), color));
+        targetBox.Clear();
+        nameBox.Clear();
+        RebuildChips(panel, list);
+        ApplyInstant();
+        return true;
+    }
+
+    /// <summary>Render one colored bubble per entry; clicking a chip removes it.</summary>
+    private void RebuildChips(System.Windows.Controls.WrapPanel panel, List<NetEntry> list)
+    {
+        panel.Children.Clear();
+        foreach (var entry in list)
+        {
+            var e = entry;
+            bool colored = e.Color.Length > 0;
+            var label = new TextBlock
+            {
+                Text = (e.Name.Length > 0 ? e.Name : e.Target) + "  ✕",
+                FontSize = 12,
+                Foreground = colored ? (System.Windows.Media.Brush)FindResource("BgDark")
+                                     : (System.Windows.Media.Brush)FindResource("Text"),
+            };
+            var chip = new System.Windows.Controls.Border
+            {
+                Background = colored ? BrushFor(e.Color)
+                                     : (System.Windows.Media.Brush)FindResource("Surface"),
+                CornerRadius = new CornerRadius(10),
+                Padding = new Thickness(9, 4, 9, 4),
+                Margin = new Thickness(0, 0, 6, 6),
+                Cursor = System.Windows.Input.Cursors.Hand,
+                ToolTip = $"{e.Target} — {Loc.TipRemoveChip}",
+                Child = label,
+            };
+            chip.MouseLeftButtonDown += (_, _) =>
+            {
+                list.Remove(e);
+                RebuildChips(panel, list);
+                ApplyInstant();
+            };
+            panel.Children.Add(chip);
+        }
     }
 
     // ── Inline editing: hostname & group (double-click; X = back to auto) ──
@@ -314,9 +413,10 @@ public partial class MainWindow : Window
         }
     }
 
-    // ── Latency history graph (sidebar bottom) ──
+    // ── Latency history graphs (device graph at the bottom, internet mini graph) ──
     private const int GraphCapacity = 60;            // one sample per second
     private readonly List<double?> _graphSamples = new();
+    private readonly List<double?> _inetSamples = new();
     private string? _graphIp;                        // null = overall average
 
     private void InitGraph()
@@ -329,9 +429,16 @@ public partial class MainWindow : Window
     private void OnGraphTick()
     {
         RefreshGraphSources();
-        _graphSamples.Add(_vm.GraphValue(_graphIp));
-        if (_graphSamples.Count > GraphCapacity) _graphSamples.RemoveAt(0);
+        Sample(_graphSamples, _vm.GraphValue(_graphIp));
+        Sample(_inetSamples, _vm.InternetGraphValue());
         RenderGraph();
+        RenderInternetGraph();
+    }
+
+    private static void Sample(List<double?> series, double? value)
+    {
+        series.Add(value);
+        if (series.Count > GraphCapacity) series.RemoveAt(0);
     }
 
     /// <summary>Keep the source dropdown in sync with the device list.</summary>
@@ -354,37 +461,52 @@ public partial class MainWindow : Window
         RenderGraph();
     }
 
-    private void OnGraphSizeChanged(object sender, SizeChangedEventArgs e) => RenderGraph();
+    private void OnGraphSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        RenderGraph();
+        RenderInternetGraph();
+    }
 
     private void RenderGraph()
     {
-        double w = GraphCanvas.ActualWidth, h = GraphCanvas.ActualHeight;
+        RenderSeries(_graphSamples, GraphCanvas, GraphLine, GraphMaxText, GraphMinText);
+        var last = _graphSamples.Count > 0 ? _graphSamples[^1] : null;
+        GraphValueText.Text = Core.NumberFormat.Ms(last);
+        GraphValueText.Foreground = BrushFor(Core.Palette.Heat(last));
+    }
+
+    private void RenderInternetGraph()
+        => RenderSeries(_inetSamples, InetGraphCanvas, InetGraphLine, InetGraphMaxText, InetGraphMinText);
+
+    /// <summary>Plot a sample series into a canvas: newest right, gaps for nulls.</summary>
+    private static void RenderSeries(List<double?> samples, System.Windows.Controls.Canvas canvas,
+                                     System.Windows.Shapes.Polyline line,
+                                     TextBlock maxText, TextBlock minText)
+    {
+        double w = canvas.ActualWidth, h = canvas.ActualHeight;
         var points = new System.Windows.Media.PointCollection();
-        var present = _graphSamples.Where(v => v is not null).Select(v => v!.Value).ToList();
+        var present = samples.Where(v => v is not null).Select(v => v!.Value).ToList();
         if (w > 0 && h > 0 && present.Count > 1)
         {
             double min = present.Min(), max = present.Max();
             if (max - min < 0.5) { max += 0.5; min = Math.Max(0, min - 0.5); }   // flat-line guard
             double stepX = w / (GraphCapacity - 1);
-            for (int i = 0; i < _graphSamples.Count; i++)
+            for (int i = 0; i < samples.Count; i++)
             {
-                if (_graphSamples[i] is not { } v) continue;   // gap while offline
-                double x = w - (_graphSamples.Count - 1 - i) * stepX;   // newest right
+                if (samples[i] is not { } v) continue;
+                double x = w - (samples.Count - 1 - i) * stepX;
                 double y = h - 4 - (v - min) / (max - min) * (h - 8);
                 points.Add(new Point(x, y));
             }
-            GraphMaxText.Text = Core.NumberFormat.Ms(max);
-            GraphMinText.Text = Core.NumberFormat.Ms(min);
+            maxText.Text = Core.NumberFormat.Ms(max);
+            minText.Text = Core.NumberFormat.Ms(min);
         }
         else
         {
-            GraphMaxText.Text = "";
-            GraphMinText.Text = "";
+            maxText.Text = "";
+            minText.Text = "";
         }
-        GraphLine.Points = points;
-        var last = _graphSamples.Count > 0 ? _graphSamples[^1] : null;
-        GraphValueText.Text = Core.NumberFormat.Ms(last);
-        GraphValueText.Foreground = BrushFor(Core.Palette.Heat(last));
+        line.Points = points;
     }
 
     private string GetBarColor(string key) => key switch
@@ -406,15 +528,39 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>Active config path: the chosen folder, or next to the database.</summary>
+    private string ActiveConfPath() => _config.ConfigDirectory.Trim().Length > 0
+        ? Path.Combine(Path.GetFullPath(_config.ConfigDirectory.Trim()), ScanConfig.ConfigFileName)
+        : ConfPathFor(_config.DatabasePath);
+
     private void PersistConfig()
     {
         try
         {
-            var path = ConfPathFor(_config.DatabasePath);
+            var path = ActiveConfPath();
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             ConfigManager.Save(path, _config);
+            // Keep a copy at the default location so the next start finds the
+            // config_directory redirect.
+            var def = ConfPathFor(_config.DatabasePath);
+            if (!string.Equals(def, path, StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(def)!);
+                ConfigManager.Save(def, _config);
+            }
         }
         catch { /* persisting is best-effort */ }
+    }
+
+    private void OnConfLocation(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.ConfLocation };
+        if (DirOf(_config.ConfigDirectory.Length > 0 ? _config.ConfigDirectory : _config.DatabasePath) is { } dir)
+            dlg.InitialDirectory = dir;
+        if (dlg.ShowDialog(this) != true) return;
+        _config.ConfigDirectory = dlg.FolderName;
+        PersistConfig();
+        ConfLocationBtn.ToolTip = $"{Loc.TipConfLocation}\n{ActiveConfPath()}";
     }
 
     private void ApplyUiScale()
@@ -513,7 +659,8 @@ public partial class MainWindow : Window
     {
         // Reset removes the persisted config files and applies the defaults
         // without writing a new file.
-        foreach (var p in new[] { ConfPathFor(_config.DatabasePath), ConfPathFor(new ScanConfig().DatabasePath) })
+        foreach (var p in new[] { ActiveConfPath(), ConfPathFor(_config.DatabasePath),
+                                  ConfPathFor(new ScanConfig().DatabasePath) })
             try { if (File.Exists(p)) File.Delete(p); } catch { /* best-effort */ }
         _config = new ScanConfig();
         _vm.Config = _config;
@@ -569,6 +716,13 @@ public partial class MainWindow : Window
             var at = ConfPathFor(cfg.DatabasePath);
             if (!string.Equals(at, def, StringComparison.OrdinalIgnoreCase) && File.Exists(at))
                 cfg = ConfigManager.Load(at);
+            // A configured config folder wins over both default locations.
+            if (cfg.ConfigDirectory.Trim().Length > 0)
+            {
+                var redirected = Path.Combine(Path.GetFullPath(cfg.ConfigDirectory.Trim()),
+                                              ScanConfig.ConfigFileName);
+                if (File.Exists(redirected)) cfg = ConfigManager.Load(redirected);
+            }
             return cfg;
         }
         catch { return new ScanConfig(); }
@@ -659,8 +813,12 @@ public partial class MainWindow : Window
         _loadingSettings = true;
         try
         {
-        SubnetsBox.Text = string.Join(Environment.NewLine, c.Subnets);
-        PinnedBox.Text = string.Join(Environment.NewLine, c.PinnedIps);
+        _subnetEntries.Clear();
+        _subnetEntries.AddRange(c.Subnets.Select(NetEntry.Parse).Where(en => en.Target.Length > 0));
+        _pinnedEntries.Clear();
+        _pinnedEntries.AddRange(c.PinnedIps.Select(NetEntry.Parse).Where(en => en.Target.Length > 0));
+        RebuildChips(SubnetChips, _subnetEntries);
+        RebuildChips(PinnedChips, _pinnedEntries);
         ScanThreadsBox.Text = c.ScanThreads.ToString();
         UiScaleBox.Text = c.UiScalePercent.ToString();
         IntervalBox.Text = c.PingIntervalMs.ToString();
@@ -689,13 +847,7 @@ public partial class MainWindow : Window
         .Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
         .Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
 
-    // ── Live syntax validation for the network/IP lists ──
-    private void OnSubnetsValidate(object sender, TextChangedEventArgs e)
-    { ValidateList(SubnetsBox, SubnetsError, IsValidSubnetEntry); ApplyInstant(); }
-
-    private void OnPinnedValidate(object sender, TextChangedEventArgs e)
-    { ValidateList(PinnedBox, PinnedError, Core.Net.Ipv4.IsValid); ApplyInstant(); }
-
+    // ── Live syntax validation for the list/path fields ──
     private void OnHostsValidate(object sender, TextChangedEventArgs e)
     { ValidateList(InternetHostsBox, InternetHostsError, IsValidHostEntry); ApplyInstant(); }
 
@@ -764,8 +916,9 @@ public partial class MainWindow : Window
         int defaultPings = I(DefaultPingsBox.Text, 10);
         return new ScanConfig
         {
-            Subnets = Items(SubnetsBox.Text),
-            PinnedIps = Items(PinnedBox.Text),
+            Subnets = _subnetEntries.Select(en => en.ToString()).ToList(),
+            PinnedIps = _pinnedEntries.Select(en => en.ToString()).ToList(),
+            ConfigDirectory = _config.ConfigDirectory,
             PingCount = defaultPings is ScanConfig.InfinitePingCount or > 0 ? defaultPings : 10,
             ScanThreads = I(ScanThreadsBox.Text, 50),
             UiScalePercent = Math.Clamp(I(UiScaleBox.Text, 100), 50, 200),

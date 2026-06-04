@@ -28,6 +28,12 @@ public sealed class InternetHostViewModel : ObservableObject
         Raise(nameof(AvgColor)); Raise(nameof(MinColor)); Raise(nameof(MaxColor)); Raise(nameof(LastColor));
     }
 
+    // Raw values for the totals row and the internet graph.
+    public double? AvgRaw => Avg;
+    public double? MinRaw => _min;
+    public double? MaxRaw => _max;
+    public double? LastRaw => _last;
+
     public string AvgDisplay => Core.NumberFormat.Ms(Avg);
     public string MinDisplay => Core.NumberFormat.Ms(_min);
     public string MaxDisplay => Core.NumberFormat.Ms(_max);

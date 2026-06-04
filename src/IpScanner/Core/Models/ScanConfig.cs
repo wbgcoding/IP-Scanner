@@ -31,6 +31,8 @@ public sealed class ScanConfig
     public int UiScalePercent { get; set; } = 100;
     /// <summary>UI language: "auto" (system, EN fallback), "de" or "en".</summary>
     public string Language { get; set; } = "auto";
+    /// <summary>Folder of ip_scanner.conf; empty = next to the database.</summary>
+    public string ConfigDirectory { get; set; } = "";
 
     // Progress-bar colors (clickable legend squares; persisted, not shown in settings).
     public string ColorOnline { get; set; } = Palette.Green;
@@ -57,7 +59,7 @@ public sealed class ScanConfig
         InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb,
         DatabasePath = DatabasePath, OutputDirectory = OutputDirectory, FileOutput = FileOutput,
         ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
-        Language = Language,
+        Language = Language, ConfigDirectory = ConfigDirectory,
         ColorOnline = ColorOnline, ColorOffline = ColorOffline,
         ColorSuccess = ColorSuccess, ColorFailed = ColorFailed, ColorSkipped = ColorSkipped,
     };

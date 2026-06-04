@@ -32,6 +32,7 @@ public static class ConfigManager
                 case "internet_hosts":              cfg.InternetHosts = ParseIpList(value); break;
                 case "known_devices_db":            cfg.KnownDevicesDb = ParseBool(value); break;
                 case "database_path":               if (value.Length > 0) cfg.DatabasePath = value; break;
+                case "config_directory":            cfg.ConfigDirectory = value; break;
                 case "output_directory":            cfg.OutputDirectory = value; break;
                 case "file_output":                 cfg.FileOutput = ParseBool(value); break;
                 case "export_csv":                  cfg.ExportCsv = ParseBool(value); break;
@@ -119,6 +120,8 @@ public static class ConfigManager
         sb.AppendLine($"known_devices_db = {B(c.KnownDevicesDb)}");
         sb.AppendLine("# database_path  Pfad der Datenbankdatei. Standard ./Scans/scanner.db");
         sb.AppendLine($"database_path = {c.DatabasePath}");
+        sb.AppendLine("# config_directory  Ordner dieser Konfigurationsdatei (leer = neben der Datenbank).");
+        sb.AppendLine($"config_directory = {c.ConfigDirectory}");
         sb.AppendLine();
 
         sb.AppendLine("# -- Performance ---------------------------------------------");

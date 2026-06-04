@@ -78,6 +78,10 @@ public sealed class MainViewModel : ObservableObject
     private string? _selfHost;
     private string? _gatewayIp;
     private HashSet<string> _pinned = new();
+    // Configured display metadata: pinned-IP entries (ip -> name/color) and
+    // subnet entries expanded to /24 prefixes (prefix -> name/color).
+    private Dictionary<string, NetEntry> _pinnedMeta = new();
+    private Dictionary<string, NetEntry> _subnetMeta = new();
     private readonly OverrideStore _overrides = new();
 
     /// <summary>Load manual hostname/group overrides (file lives next to the db).</summary>
@@ -161,7 +165,17 @@ public sealed class MainViewModel : ObservableObject
         _selfMac = info.Mac;
         _selfHost = Environment.MachineName;
         _gatewayIp = info.Gateway;
-        _pinned = new HashSet<string>(Config.PinnedIps);
+        _pinnedMeta = Config.PinnedIps.Select(NetEntry.Parse)
+            .Where(e => e.Target.Length > 0)
+            .GroupBy(e => e.Target).ToDictionary(g => g.Key, g => g.First());
+        _pinned = new HashSet<string>(_pinnedMeta.Keys);
+        _subnetMeta = new Dictionary<string, NetEntry>();
+        foreach (var s in Config.Subnets)
+        {
+            var entry = NetEntry.Parse(s);
+            foreach (var p in ManualPrefixes(entry.Target) ?? new List<string>())
+                _subnetMeta[p] = entry;
+        }
         LastExportPath = null;
         ExportInfo = "";
         Raise(nameof(ExportInfo));
@@ -185,8 +199,10 @@ public sealed class MainViewModel : ObservableObject
             for (int i = 0; i < prefixes.Count; i++)
             {
                 var ni = i == 0 ? info : new NetworkInfo { Ip = prefixes[i] + ".0" };
-                Networks.Add(new NetworkInfoViewModel(i + 1, ni, GroupColorPalette.ColorForIndex(i),
-                                                      primary: i == 0));
+                _subnetMeta.TryGetValue(prefixes[i], out var meta);
+                var color = meta?.Color is { Length: > 0 } c ? c : GroupColorPalette.ColorForIndex(i);
+                Networks.Add(new NetworkInfoViewModel(i + 1, ni, color,
+                                                      primary: i == 0, name: meta?.Name ?? ""));
             }
         });
 
@@ -294,7 +310,11 @@ public sealed class MainViewModel : ObservableObject
             for (int i = 0; i < target && !ct.IsCancellationRequested; i++)
             {
                 var r = _pingFunc(host.Ip, timeout);
-                _dispatch(() => host.RecordPing(r.Success ? r.LatencyMs : null));
+                _dispatch(() =>
+                {
+                    host.RecordPing(r.Success ? r.LatencyMs : null);
+                    UpdateInternetTotals();
+                });
                 if (i + 1 >= target) break;
                 try { await Task.Delay(interval, ct); }
                 catch (OperationCanceledException) { break; }
@@ -320,7 +340,7 @@ public sealed class MainViewModel : ObservableObject
         else if (info.Ip is not null) Add(new[] { Ipv4.SubnetPrefix(info.Ip) });
 
         // Configured subnets (settings) are always scanned in addition.
-        foreach (var s in extra) Add(ManualPrefixes(s));
+        foreach (var s in extra) Add(ManualPrefixes(NetEntry.Parse(s).Target));
         return list;
     }
 
@@ -358,10 +378,31 @@ public sealed class MainViewModel : ObservableObject
     // Devices that answered at least once stay in the list — when they flip to
     // offline mid-scan the row remains (status turns red). Never-seen IPs are
     // never shown.
+    /// <summary>Configured pinned-IP name acts as the default hostname; the
+    /// manual double-click override (applied afterwards) still wins.</summary>
+    private void ApplyPinnedName(Device d)
+    {
+        if (!_pinnedMeta.TryGetValue(d.Ip, out var e) || e.Name.Length == 0) return;
+        if (d.HostnameRank != -1) { d.AutoHostname = d.Hostname; d.AutoHostnameRank = d.HostnameRank; }
+        d.Hostname = e.Name;
+        d.HostnameRank = -1;
+    }
+
+    /// <summary>Fixed group color from pinned-IP entry (wins) or subnet entry.</summary>
+    private void ApplyColorOverride(Device d)
+    {
+        d.GroupColorOverride =
+            _pinnedMeta.TryGetValue(d.Ip, out var p) && p.Color.Length > 0 ? p.Color
+            : _subnetMeta.TryGetValue(Ipv4.SubnetPrefix(d.Ip), out var s) && s.Color.Length > 0 ? s.Color
+            : null;
+    }
+
     private void OnDeviceUpdated(Device d)
     {
         ApplySelfInfo(d);
+        ApplyPinnedName(d);
         ApplyHostnameOverride(d);
+        ApplyColorOverride(d);
         if (!d.IsOnline && !d.Seen) return;
 
         // Known rows are only marked dirty (flushed by the throttled aggregate
@@ -398,7 +439,9 @@ public sealed class MainViewModel : ObservableObject
         {
             foreach (var dev in engine.Devices.Where(d => d.IsOnline || d.Seen))
             {
+                ApplyPinnedName(dev);
                 ApplyHostnameOverride(dev);
+                ApplyColorOverride(dev);
                 if (!_byIp.ContainsKey(dev.Ip))
                 {
                     var vm = new DeviceViewModel(dev, dev.Ip == _selfIp, _pinned.Contains(dev.Ip));
@@ -448,6 +491,7 @@ public sealed class MainViewModel : ObservableObject
                 d.AutoGroupId = d.GroupId;
                 if (_overrides.Get(StableMac(d), d.Ip)?.Group is { } g)
                     d.GroupId = DisplayToGroupId(g);
+                ApplyColorOverride(d);
             }
             // Groups may have shifted: refresh every row.
             lock (_byIpLock) { foreach (var vm in Devices) vm.Refresh(); }
@@ -542,6 +586,47 @@ public sealed class MainViewModel : ObservableObject
         var best = withVal.OrderBy(v => sel(v)!.Value).First();
         var worst = withVal.OrderByDescending(v => sel(v)!.Value).First();
         return sel(best)!.Value == sel(worst)!.Value ? (null, null) : (best, worst);
+    }
+
+    // ── Internet totals row (after the last host): Ø/Letzter = averages,
+    //    Min/Max = the extreme values across all hosts ──
+    public string InternetTotalAvg { get; private set; } = "—";
+    public string InternetTotalMin { get; private set; } = "—";
+    public string InternetTotalMax { get; private set; } = "—";
+    public string InternetTotalLast { get; private set; } = "—";
+    public string InternetTotalAvgColor { get; private set; } = Core.Palette.MidGray;
+    public string InternetTotalMinColor { get; private set; } = Core.Palette.MidGray;
+    public string InternetTotalMaxColor { get; private set; } = Core.Palette.MidGray;
+    public string InternetTotalLastColor { get; private set; } = Core.Palette.MidGray;
+
+    private void UpdateInternetTotals()
+    {
+        static double? Agg(IEnumerable<double?> src, Func<List<double>, double> f)
+        {
+            var vals = src.Where(v => v is not null).Select(v => v!.Value).ToList();
+            return vals.Count > 0 ? f(vals) : null;
+        }
+        var hosts = InternetHosts;
+        double? avg = Agg(hosts.Select(h => h.AvgRaw), v => v.Average());
+        double? min = Agg(hosts.Select(h => h.MinRaw), v => v.Min());
+        double? max = Agg(hosts.Select(h => h.MaxRaw), v => v.Max());
+        double? last = Agg(hosts.Select(h => h.LastRaw), v => v.Average());
+        InternetTotalAvg = Core.NumberFormat.Ms(avg);   InternetTotalAvgColor = Core.Palette.Heat(avg);
+        InternetTotalMin = Core.NumberFormat.Ms(min);   InternetTotalMinColor = Core.Palette.Heat(min);
+        InternetTotalMax = Core.NumberFormat.Ms(max);   InternetTotalMaxColor = Core.Palette.Heat(max);
+        InternetTotalLast = Core.NumberFormat.Ms(last); InternetTotalLastColor = Core.Palette.Heat(last);
+        Raise(nameof(InternetTotalAvg)); Raise(nameof(InternetTotalMin));
+        Raise(nameof(InternetTotalMax)); Raise(nameof(InternetTotalLast));
+        Raise(nameof(InternetTotalAvgColor)); Raise(nameof(InternetTotalMinColor));
+        Raise(nameof(InternetTotalMaxColor)); Raise(nameof(InternetTotalLastColor));
+    }
+
+    /// <summary>Current internet graph sample: average of the hosts' last pings.</summary>
+    public double? InternetGraphValue()
+    {
+        var vals = InternetHosts.Select(h => h.LastRaw).Where(v => v is not null)
+                                .Select(v => v!.Value).ToList();
+        return vals.Count > 0 ? vals.Average() : null;
     }
 
     /// <summary>Current graph sample: a device's last ping (by IP) or — with

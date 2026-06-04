@@ -4,9 +4,10 @@ namespace IpScanner.ViewModels;
 
 public sealed class NetworkInfoViewModel : ObservableObject
 {
-    public NetworkInfoViewModel(int index, NetworkInfo info, string badgeColor, bool primary = true)
+    public NetworkInfoViewModel(int index, NetworkInfo info, string badgeColor,
+                                bool primary = true, string name = "")
     {
-        Index = index; BadgeColor = badgeColor;
+        Index = index; BadgeColor = badgeColor; _name = name;
         Cidr       = info.Cidr       ?? "—";
         Ip         = info.Ip         ?? "—";
         Mac        = info.Mac        ?? "—";
@@ -25,9 +26,10 @@ public sealed class NetworkInfoViewModel : ObservableObject
         HasInterface = primary && !string.IsNullOrEmpty(info.Interface);
     }
 
+    private readonly string _name;
     public int    Index      { get; }
     public string BadgeColor { get; }
-    public string Title      => $"{Core.Localization.Loc.Network} {Index}";
+    public string Title      => _name.Length > 0 ? _name : $"{Core.Localization.Loc.Network} {Index}";
     public string Cidr       { get; }
     public string Ip         { get; }
     public string Mac        { get; }

@@ -296,40 +296,39 @@
                                             </StackPanel>
                                             <StackPanel>
                                                 <!-- Rows collapse when the value wasn't detected (extra subnets). -->
-                                                <Grid Height="20" Visibility="{Binding HasIp, Converter={StaticResource BoolToVis}}">
+                                                <Grid Height="18" Visibility="{Binding HasIp, Converter={StaticResource BoolToVis}}">
                                                     <TextBlock Text="{x:Static loc:Loc.OwnIp}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Ip}" Foreground="{StaticResource Text}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                                 </Grid>
-                                                <Grid Height="20" Visibility="{Binding HasGateway, Converter={StaticResource BoolToVis}}">
+                                                <Grid Height="18" Visibility="{Binding HasGateway, Converter={StaticResource BoolToVis}}">
                                                     <TextBlock Text="{x:Static loc:Loc.Gateway}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Gateway}" Foreground="{StaticResource Green}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
-                                                <Grid Height="20" Visibility="{Binding HasMask, Converter={StaticResource BoolToVis}}">
+                                                <Grid Height="18" Visibility="{Binding HasMask, Converter={StaticResource BoolToVis}}">
                                                     <TextBlock Text="{x:Static loc:Loc.Mask}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding SubnetMask}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
-                                                <Grid Visibility="{Binding HasDns, Converter={StaticResource BoolToVis}}" MinHeight="20">
+                                                <Grid Visibility="{Binding HasDns, Converter={StaticResource BoolToVis}}" MinHeight="18">
                                                     <TextBlock Text="{x:Static loc:Loc.Dns}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Dns}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right" TextWrapping="Wrap" MaxWidth="170"/>
                                                 </Grid>
-                                                <Grid Height="20" Visibility="{Binding HasMac, Converter={StaticResource BoolToVis}}">
+                                                <Grid Height="18" Visibility="{Binding HasMac, Converter={StaticResource BoolToVis}}">
                                                     <TextBlock Text="{x:Static loc:Loc.Mac}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Mac}" Foreground="{StaticResource MidGray}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
-                                                <Grid Height="20" Visibility="{Binding HasInterface, Converter={StaticResource BoolToVis}}">
+                                                <Grid Height="18" Visibility="{Binding HasInterface, Converter={StaticResource BoolToVis}}">
                                                     <TextBlock Text="{x:Static loc:Loc.Interface}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Interface}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
-                                                <Border Height="8"/>
-                                                <Grid Height="20">
+                                                <Grid Height="18">
                                                     <TextBlock Text="{x:Static loc:Loc.Online}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding OnlineCount}" Foreground="{StaticResource Green}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                                 </Grid>
-                                                <Grid Height="20">
+                                                <Grid Height="18">
                                                     <TextBlock Text="{x:Static loc:Loc.Offline}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding OfflineCount}" Foreground="{StaticResource Subtext}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
-                                                <Grid Height="20">
+                                                <Grid Height="18">
                                                     <TextBlock Text="{x:Static loc:Loc.AvgLatency}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding AvgLatency}" Foreground="{Binding AvgLatencyColor}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                                 </Grid>
@@ -374,6 +373,29 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+                                <!-- Totals: avg of averages/last pings, extreme min/max -->
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{x:Static loc:Loc.TotalLabel}" Foreground="{StaticResource Mauve}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding InternetTotalAvg}" Foreground="{Binding InternetTotalAvgColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding InternetTotalMin}" Foreground="{Binding InternetTotalMinColor}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding InternetTotalMax}" Foreground="{Binding InternetTotalMaxColor}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding InternetTotalLast}" Foreground="{Binding InternetTotalLastColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                                <!-- Small history graph of the overall internet average -->
+                                <Canvas x:Name="InetGraphCanvas" Height="38" Margin="0,7,0,0" ClipToBounds="True"
+                                        Background="{StaticResource Bg}" SizeChanged="OnGraphSizeChanged">
+                                    <Polyline x:Name="InetGraphLine" Stroke="{StaticResource Blue}" StrokeThickness="1.2"
+                                              StrokeLineJoin="Round"/>
+                                    <TextBlock x:Name="InetGraphMaxText" Canvas.Left="3" Canvas.Top="0" FontSize="8"
+                                               Foreground="{StaticResource MidGray}"/>
+                                    <TextBlock x:Name="InetGraphMinText" Canvas.Left="3" Canvas.Bottom="0" FontSize="8"
+                                               Foreground="{StaticResource MidGray}"/>
+                                </Canvas>
                             </StackPanel>
                         </Border>
 
@@ -469,27 +491,53 @@
                         <StackPanel>
                             <!-- Netzwerk -->
                             <TextBlock Text="{x:Static loc:Loc.TabNetwork}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,0,0,8"/>
+                            <!-- Subnets: target + name + color -> chip per entry -->
                             <TextBlock Text="{x:Static loc:Loc.Subnets}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipSubnets}"/>
-                            <Grid>
-                                <TextBox x:Name="SubnetsBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="120" FontSize="13"
-                                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipSubnets}"
-                                         TextChanged="OnSubnetsValidate"/>
-                                <TextBlock Text="{x:Static loc:Loc.ExampleSubnets}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetsBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                </TextBlock>
-                            </Grid>
+                            <DockPanel>
+                                <Button x:Name="SubnetAddBtn" DockPanel.Dock="Right" Content="+" FontSize="15" Padding="12,2" Margin="6,0,0,0"
+                                        Style="{StaticResource AccentButton}" Click="OnSubnetAdd" ToolTip="{x:Static loc:Loc.TipAddEntry}"/>
+                                <Border x:Name="SubnetColorBtn" DockPanel.Dock="Right" Width="28" Height="28" CornerRadius="6" Margin="6,0,0,0"
+                                        Background="{StaticResource Surface}" BorderBrush="{StaticResource Surface2}" BorderThickness="1"
+                                        Cursor="Hand" MouseLeftButtonDown="OnSubnetColorClick" ToolTip="{x:Static loc:Loc.TipChipColor}"/>
+                                <Grid DockPanel.Dock="Right" Width="150" Margin="6,0,0,0">
+                                    <TextBox x:Name="SubnetNameBox" FontSize="13" KeyDown="OnSubnetInputKey"/>
+                                    <TextBlock Text="{x:Static loc:Loc.NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                                <Grid>
+                                    <TextBox x:Name="SubnetNetBox" FontSize="13" KeyDown="OnSubnetInputKey"/>
+                                    <TextBlock Text="{x:Static loc:Loc.ExampleSubnets}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetNetBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </DockPanel>
                             <TextBlock x:Name="SubnetsError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
-                            <TextBlock Text="{x:Static loc:Loc.PinnedIps}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,14,0,4" ToolTip="{x:Static loc:Loc.TipPinnedIps}"/>
-                            <Grid>
-                                <TextBox x:Name="PinnedBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="34" MaxHeight="100" FontSize="13"
-                                         VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center" ToolTip="{x:Static loc:Loc.TipPinnedIps}"
-                                         TextChanged="OnPinnedValidate"/>
-                                <TextBlock Text="{x:Static loc:Loc.ExamplePinnedIps}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                </TextBlock>
-                            </Grid>
+                            <WrapPanel x:Name="SubnetChips" Margin="0,7,0,0"/>
 
+                            <!-- Pinned IPs: same pattern -->
+                            <TextBlock Text="{x:Static loc:Loc.PinnedIps}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,14,0,4" ToolTip="{x:Static loc:Loc.TipPinnedIps}"/>
+                            <DockPanel>
+                                <Button x:Name="PinnedAddBtn" DockPanel.Dock="Right" Content="+" FontSize="15" Padding="12,2" Margin="6,0,0,0"
+                                        Style="{StaticResource AccentButton}" Click="OnPinnedAdd" ToolTip="{x:Static loc:Loc.TipAddEntry}"/>
+                                <Border x:Name="PinnedColorBtn" DockPanel.Dock="Right" Width="28" Height="28" CornerRadius="6" Margin="6,0,0,0"
+                                        Background="{StaticResource Surface}" BorderBrush="{StaticResource Surface2}" BorderThickness="1"
+                                        Cursor="Hand" MouseLeftButtonDown="OnPinnedColorClick" ToolTip="{x:Static loc:Loc.TipChipColor}"/>
+                                <Grid DockPanel.Dock="Right" Width="150" Margin="6,0,0,0">
+                                    <TextBox x:Name="PinnedNameBox" FontSize="13" KeyDown="OnPinnedInputKey"/>
+                                    <TextBlock Text="{x:Static loc:Loc.NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                                <Grid>
+                                    <TextBox x:Name="PinnedIpBox" FontSize="13" KeyDown="OnPinnedInputKey"/>
+                                    <TextBlock Text="192.168.2.10" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </DockPanel>
                             <TextBlock x:Name="PinnedError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
+                            <WrapPanel x:Name="PinnedChips" Margin="0,7,0,0"/>
 
                             <!-- Ping -->
                             <TextBlock Text="{x:Static loc:Loc.TabPing}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
@@ -594,6 +642,8 @@
                             <!-- Konfigurationsdatei -->
                             <TextBlock Text="{x:Static loc:Loc.TabConfig}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <StackPanel Orientation="Horizontal">
+                                <Button x:Name="ConfLocationBtn" Content="{x:Static loc:Loc.ConfLocation}" Click="OnConfLocation"
+                                        Style="{StaticResource GhostButton}" Margin="0,0,10,0" ToolTip="{x:Static loc:Loc.TipConfLocation}"/>
                                 <Button Content="{x:Static loc:Loc.ExportConf}" Click="OnExportConf" Style="{StaticResource AccentButton}" ToolTip="{x:Static loc:Loc.TipExportConf}"/>
                                 <Button Content="{x:Static loc:Loc.ImportConf}" Click="OnImportConf" Style="{StaticResource GhostButton}" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipImportConf}"/>
                             </StackPanel>

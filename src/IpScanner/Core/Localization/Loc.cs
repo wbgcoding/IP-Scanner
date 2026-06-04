@@ -50,6 +50,15 @@ public static class Loc
     public static string TipEditCell => S(
         "Doppelklick zum Bearbeiten — Änderungen werden dauerhaft gespeichert.",
         "Double-click to edit — changes are stored permanently.");
+    public static string TotalLabel => S("Gesamt", "Total");
+    public static string NamePlaceholder => S("Name", "Name");
+    public static string TipChipColor => S("Farbe wählen", "Pick a color");
+    public static string TipRemoveChip => S("Klick entfernt den Eintrag", "Click removes the entry");
+    public static string TipAddEntry => S("Eintrag hinzufügen (auch mit Enter)", "Add entry (Enter works too)");
+    public static string ConfLocation => S("Speicherort …", "Location …");
+    public static string TipConfLocation => S(
+        "Ordner wählen, in dem die ip_scanner.conf gespeichert wird (leer = neben der Datenbank).",
+        "Choose the folder where ip_scanner.conf is stored (empty = next to the database).");
     public static string ExampleSubnets => "192.168.2.0/24";
     public static string ExamplePinnedIps => "192.168.2.10, 192.168.2.20";
     public static string ExampleInternetHosts => "8.8.8.8 Google, 1.1.1.1 Cloudflare";

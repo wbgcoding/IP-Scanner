@@ -20,6 +20,8 @@ public sealed class Device
     public string? AutoHostname { get; set; }
     public int AutoHostnameRank { get; set; } = int.MaxValue;
     public int AutoGroupId { get; set; }
+    /// <summary>Fixed group-square color from a subnet/pinned-IP entry (hex, or null).</summary>
+    public string? GroupColorOverride { get; set; }
     public bool FromDb { get; set; }
     public bool Seen { get; private set; }
     public int CurrentPings { get; private set; }

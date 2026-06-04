@@ -59,9 +59,13 @@ public sealed class ScanEngine
     {
         var ips = subnetPrefixes.SelectMany(Ipv4.HostsInSubnet).ToList();
         // Pinned IPs are always scanned, even outside the chosen subnet(s).
+        // Entries may carry "name color" metadata — only the target counts here.
         var seen = new HashSet<string>(ips);
         foreach (var pin in cfg.PinnedIps)
-            if (Ipv4.IsValid(pin) && seen.Add(pin)) ips.Add(pin);
+        {
+            var target = NetEntry.Parse(pin).Target;
+            if (Ipv4.IsValid(target) && seen.Add(target)) ips.Add(target);
+        }
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
         int analysisPerIp = infinite ? 0 : Math.Max(0, cfg.PingCount - 1);
 
