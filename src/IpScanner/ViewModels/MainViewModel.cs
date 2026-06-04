@@ -53,7 +53,9 @@ public sealed class MainViewModel : ObservableObject
     }
 
     public string? LastExportPath { get; private set; }
-    public bool HasExport => !string.IsNullOrEmpty(LastExportPath);
+    /// <summary>"name (size)" per written report file, one line each.</summary>
+    public string ExportInfo { get; private set; } = "";
+    public bool HasExport => ExportInfo.Length > 0;
     /// <summary>"Threads: 12" — live count of in-flight pings for the footer.</summary>
     public string ThreadsText { get; private set; } = "";
     /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
@@ -108,6 +110,8 @@ public sealed class MainViewModel : ObservableObject
         _gatewayIp = info.Gateway;
         _pinned = new HashSet<string>(Config.PinnedIps);
         LastExportPath = null;
+        ExportInfo = "";
+        Raise(nameof(ExportInfo));
         Raise(nameof(HasExport));
         var cfg = pingCountOverride is null ? Config : Config.CloneWith(pingCountOverride.Value);
         if (scanThreadsOverride is { } threads && pingCountOverride is not null)
@@ -170,12 +174,25 @@ public sealed class MainViewModel : ObservableObject
             var gwName = gwDev?.Hostname is { } h && h != Device.Unknown ? h : info.Gateway;
             var gatewaySlug = Slug(gwName);
 
-            if (cfg.FileOutput && devices.Count > 0)
+            // TXT and CSV export independently; the sidebar shows name + size.
+            var written = new List<string>();
+            if (devices.Count > 0)
             {
-                LastExportPath = TxtExporter.Write(devices, info, cfg.OutputDirectory, timestamp, gatewaySlug, displayTime);
+                if (cfg.FileOutput)
+                    written.Add(TxtExporter.Write(devices, info, cfg.OutputDirectory, timestamp, gatewaySlug, displayTime));
                 if (cfg.ExportCsv)
-                    CsvExporter.Write(devices, cfg.OutputDirectory, timestamp, gatewaySlug);
+                    written.Add(CsvExporter.Write(devices, cfg.OutputDirectory, timestamp, gatewaySlug));
+            }
+            if (written.Count > 0)
+            {
+                LastExportPath = written[0];
+                ExportInfo = string.Join(Environment.NewLine, written.Select(p =>
+                {
+                    var f = new System.IO.FileInfo(p);
+                    return $"{f.Name} ({Core.NumberFormat.Bytes(f.Length)})";
+                }));
                 Raise(nameof(LastExportPath));
+                Raise(nameof(ExportInfo));
                 Raise(nameof(HasExport));
             }
 

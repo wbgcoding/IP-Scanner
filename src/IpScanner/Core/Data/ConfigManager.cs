@@ -37,6 +37,10 @@ public static class ConfigManager
                 case "export_csv":                  cfg.ExportCsv = ParseBool(value); break;
                 case "scan_threads":                cfg.ScanThreads = ParseInt(value, 0, 1000, 100); break;
                 case "ui_scale":                    cfg.UiScalePercent = ParseInt(value, 50, 200, 100); break;
+                case "language":
+                    var lang = value.Trim().ToLowerInvariant();
+                    cfg.Language = lang is "de" or "en" ? lang : "auto";
+                    break;
                 case "pinned_ips":                  cfg.PinnedIps = ParseIpList(value); break;
                 case "color_online":                cfg.ColorOnline = ParseColor(value, cfg.ColorOnline); break;
                 case "color_offline":               cfg.ColorOffline = ParseColor(value, cfg.ColorOffline); break;
@@ -122,6 +126,8 @@ public static class ConfigManager
         sb.AppendLine($"scan_threads = {c.ScanThreads}");
         sb.AppendLine("# ui_scale  Textgroesse in Prozent (50-200). Standard 100.");
         sb.AppendLine($"ui_scale = {c.UiScalePercent}");
+        sb.AppendLine("# language  Sprache: auto, de, en. Standard auto.");
+        sb.AppendLine($"language = {c.Language}");
         sb.AppendLine();
 
         // Hex without '#' — the parser treats '#' as a comment marker.

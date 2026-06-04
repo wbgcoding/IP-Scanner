@@ -9,8 +9,18 @@ namespace IpScanner.Core.Localization;
 /// </summary>
 public static class Loc
 {
-    public static bool German { get; } =
+    public static bool German { get; private set; } = SystemIsGerman;
+
+    private static bool SystemIsGerman =>
         CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>"auto" | "de" | "en" — must run before any UI loads (x:Static caches).</summary>
+    public static void SetLanguage(string mode) => German = mode.ToLowerInvariant() switch
+    {
+        "de" => true,
+        "en" => false,
+        _ => SystemIsGerman,
+    };
 
     private static string S(string de, string en) => German ? de : en;
 
@@ -56,14 +66,14 @@ public static class Loc
     public static string Interface => S("Interface", "Interface");
     public static string AvgLatency => S("Ø Latenz", "Avg latency");
     public static string InternetLatency => S("INTERNET-LATENZ", "INTERNET LATENCY");
-    public static string LastExport => S("LETZTER EXPORT", "LAST EXPORT");
 
     public static string TotalRow => S("Ø Gesamt", "Ø Total");
 
     // ── Settings ──
     public static string Settings => S("Einstellungen", "Settings");
-    public static string Save => S("Speichern", "Save");
-    public static string Cancel => S("Abbrechen", "Cancel");
+    public static string Close => S("Schließen", "Close");
+    public static string Language => S("Sprache", "Language");
+    public static string LangAuto => S("Automatisch", "Automatic");
     public static string TabNetwork => S("Netzwerk", "Network");
     public static string TabPing => S("Ping", "Ping");
     public static string TabInternet => S("Internet", "Internet");
@@ -167,6 +177,9 @@ public static class Loc
     public static string TipInternetTimeout => S(
         "ICMP-Timeout für die Internet-Host-Pings in Millisekunden. Standard 1000.",
         "ICMP timeout for the internet host pings in milliseconds. Default 1000.");
+    public static string TipLanguage => S(
+        "Sprache der Oberfläche. Automatisch folgt der Systemsprache (Englisch als Fallback). Wechsel startet das Programm neu.",
+        "UI language. Automatic follows the system language (English fallback). Changing it restarts the app.");
     public static string TipDbFile => S(
         "Pfad der Known-Devices-Datenbank. Liegt standardmäßig im Scans-Ordner.",
         "Path of the known-devices database. Lives in the scans folder by default.");

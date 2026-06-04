@@ -17,12 +17,14 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        // Settings persist as ip_scanner.conf next to the database and are
+        // loaded again on every start. Language must be set before any XAML
+        // loads because x:Static bindings cache their values.
+        _config = LoadPersistedConfig();
+        Loc.SetLanguage(_config.Language);
+
         InitializeComponent();
         WindowTheme.ApplyDark(this);
-
-        // Settings persist as ip_scanner.conf next to the database and are
-        // loaded again on every start (export/import stays available too).
-        _config = LoadPersistedConfig();
         _vm = new MainViewModel(
             pingFunc: IcmpPinger.Ping,
             detectNetwork: NetworkDetector.DetectFast,
@@ -58,6 +60,8 @@ public partial class MainWindow : Window
         ApplyUiScale();          // persisted text-scale takes effect at startup
         ApplyBarColors();        // persisted bar colors
         ApplyDefaultPingCount(); // persisted default ping count into the dropdown
+        LanguageBox.ItemsSource = new[] { Loc.LangAuto, "Deutsch", "English" };
+        LoadSettings(_config);   // fills all fields incl. export toggles once
 
         // On startup, immediately run a discovery sweep of the local network so
         // the sidebar network info and online devices show up without a manual scan.
@@ -260,10 +264,16 @@ public partial class MainWindow : Window
 
     private void OnResetDefaults(object sender, RoutedEventArgs e)
     {
-        // Reset also removes the persisted config files.
+        // Reset removes the persisted config files and applies the defaults
+        // without writing a new file.
         foreach (var p in new[] { ConfPathFor(_config.DatabasePath), ConfPathFor(new ScanConfig().DatabasePath) })
             try { if (File.Exists(p)) File.Delete(p); } catch { /* best-effort */ }
-        LoadSettings(new ScanConfig());
+        _config = new ScanConfig();
+        _vm.Config = _config;
+        LoadSettings(_config);
+        ApplyUiScale();
+        ApplyBarColors();
+        ApplyDefaultPingCount();
     }
 
     /// <summary>Existing directory of a (possibly relative) path, or null.</summary>
@@ -313,20 +323,58 @@ public partial class MainWindow : Window
         catch { return new ScanConfig(); }
     }
 
-    private void OnSettingsSave(object sender, RoutedEventArgs e)
+    private bool _loadingSettings;
+
+    /// <summary>Instant save: every settings change applies and persists at once.</summary>
+    private void ApplyInstant()
     {
+        if (_loadingSettings) return;
         _config = ReadSettings();
         _vm.Config = _config;
-        ApplyUiScale();
         ApplyDefaultPingCount();
+        SyncExportToggles();
         PersistConfig();
-        SettingsOverlay.Visibility = Visibility.Collapsed;
     }
+
+    private void OnSettingChanged(object sender, RoutedEventArgs e) => ApplyInstant();
+
+    // Text scale only commits when the field loses focus — applying it on every
+    // keystroke would zoom wildly while typing.
+    private void OnUiScaleCommit(object sender, RoutedEventArgs e) => ApplyUiScale();
 
     /// <summary>Preset the ping dropdown from the configured default.</summary>
     private void ApplyDefaultPingCount()
         => PingCountBox.Text = _config.PingCount == ScanConfig.InfinitePingCount
             ? "∞" : _config.PingCount.ToString();
+
+    private void SyncExportToggles()
+    {
+        TxtToggle.IsChecked = _config.FileOutput;
+        CsvToggle.IsChecked = _config.ExportCsv;
+    }
+
+    // Sidebar TXT/CSV pills drive the settings checkboxes (single source of truth).
+    private void OnExportToggle(object sender, RoutedEventArgs e)
+    {
+        FileOutputBox.IsChecked = TxtToggle.IsChecked == true;
+        ExportCsvBox.IsChecked = CsvToggle.IsChecked == true;
+        ApplyInstant();
+    }
+
+    private static readonly string[] LanguageModes = { "auto", "de", "en" };
+
+    private void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingSettings || LanguageBox.SelectedIndex < 0) return;
+        var mode = LanguageModes[LanguageBox.SelectedIndex];
+        if (mode == _config.Language) return;
+        _config.Language = mode;
+        PersistConfig();
+        // x:Static strings are cached — restart so the new language shows everywhere.
+        if (Environment.ProcessPath is { } exe)
+            System.Diagnostics.Process.Start(exe);
+        Application.Current.Shutdown();
+    }
 
     private void OnExportConf(object sender, RoutedEventArgs e)
     {
@@ -346,12 +394,20 @@ public partial class MainWindow : Window
         var dlg = new Microsoft.Win32.OpenFileDialog { Filter = "Config (*.conf)|*.conf|*.*|*.*" };
         if (DirOf(_config.DatabasePath) is { } dir) dlg.InitialDirectory = dir;
         if (dlg.ShowDialog(this) != true) return;
-        try { LoadSettings(ConfigManager.Load(dlg.FileName)); }
+        try
+        {
+            LoadSettings(ConfigManager.Load(dlg.FileName));
+            ApplyInstant();   // imported values take effect + persist immediately
+            ApplyUiScale();
+        }
         catch (Exception ex) { MessageBox.Show(this, ex.Message, Loc.ScanError, MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
     private void LoadSettings(ScanConfig c)
     {
+        _loadingSettings = true;
+        try
+        {
         SubnetsBox.Text = string.Join(Environment.NewLine, c.Subnets);
         PinnedBox.Text = string.Join(Environment.NewLine, c.PinnedIps);
         ScanThreadsBox.Text = c.ScanThreads.ToString();
@@ -370,6 +426,11 @@ public partial class MainWindow : Window
         FileOutputBox.IsChecked = c.FileOutput;
         ExportCsvBox.IsChecked = c.ExportCsv;
         KnownDbBox.IsChecked = c.KnownDevicesDb;
+        LanguageBox.SelectedIndex = Math.Max(0, Array.IndexOf(LanguageModes, c.Language));
+        TxtToggle.IsChecked = c.FileOutput;
+        CsvToggle.IsChecked = c.ExportCsv;
+        }
+        finally { _loadingSettings = false; }
     }
 
     // Split on newlines, commas and semicolons so values can be comma-separated.
@@ -379,19 +440,19 @@ public partial class MainWindow : Window
 
     // ── Live syntax validation for the network/IP lists ──
     private void OnSubnetsValidate(object sender, TextChangedEventArgs e)
-        => ValidateList(SubnetsBox, SubnetsError, IsValidSubnetEntry);
+    { ValidateList(SubnetsBox, SubnetsError, IsValidSubnetEntry); ApplyInstant(); }
 
     private void OnPinnedValidate(object sender, TextChangedEventArgs e)
-        => ValidateList(PinnedBox, PinnedError, Core.Net.Ipv4.IsValid);
+    { ValidateList(PinnedBox, PinnedError, Core.Net.Ipv4.IsValid); ApplyInstant(); }
 
     private void OnHostsValidate(object sender, TextChangedEventArgs e)
-        => ValidateList(InternetHostsBox, InternetHostsError, IsValidHostEntry);
+    { ValidateList(InternetHostsBox, InternetHostsError, IsValidHostEntry); ApplyInstant(); }
 
     private void OnOutputDirValidate(object sender, TextChangedEventArgs e)
-        => ValidatePath(OutputDirBox, OutputDirError);
+    { ValidatePath(OutputDirBox, OutputDirError); ApplyInstant(); }
 
     private void OnDbPathValidate(object sender, TextChangedEventArgs e)
-        => ValidatePath(DbPathBox, DbPathError);
+    { ValidatePath(DbPathBox, DbPathError); ApplyInstant(); }
 
     /// <summary>"ip" or "ip name" — the first token must be a valid IPv4.</summary>
     private static bool IsValidHostEntry(string entry)
@@ -470,6 +531,7 @@ public partial class MainWindow : Window
             FileOutput = FileOutputBox.IsChecked == true,
             ExportCsv = ExportCsvBox.IsChecked == true,
             KnownDevicesDb = KnownDbBox.IsChecked == true,
+            Language = LanguageModes[Math.Max(0, LanguageBox.SelectedIndex)],
             // Colors have no settings UI — carry them over from the live config.
             ColorOnline = _config.ColorOnline, ColorOffline = _config.ColorOffline,
             ColorUnknown = _config.ColorUnknown, ColorSuccess = _config.ColorSuccess,

@@ -119,6 +119,38 @@
         </Setter>
     </Style>
 
+    <!-- Pill toggle (TXT/CSV export switches in the sidebar). -->
+    <Style x:Key="PillToggle" TargetType="ToggleButton">
+        <Setter Property="Foreground" Value="{StaticResource Subtext}"/>
+        <Setter Property="Background" Value="{StaticResource Surface}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Padding" Value="18,6"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="b" CornerRadius="7" Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <TextBlock Text="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                   FontSize="{TemplateBinding FontSize}" FontWeight="{TemplateBinding FontWeight}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter Property="Background" Value="{StaticResource Green}"/>
+                            <Setter Property="Foreground" Value="#0B0B12"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="b" Property="Opacity" Value="0.85"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ══ TextBox ══ -->
     <Style TargetType="TextBox">
         <Setter Property="Foreground" Value="{StaticResource Text}"/>

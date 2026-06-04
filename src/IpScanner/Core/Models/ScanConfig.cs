@@ -29,6 +29,8 @@ public sealed class ScanConfig
     public int ScanThreads { get; set; } = 100;
     /// <summary>UI/text scale in percent (100 = default).</summary>
     public int UiScalePercent { get; set; } = 100;
+    /// <summary>UI language: "auto" (system, EN fallback), "de" or "en".</summary>
+    public string Language { get; set; } = "auto";
 
     // Progress-bar colors (clickable legend squares; persisted, not shown in settings).
     public string ColorOnline { get; set; } = Palette.Green;
@@ -51,6 +53,7 @@ public sealed class ScanConfig
         InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb,
         DatabasePath = DatabasePath, OutputDirectory = OutputDirectory, FileOutput = FileOutput,
         ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
+        Language = Language,
         ColorOnline = ColorOnline, ColorOffline = ColorOffline, ColorUnknown = ColorUnknown,
         ColorSuccess = ColorSuccess, ColorFailed = ColorFailed, ColorSkipped = ColorSkipped,
     };
