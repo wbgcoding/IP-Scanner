@@ -7,6 +7,28 @@ namespace IpScanner.Core.Data;
 /// <summary>Reads ip_scanner.conf (flat key=value, # comments).</summary>
 public static class ConfigManager
 {
+    // All scalar keys that must be present in a fully-written conf file.
+    // If any are absent the file is from an older version and gets rewritten.
+    private static readonly HashSet<string> RequiredKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ping_count", "ping_interval_ms", "offline_after_failed_pings", "init_ping_count",
+        "startup_ping_count", "offline_recheck_seconds", "enable_internet_ping",
+        "internet_timeout_ms", "internet_hosts", "known_devices_db", "database_path",
+        "config_directory", "graphs_enabled", "graph_max_seconds", "output_directory",
+        "file_output", "export_csv", "scan_threads", "ui_scale", "language",
+        "color_online", "color_offline", "color_success", "color_failed", "color_skipped",
+    };
+
+    /// <summary>If the conf file is missing keys from the current version, rewrite it
+    /// with defaults filled in while keeping all existing values. No-op if up to date.</summary>
+    public static void MigrateIfNeeded(string path)
+    {
+        if (!File.Exists(path)) return;
+        var flat = ParseFlat(path);
+        if (RequiredKeys.All(flat.ContainsKey)) return;
+        Save(path, Load(path));
+    }
+
     private static int Clamp(int v, int lo, int hi) => Math.Max(lo, Math.Min(hi, v));
 
     public static ScanConfig Load(string path)

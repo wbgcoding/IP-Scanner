@@ -8,9 +8,19 @@ public sealed class KnownDevicesDb
 {
     private readonly string _connStr;
 
+    // Expected columns: (name, SQLite type, default for ALTER TABLE).
+    // Add new columns here when the schema evolves; migration runs automatically.
+    private static readonly (string Name, string Type, string Default)[] Schema =
+    {
+        ("network_mac", "TEXT NOT NULL", ""),   // primary key — always present
+        ("mac",         "TEXT NOT NULL", ""),   // primary key — always present
+        ("ip",          "TEXT",          "NULL"),
+        ("hostname",    "TEXT",          "NULL"),
+        ("last_seen",   "TEXT",          "NULL"),
+    };
+
     public KnownDevicesDb(string path)
     {
-        // Make sure the target folder exists (db lives in the scans folder by default).
         var dir = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(path));
         if (!string.IsNullOrEmpty(dir)) System.IO.Directory.CreateDirectory(dir);
         _connStr = $"Data Source={path}";
@@ -21,6 +31,27 @@ public sealed class KnownDevicesDb
               network_mac TEXT NOT NULL, mac TEXT NOT NULL, ip TEXT,
               hostname TEXT, last_seen TEXT, PRIMARY KEY (network_mac, mac))
             """).ExecuteNonQuery();
+        MigrateSchema(conn);
+    }
+
+    /// <summary>Adds any columns missing from the table (e.g. after a version update).
+    /// Primary-key columns are always created by CREATE TABLE and are never re-added.</summary>
+    private static void MigrateSchema(SqliteConnection conn)
+    {
+        var existing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        using var pragma = conn.CreateCommand("PRAGMA table_info(known_devices)");
+        using var r = pragma.ExecuteReader();
+        while (r.Read()) existing.Add(r.GetString(1));  // index 1 = column name
+
+        foreach (var (name, type, def) in Schema)
+        {
+            if (existing.Contains(name)) continue;
+            // NOT NULL columns require a DEFAULT for ALTER TABLE on existing data.
+            var defaultClause = def.Length > 0 ? $" DEFAULT {def}" : "";
+            conn.CreateCommand(
+                $"ALTER TABLE known_devices ADD COLUMN {name} {type}{defaultClause}")
+                .ExecuteNonQuery();
+        }
     }
 
     private SqliteConnection Open()

@@ -871,17 +871,23 @@ public partial class MainWindow : Window
         try
         {
             var def = ConfPathFor(new ScanConfig().DatabasePath);
+            ConfigManager.MigrateIfNeeded(def);
             var cfg = File.Exists(def) ? ConfigManager.Load(def) : new ScanConfig();
-            // The loaded config may point to a different db folder — its conf wins.
             var at = ConfPathFor(cfg.DatabasePath);
             if (!string.Equals(at, def, StringComparison.OrdinalIgnoreCase) && File.Exists(at))
+            {
+                ConfigManager.MigrateIfNeeded(at);
                 cfg = ConfigManager.Load(at);
-            // A configured config folder wins over both default locations.
+            }
             if (cfg.ConfigDirectory.Trim().Length > 0)
             {
                 var redirected = Path.Combine(Path.GetFullPath(cfg.ConfigDirectory.Trim()),
                                               ScanConfig.ConfigFileName);
-                if (File.Exists(redirected)) cfg = ConfigManager.Load(redirected);
+                if (File.Exists(redirected))
+                {
+                    ConfigManager.MigrateIfNeeded(redirected);
+                    cfg = ConfigManager.Load(redirected);
+                }
             }
             return cfg;
         }
