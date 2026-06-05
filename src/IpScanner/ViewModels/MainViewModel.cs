@@ -87,6 +87,32 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>Load manual hostname/group overrides (file lives next to the db).</summary>
     public void InitOverrides(string path) => _overrides.Load(path);
 
+    /// <summary>Rebuild pinned-IP name/color metadata from current Config and
+    /// re-apply to all already-visible devices. Call when PinnedIps settings change.</summary>
+    public void RefreshPinnedNames()
+    {
+        _pinnedMeta = Config.PinnedIps.Select(NetEntry.Parse)
+            .Where(e => e.Target.Length > 0)
+            .GroupBy(e => e.Target).ToDictionary(g => g.Key, g => g.First());
+        _pinned = new HashSet<string>(_pinnedMeta.Keys);
+
+        lock (_byIpLock)
+        {
+            foreach (var vm in Devices)
+            {
+                var d = vm.Model;
+                // Reset to auto-name only when no manual override exists.
+                if (d.HostnameRank == -1 && _overrides.Get(StableMac(d), d.Ip)?.Hostname is null)
+                {
+                    d.Hostname = d.AutoHostname;
+                    d.HostnameRank = d.AutoHostnameRank;
+                }
+                ApplyPinnedName(d);
+                vm.Refresh();
+            }
+        }
+    }
+
     private static string? StableMac(Device d) =>
         d.Mac is { } m && m != Device.Unknown ? m : null;
 

@@ -369,8 +369,6 @@
                                         <TextBlock x:Name="InetGraphMinText" Canvas.Left="3" Canvas.Bottom="0" FontSize="8"
                                                    Foreground="{StaticResource MidGray}"/>
                                     </Canvas>
-                                    <TextBlock x:Name="InetGraphTimeText" FontSize="9" Foreground="{StaticResource MidGray}"
-                                               HorizontalAlignment="Center" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -419,8 +417,6 @@
                                     <TextBlock x:Name="GraphMinText" Canvas.Left="4" Canvas.Bottom="0" FontSize="9"
                                                Foreground="{StaticResource MidGray}"/>
                                 </Canvas>
-                                <TextBlock x:Name="GraphTimeText" FontSize="9" Foreground="{StaticResource MidGray}"
-                                           HorizontalAlignment="Center" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

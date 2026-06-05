@@ -584,36 +584,28 @@ public partial class MainWindow : Window
 
     private void RenderGraph()
     {
-        RenderSeries(_graphSamples, GraphCanvas, GraphLine, GraphMaxText, GraphMinText, GraphTimeText);
+        RenderSeries(_graphSamples, GraphCanvas, GraphLine, GraphMaxText, GraphMinText);
         var last = _graphSamples.Count > 0 ? _graphSamples[^1] : null;
         GraphValueText.Text = Core.NumberFormat.Ms(last);
         GraphValueText.Foreground = BrushFor(Core.Palette.Heat(last));
     }
 
     private void RenderInternetGraph()
-        => RenderSeries(_inetSamples, InetGraphCanvas, InetGraphLine,
-                        InetGraphMaxText, InetGraphMinText, InetGraphTimeText);
+        => RenderSeries(_inetSamples, InetGraphCanvas, InetGraphLine, InetGraphMaxText, InetGraphMinText);
 
-    /// <summary>Covered time span: "45 s" / "2,5 min".</summary>
-    private static string SpanText(int seconds) => seconds < 120
-        ? $"{seconds} s"
-        : (seconds / 60.0).ToString("0.#", System.Globalization.CultureInfo.CurrentCulture) + " min";
-
-    /// <summary>Plot a sample series: line stretches over the full width, newest
-    /// right, gaps for nulls; the plot floor stays above the min label.</summary>
     private void RenderSeries(List<double?> samples, System.Windows.Controls.Canvas canvas,
                               System.Windows.Shapes.Polyline line,
-                              TextBlock maxText, TextBlock minText, TextBlock timeText)
+                              TextBlock maxText, TextBlock minText)
     {
-        const double padTop = 4, padBottom = 13;   // floor above the min label
+        const double padTop = 4, padBottom = 14;
         double w = canvas.ActualWidth, h = canvas.ActualHeight;
         var points = new System.Windows.Media.PointCollection();
         var present = samples.Where(v => v is not null).Select(v => v!.Value).ToList();
+        double stepX = samples.Count > 1 ? w / (samples.Count - 1) : 0;
         if (w > 0 && h > 0 && present.Count > 1)
         {
             double min = present.Min(), max = present.Max();
-            if (max - min < 0.5) { max += 0.5; min = Math.Max(0, min - 0.5); }   // flat-line guard
-            double stepX = w / (samples.Count - 1);
+            if (max - min < 0.5) { max += 0.5; min = Math.Max(0, min - 0.5); }
             for (int i = 0; i < samples.Count; i++)
             {
                 if (samples[i] is not { } v) continue;
@@ -629,8 +621,52 @@ public partial class MainWindow : Window
             minText.Text = "";
         }
         line.Points = points;
-        timeText.Text = samples.Count > 1 ? Loc.TimeWindow(SpanText(samples.Count)) : "";
+        RenderTicks(canvas, w, h, samples.Count, stepX);
     }
+
+    private void RenderTicks(System.Windows.Controls.Canvas canvas, double w, double h,
+                             int sampleCount, double stepX)
+    {
+        for (int i = canvas.Children.Count - 1; i >= 0; i--)
+            if (canvas.Children[i] is FrameworkElement fe && "tick".Equals(fe.Tag))
+                canvas.Children.RemoveAt(i);
+
+        if (sampleCount < 2 || w <= 0) return;
+
+        int interval = TickIntervalSeconds();
+        var brush = BrushFor(Core.Palette.MidGray);
+        const double labelW = 28, labelHalfW = 14;
+
+        for (int secs = interval; secs <= _config.GraphMaxSeconds; secs += interval)
+        {
+            if (secs >= sampleCount) break;
+            double x = (sampleCount - 1 - secs) * stepX;
+            if (x < labelHalfW) continue;   // too close to left edge (min label)
+
+            var lbl = new TextBlock
+            {
+                Text = TickLabel(secs),
+                FontSize = 8,
+                Foreground = brush,
+                Width = labelW,
+                TextAlignment = TextAlignment.Center,
+                Tag = "tick",
+            };
+            System.Windows.Controls.Canvas.SetLeft(lbl, x - labelHalfW);
+            System.Windows.Controls.Canvas.SetBottom(lbl, 0);
+            canvas.Children.Add(lbl);
+        }
+    }
+
+    private static string TickLabel(int secs) => secs < 60 ? $"{secs}s" : $"{secs / 60}m";
+
+    private int TickIntervalSeconds() => _config.GraphMaxSeconds switch
+    {
+        <= 30  => 5,
+        <= 60  => 10,
+        <= 120 => 30,
+        _      => 60,
+    };
 
     private string GetBarColor(string key) => key switch
     {
@@ -860,6 +896,7 @@ public partial class MainWindow : Window
         if (_loadingSettings) return;
         _config = ReadSettings();
         _vm.Config = _config;
+        _vm.RefreshPinnedNames();
         ApplyDefaultPingCount();
         SyncExportToggles();
         ApplyGraphSettings();
