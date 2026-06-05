@@ -910,9 +910,17 @@ public partial class MainWindow : Window
     private void OnUiScaleCommit(object sender, RoutedEventArgs e) => ApplyUiScale();
 
     /// <summary>Preset the ping dropdown from the configured default.</summary>
+    // Sentinel so the header ping dropdown is only synced when the configured
+    // default actually changes — not on unrelated settings like export toggles.
+    private int _lastSyncedDefaultPingCount = int.MinValue;
+
     private void ApplyDefaultPingCount()
-        => PingCountBox.Text = _config.PingCount == ScanConfig.InfinitePingCount
+    {
+        if (_config.PingCount == _lastSyncedDefaultPingCount) return;
+        _lastSyncedDefaultPingCount = _config.PingCount;
+        PingCountBox.Text = _config.PingCount == ScanConfig.InfinitePingCount
             ? "∞" : _config.PingCount.ToString();
+    }
 
     private void SyncExportToggles()
     {
