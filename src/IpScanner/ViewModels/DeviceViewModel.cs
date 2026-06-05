@@ -12,7 +12,7 @@ public sealed class DeviceViewModel : ObservableObject
     {
         _device = device;
         IsSelf = isSelf;
-        IsPinned = isPinned;
+        _isPinned = isPinned;
         IpSortKey = Core.Net.Ipv4.SortKey(device.Ip);
     }
 
@@ -22,9 +22,14 @@ public sealed class DeviceViewModel : ObservableObject
     /// <summary>True for this machine's own row.</summary>
     public bool IsSelf { get; }
     /// <summary>True for a pinned IP (kept at the top of the list).</summary>
-    public bool IsPinned { get; }
-    public string IpDisplay => (IsPinned ? "📌 " : "") + _device.Ip + (IsSelf ? "  ★" : "");
-    public string IpColor => IsSelf ? Core.Palette.Mauve : IsPinned ? Core.Palette.Peach : Core.Palette.Text;
+    private bool _isPinned;
+    public bool IsPinned
+    {
+        get => _isPinned;
+        set { _isPinned = value; Raise(nameof(IsPinned)); Raise(nameof(IpColor)); }
+    }
+    public string IpText => _device.Ip + (IsSelf ? "  ★" : "");
+    public string IpColor => IsSelf ? Core.Palette.Mauve : _isPinned ? Core.Palette.Peach : Core.Palette.Text;
 
     /// <summary>Numeric IPv4 for sorting (0 when unparseable).</summary>
     public long IpSortKey { get; }

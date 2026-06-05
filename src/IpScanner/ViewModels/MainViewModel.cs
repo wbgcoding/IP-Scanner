@@ -89,6 +89,8 @@ public sealed class MainViewModel : ObservableObject
 
     /// <summary>Rebuild pinned-IP name/color metadata from current Config and
     /// re-apply to all already-visible devices. Call when PinnedIps settings change.</summary>
+    /// <summary>Rebuild pinned metadata and re-apply to all visible devices.
+    /// Handles pin/unpin state, hostnames, and colors. Call after PinnedIps change.</summary>
     public void RefreshPinnedNames()
     {
         _pinnedMeta = Config.PinnedIps.Select(NetEntry.Parse)
@@ -98,16 +100,25 @@ public sealed class MainViewModel : ObservableObject
 
         lock (_byIpLock)
         {
-            foreach (var vm in Devices)
+            foreach (var vm in Devices.ToList())
             {
                 var d = vm.Model;
-                // Reset to auto-name only when no manual override exists.
+                bool nowPinned = _pinned.Contains(d.Ip);
+                if (vm.IsPinned != nowPinned)
+                {
+                    vm.IsPinned = nowPinned;
+                    Devices.Remove(vm);
+                    InsertSorted(vm);
+                }
                 if (d.HostnameRank == -1 && _overrides.Get(StableMac(d), d.Ip)?.Hostname is null)
                 {
                     d.Hostname = d.AutoHostname;
                     d.HostnameRank = d.AutoHostnameRank;
                 }
+                if (_overrides.Get(StableMac(d), d.Ip)?.Color is null)
+                    d.GroupColorOverride = null;
                 ApplyPinnedName(d);
+                ApplyColorOverride(d);
                 vm.Refresh();
             }
         }
@@ -411,10 +422,16 @@ public sealed class MainViewModel : ObservableObject
     /// manual double-click override (applied afterwards) still wins.</summary>
     private void ApplyPinnedName(Device d)
     {
-        if (!_pinnedMeta.TryGetValue(d.Ip, out var e) || e.Name.Length == 0) return;
-        if (d.HostnameRank != -1) { d.AutoHostname = d.Hostname; d.AutoHostnameRank = d.HostnameRank; }
-        d.Hostname = e.Name;
-        d.HostnameRank = -1;
+        if (!_pinnedMeta.TryGetValue(d.Ip, out var e)) return;
+        if (e.Name.Length > 0)
+        {
+            if (d.HostnameRank != -1) { d.AutoHostname = d.Hostname; d.AutoHostnameRank = d.HostnameRank; }
+            d.Hostname = e.Name;
+            d.HostnameRank = -1;
+        }
+        // Pinned color as group color baseline; manual override (ApplyColorOverride) wins.
+        if (e.Color.Length > 0 && d.GroupColorOverride is null)
+            d.GroupColorOverride = e.Color;
     }
 
     private void OnDeviceUpdated(Device d)

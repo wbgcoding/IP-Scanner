@@ -345,6 +345,32 @@ public partial class MainWindow : Window
             Rebuild();
         }
 
+        public void AddEntry(NetEntry entry)
+        {
+            Entries.RemoveAll(e => e.Target == entry.Target);
+            Entries.Add(entry);
+            Rebuild();
+        }
+
+        public void RemoveEntry(string target)
+        {
+            Entries.RemoveAll(e => e.Target == target);
+            Reset();
+            Rebuild();
+        }
+
+        public void UpdateEntry(string target, string? name, string? color)
+        {
+            int idx = Entries.FindIndex(e => e.Target == target);
+            if (idx < 0) return;
+            var old = Entries[idx];
+            Entries[idx] = new NetEntry(
+                target,
+                name is null ? old.Name : name,
+                color is null ? old.Color : color == "" ? "" : color);
+            Rebuild();
+        }
+
         public void PickColor()
         {
             if (_colorBtn is null) return;
@@ -470,8 +496,36 @@ public partial class MainWindow : Window
     {
         if (e.ClickCount != 2 || RowVm(sender) is not { } vm) return;
         OpenColorPicker((UIElement)sender, vm.GroupColor,
-                        hex => _vm.SetColorOverride(vm, hex),
-                        () => _vm.SetColorOverride(vm, null));
+            hex =>
+            {
+                _vm.SetColorOverride(vm, hex);
+                if (vm.IsPinned) { _pinnedChips.UpdateEntry(vm.Ip, null, hex); ApplyInstant(); }
+            },
+            () =>
+            {
+                _vm.SetColorOverride(vm, null);
+                if (vm.IsPinned) { _pinnedChips.UpdateEntry(vm.Ip, null, ""); ApplyInstant(); }
+            });
+        e.Handled = true;
+    }
+
+    // ── Pin / unpin via the IP column ──
+    private void OnPinIconClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (RowVm(sender) is not { IsPinned: true } vm) return;
+        if (MessageBox.Show(this, $"{Loc.ConfirmUnpin}\n{vm.Ip}",
+            Loc.Confirm, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+        _pinnedChips.RemoveEntry(vm.Ip);
+        ApplyInstant();
+        e.Handled = true;
+    }
+
+    private void OnIpTextClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (RowVm(sender) is not { IsPinned: false } vm) return;
+        _pinnedChips.AddEntry(new NetEntry(vm.Ip, "", ""));
+        ApplyInstant();
         e.Handled = true;
     }
 
@@ -485,14 +539,30 @@ public partial class MainWindow : Window
 
     private void CommitCellEdit()
     {
-        if (_cellEditVm is { } vm) _vm.SetHostnameOverride(vm, CellEditBox.Text);
+        if (_cellEditVm is { } vm)
+        {
+            _vm.SetHostnameOverride(vm, CellEditBox.Text);
+            if (vm.IsPinned)
+            {
+                _pinnedChips.UpdateEntry(vm.Ip, CellEditBox.Text.Trim(), null);
+                ApplyInstant();
+            }
+        }
         CellEditPopup.IsOpen = false;
     }
 
     /// <summary>✕ in the popup: drop the manual value, back to the automatic one.</summary>
     private void OnCellEditReset(object sender, RoutedEventArgs e)
     {
-        if (_cellEditVm is { } vm) _vm.SetHostnameOverride(vm, null);
+        if (_cellEditVm is { } vm)
+        {
+            _vm.SetHostnameOverride(vm, null);
+            if (vm.IsPinned)
+            {
+                _pinnedChips.UpdateEntry(vm.Ip, "", null);
+                ApplyInstant();
+            }
+        }
         CellEditPopup.IsOpen = false;
     }
 
@@ -711,15 +781,27 @@ public partial class MainWindow : Window
         catch { /* persisting is best-effort */ }
     }
 
-    private void OnConfLocation(object sender, RoutedEventArgs e)
+    private void OnBrowseConfDir(object sender, RoutedEventArgs e)
     {
-        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.ConfLocation };
-        if (DirOf(_config.ConfigDirectory.Length > 0 ? _config.ConfigDirectory : _config.DatabasePath) is { } dir)
+        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.ConfDirLabel };
+        if (DirOf(ConfDirBox.Text.Length > 0 ? ConfDirBox.Text : _config.DatabasePath) is { } dir)
             dlg.InitialDirectory = dir;
-        if (dlg.ShowDialog(this) != true) return;
-        _config.ConfigDirectory = dlg.FolderName;
-        PersistConfig();
-        ConfLocationBtn.ToolTip = $"{Loc.TipConfLocation}\n{ActiveConfPath()}";
+        if (dlg.ShowDialog(this) == true) ConfDirBox.Text = dlg.FolderName;
+    }
+
+    private void OnConfDirChanged(object sender, TextChangedEventArgs e)
+    {
+        var path = ConfDirBox.Text.Trim();
+        if (path.Length > 0 && !IsValidPathText(path))
+        {
+            ConfDirBox.BorderBrush = (System.Windows.Media.Brush)FindResource("Red");
+            ConfDirError.Text = Loc.InvalidPath;
+            ConfDirError.Visibility = Visibility.Visible;
+            return;
+        }
+        ConfDirBox.ClearValue(System.Windows.Controls.Control.BorderBrushProperty);
+        ConfDirError.Visibility = Visibility.Collapsed;
+        ApplyInstant();
     }
 
     private void ApplyUiScale()
@@ -1006,6 +1088,7 @@ public partial class MainWindow : Window
         _hostChips.Load(c.InternetHosts);
         OutputDirBox.Text = c.OutputDirectory;
         DbPathBox.Text = c.DatabasePath;
+        ConfDirBox.Text = c.ConfigDirectory;
         FileOutputBox.IsChecked = c.FileOutput;
         ExportCsvBox.IsChecked = c.ExportCsv;
         KnownDbBox.IsChecked = c.KnownDevicesDb;
@@ -1064,7 +1147,7 @@ public partial class MainWindow : Window
         {
             Subnets = _subnetChips.Entries.Select(en => en.ToString()).ToList(),
             PinnedIps = _pinnedChips.Entries.Select(en => en.ToString()).ToList(),
-            ConfigDirectory = _config.ConfigDirectory,
+            ConfigDirectory = ConfDirBox.Text.Trim(),
             GraphsEnabled = GraphsEnabledBox.IsChecked == true,
             GraphMaxSeconds = Math.Clamp(I(GraphMaxBox.Text, 300), 10, 300),
             PingCount = defaultPings is ScanConfig.InfinitePingCount or > 0 ? defaultPings : 10,

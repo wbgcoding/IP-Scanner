@@ -146,7 +146,28 @@
                     <DataGridTemplateColumn Header="{x:Static loc:Loc.IpAddress}" Width="Auto" MinWidth="132">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding IpDisplay}" Foreground="{Binding IpColor}" FontWeight="SemiBold"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- Pin icon: click to unpin (with confirmation) -->
+                                    <TextBlock Text="📌 " Foreground="{Binding IpColor}" FontWeight="SemiBold"
+                                               Cursor="Hand" ToolTip="{x:Static loc:Loc.TipUnpinIp}"
+                                               MouseLeftButtonDown="OnPinIconClick">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers><DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                    <!-- IP text: click to pin (if not already pinned) -->
+                                    <TextBlock Text="{Binding IpText}" Foreground="{Binding IpColor}"
+                                               FontWeight="SemiBold" Cursor="Hand"
+                                               ToolTip="{x:Static loc:Loc.TipPinIp}"
+                                               MouseLeftButtonDown="OnIpTextClick">
+                                        <TextBlock.Style><Style TargetType="TextBlock">
+                                            <Style.Triggers><DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                                <Setter Property="ToolTip" Value=""/>
+                                                <Setter Property="Cursor" Value="Arrow"/>
+                                            </DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -666,9 +687,13 @@
 
                             <!-- Konfigurationsdatei -->
                             <TextBlock Text="{x:Static loc:Loc.TabConfig}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
-                            <StackPanel Orientation="Horizontal">
-                                <Button x:Name="ConfLocationBtn" Content="{x:Static loc:Loc.ConfLocation}" Click="OnConfLocation"
-                                        Style="{StaticResource GhostButton}" Margin="0,0,10,0" ToolTip="{x:Static loc:Loc.TipConfLocation}"/>
+                            <TextBlock Text="{x:Static loc:Loc.ConfDirLabel}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipConfDir}"/>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowseConfDir" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
+                                <TextBox x:Name="ConfDirBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipConfDir}" TextChanged="OnConfDirChanged"/>
+                            </DockPanel>
+                            <TextBlock x:Name="ConfDirError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,8"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                                 <Button Content="{x:Static loc:Loc.ExportConf}" Click="OnExportConf" Style="{StaticResource AccentButton}" ToolTip="{x:Static loc:Loc.TipExportConf}"/>
                                 <Button Content="{x:Static loc:Loc.ImportConf}" Click="OnImportConf" Style="{StaticResource GhostButton}" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipImportConf}"/>
                             </StackPanel>
