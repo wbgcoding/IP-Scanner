@@ -979,9 +979,13 @@ public partial class MainWindow : Window
     private void ApplyInstant()
     {
         if (_loadingSettings) return;
+        var prev = _config.PinnedIps;
         _config = ReadSettings();
         _vm.Config = _config;
-        _vm.RefreshPinnedNames();
+        // Avoid ObservableCollection mutations (which cause a layout pass that
+        // resets the TextBox caret) unless PinnedIps actually changed.
+        if (!_config.PinnedIps.SequenceEqual(prev))
+            _vm.RefreshPinnedNames();
         ApplyDefaultPingCount();
         SyncExportToggles();
         ApplyGraphSettings();
