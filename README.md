@@ -19,8 +19,11 @@ self-contained exe.
   DNS, mDNS, NetBIOS); the first result shows immediately, better ones replace it
 - Latency table with min/avg/max/last, heatmap colors, best/worst markers and
   a totals row; edit hostnames and group colors right in the table
-- Latency history graphs for any device or the network average, plus an
-  internet latency panel with its own totals and graph
+- Up to ten latency history graphs (any device or the network average),
+  per-network mini graphs, plus an internet latency panel with its own
+  totals and graph — all with time markers and a configurable window
+- Smooth under load: the logo animation has its own render thread and the
+  graph math runs on a worker thread
 - Pin IPs from the table or the settings — pinned entries carry an optional
   name and color that show up everywhere
 - Subnets, pinned IPs and internet hosts managed as colored bubbles in the

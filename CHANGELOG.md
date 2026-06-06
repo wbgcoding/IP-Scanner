@@ -2,6 +2,36 @@
 
 All notable changes, written for people who just use the app.
 
+## 2.6 — 2026-06-06
+
+Graphs everywhere and a silky-smooth UI.
+
+### Added
+- Up to ten latency graphs: the + button under the history graph adds
+  another one with its own device selector, X removes it. Pinned devices
+  sort to the top of the selector.
+- Every network in the sidebar gets its own small average-latency graph
+  (can be turned off in the new Graphs settings).
+- Time markers under all graphs (1m, 2m, ... — finer steps for short
+  windows).
+
+### Changed
+- The logo animation runs on its own render thread and the graph math on
+  a worker thread — nothing stutters anymore, even under heavy scan load.
+- Paths inside the program folder are shown and stored Windows-style
+  (.\scanner.db); database and configuration now default to the folder
+  next to the exe. Existing installs keep their locations.
+- The configuration-file setting shows the full file path and uses a
+  file picker.
+- Badge and bubble texts switch to white automatically on dark colors.
+- Resetting the settings now needs a second click on a red confirm
+  button ("Alle Einstellungen löschen?").
+
+### Fixed
+- Graph lines no longer cut through the min/max labels.
+- The pin icon reliably turns red on hover; unpinning is a single click,
+  pinning a double-click on the IP.
+
 ## 2.5 — 2026-06-06
 
 Big usability release.

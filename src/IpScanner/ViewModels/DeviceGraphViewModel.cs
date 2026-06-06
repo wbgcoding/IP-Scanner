@@ -20,6 +20,8 @@ public sealed class DeviceGraphViewModel : ObservableObject
 {
     public const double Width = 272, Height = 64;
 
+    // The UI thread clears on source change while the worker appends samples.
+    private readonly object _samplesLock = new();
     private readonly List<double?> _samples = new();
 
     private GraphSource? _source;
@@ -30,7 +32,7 @@ public sealed class DeviceGraphViewModel : ObservableObject
         {
             if (ReferenceEquals(_source, value)) return;
             _source = value;
-            _samples.Clear();   // fresh line for the new source
+            lock (_samplesLock) _samples.Clear();   // fresh line for the new source
             Raise(nameof(SelectedSource));
         }
     }
@@ -44,9 +46,13 @@ public sealed class DeviceGraphViewModel : ObservableObject
 
     public void AddSample(double? value, int capacity, int tickIntervalSeconds)
     {
-        _samples.Add(value);
-        while (_samples.Count > capacity) _samples.RemoveAt(0);
-        var r = GraphSeries.Compute(_samples, Width, Height, tickIntervalSeconds);
+        GraphSeries.Result r;
+        lock (_samplesLock)
+        {
+            _samples.Add(value);
+            while (_samples.Count > capacity) _samples.RemoveAt(0);
+            r = GraphSeries.Compute(_samples, Width, Height, tickIntervalSeconds);
+        }
         GraphPoints = r.Points;
         GraphMaxText = r.MaxText;
         GraphMinText = r.MinText;
