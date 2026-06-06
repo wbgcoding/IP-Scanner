@@ -39,11 +39,14 @@ public static class TxtExporter
                                  .OrderBy(d => Net.Ipv4.SortKey(d.Ip)))
         {
             var target = d.TargetPings == ScanConfig.InfinitePingCount ? "∞" : d.TargetPings.ToString();
+            var host = d.Hostname is null or Device.Unknown ? "-" : d.Hostname;
+            var mac = d.Mac is null or Device.Unknown ? "-" : d.Mac;
             sb.AppendLine(
                 $"{d.Ip,-16}{(d.IsOnline ? "ONLINE" : "OFFLINE"),-9}" +
-                $"{(d.Hostname ?? "-"),-24}{CsvExporter.ExportGroup(d.GroupId),-7}" +
-                $"{Ms(d.AvgMs),-10}{Ms(d.MinMs),-10}{Ms(d.MaxMs),-10}{Ms(d.LastMs),-10}" +
-                $"{$"{d.CurrentPings}/{target}",-12}{d.Mac ?? "-",-18}");
+                $"{host,-24}{CsvExporter.ExportGroup(d.GroupId),-7}" +
+                $"{Ms(d.AvgMs),-10}{Ms(d.MinMs),-10}{Ms(d.MaxMs),-10}" +
+                $"{(d.LastFailed ? "-" : Ms(d.LastMs)),-10}" +
+                $"{$"{d.CurrentPings}/{target}",-12}{mac,-18}");
         }
         File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
         return path;

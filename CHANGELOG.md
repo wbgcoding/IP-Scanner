@@ -2,6 +2,47 @@
 
 All notable changes, written for people who just use the app.
 
+## 2.5 — 2026-06-06
+
+Big usability release.
+
+### Added
+- Language switches instantly — no more restart when changing it in the
+  settings.
+- Known devices appear the moment a scan starts, with their stored hostname
+  and MAC. Live results replace the stored values as the scan progresses.
+- Devices that just went offline are pinged five more times within seconds,
+  so short dropouts recover almost immediately.
+- Pin and unpin straight from the table: double-click an IP to pin it, hover
+  the pin icon (turns into a red X) and click to unpin. Changes sync with
+  the settings.
+- Subnets, pinned IPs and internet hosts are managed as colored bubbles:
+  add with target + name + color, double-click a bubble to edit it.
+- The pinned-IP color shows as the group color in the table; double-clicking
+  a group square opens a color picker with the current color preselected.
+- Hostnames are edited in a popup that spans the column; the X restores the
+  automatic name.
+- Latency history graphs (sidebar bottom + internet panel) with a device
+  selector, time markers and a configurable time window — new "Graphs"
+  settings section.
+- Internet latency panel gained a totals row and a small history graph.
+- Old configuration and database files from previous versions are upgraded
+  automatically at startup.
+- A folder button next to the export toggles opens the scans folder.
+- Choose where the configuration file lives (settings, like the database
+  path).
+
+### Changed
+- Offline recheck default is now 5 seconds, startup scan pings 10.
+- The app file is around 8 MB smaller.
+- Errors are written to error.log next to the app for easier reporting.
+
+### Fixed
+- Opening the settings during a scan could show a "Scan-Fehler" dialog.
+- Typing in path fields no longer creates folders on every keystroke or
+  makes the cursor jump.
+- Toggling TXT/CSV export no longer resets the selected ping count.
+
 ## 2.4 — 2026-06-04
 
 Stability and cleanup release.

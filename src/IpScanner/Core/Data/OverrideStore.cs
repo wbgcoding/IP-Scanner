@@ -69,7 +69,8 @@ public sealed class OverrideStore
             Directory.CreateDirectory(Path.GetDirectoryName(_path) ?? ".");
             // "N/A" = no manual color set (reads back as null).
             File.WriteAllLines(_path, _entries.Select(kv =>
-                $"{kv.Key}\t{kv.Value.Hostname ?? ""}\t{kv.Value.Color ?? "N/A"}"));
+                $"{kv.Key}\t{kv.Value.Hostname ?? ""}\t{kv.Value.Color ?? "N/A"}"),
+                System.Text.Encoding.UTF8);
         }
         catch { /* best-effort */ }
     }
