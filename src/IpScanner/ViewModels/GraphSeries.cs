@@ -10,7 +10,7 @@ public static class GraphSeries
     public sealed record Tick(string Label, double X);
     public sealed record Result(PointCollection Points, string MaxText, string MinText, List<Tick> Ticks);
 
-    public const double PadTop = 4, PadBottom = 14;
+    public const double PadTop = 13, PadBottom = 14;   // line stays clear of both labels
     private const double TickLabelHalfWidth = 14;
 
     public static Result Compute(IReadOnlyList<double?> samples, double width, double height,
