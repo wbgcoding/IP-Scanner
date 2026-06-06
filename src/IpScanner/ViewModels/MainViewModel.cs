@@ -265,6 +265,22 @@ public sealed class MainViewModel : ObservableObject
             _dispatch(() => UpdateProgress(engine));
         };
 
+        // Known devices show up immediately with their stored hostname/MAC;
+        // live results replace those values as the run progresses.
+        if (cfg.KnownDevicesDb && info.Gateway is { } gatewayIp)
+        {
+            try
+            {
+                await Task.Run(() =>
+                {
+                    var db = new KnownDevicesDb(cfg.DatabasePath);
+                    if (db.GetNetworkMac(gatewayIp) is { } netMac)
+                        engine.Preload(db.Load(netMac), cfg);
+                });
+            }
+            catch { /* DB optional */ }
+        }
+
         try
         {
             await engine.ScanAsync(prefixes, cfg, _cts!.Token);
@@ -440,7 +456,7 @@ public sealed class MainViewModel : ObservableObject
         ApplyPinnedName(d);
         ApplyHostnameOverride(d);
         ApplyColorOverride(d);
-        if (!d.IsOnline && !d.Seen) return;
+        if (!d.IsOnline && !d.Seen && !d.FromDb) return;
 
         // Known rows are only marked dirty (flushed by the throttled aggregate
         // pass) — dispatching per ping floods the UI thread and lags the table.
@@ -474,7 +490,7 @@ public sealed class MainViewModel : ObservableObject
     {
         lock (_byIpLock)
         {
-            foreach (var dev in engine.Devices.Where(d => d.IsOnline || d.Seen))
+            foreach (var dev in engine.Devices.Where(d => d.IsOnline || d.Seen || d.FromDb))
             {
                 ApplyPinnedName(dev);
                 ApplyHostnameOverride(dev);

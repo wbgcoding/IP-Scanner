@@ -49,6 +49,32 @@ public sealed class ScanEngine
 
     private PingResult Ping(string ip) => _ping(ip, IcmpTimeoutMs);
 
+    // Database values rank just below "unknown" so every live resolver wins.
+    private const int DbRank = int.MaxValue - 1;
+
+    /// <summary>Seed devices from the known-devices database so hostname/MAC
+    /// show immediately; live results replace them during the run.</summary>
+    public void Preload(IEnumerable<Device> known, ScanConfig cfg)
+    {
+        foreach (var k in known)
+        {
+            var d = _devices.GetOrAdd(k.Ip, ip => new Device(ip)
+            {
+                TargetPings = Math.Max(1, cfg.InitPingCount),
+                OfflineAfterFailures = cfg.OfflineAfterFailedPings,
+            });
+            d.FromDb = true;
+            lock (d)
+            {
+                if (d.Hostname is null && k.Hostname is { } h && h != Device.Unknown)
+                { d.Hostname = h; d.HostnameRank = DbRank; }
+                if (d.Mac is null && k.Mac is { } m && m != Device.Unknown)
+                { d.Mac = m; d.MacRank = DbRank; }
+            }
+            DeviceUpdated?.Invoke(d);
+        }
+    }
+
     private readonly struct WorkerScope : IDisposable
     {
         private readonly ScanEngine _e;

@@ -12,6 +12,23 @@ namespace IpScanner.Tests.Core;
 public class ScanEngineTests
 {
     [Fact]
+    public void Preload_SeedsHostnameAndMac_WithWeakestRank()
+    {
+        var engine = new ScanEngine((_, _) => new PingResult(false, null, null));
+        var known = new Device("10.0.0.5") { Hostname = "nas", Mac = "AA:BB:CC:00:00:05" };
+
+        engine.Preload(new[] { known }, new ScanConfig());
+
+        var d = Assert.Single(engine.Devices);
+        Assert.Equal("nas", d.Hostname);
+        Assert.Equal("AA:BB:CC:00:00:05", d.Mac);
+        Assert.True(d.FromDb);
+        // DB rank is the weakest — any live resolver (rank 0..n) replaces it.
+        Assert.True(d.HostnameRank > 1000);
+        Assert.True(d.MacRank > 1000);
+    }
+
+    [Fact]
     public async Task Scan_OnlyOneHostOnline_ProducesOneOnlineDevice()
     {
         PingResult Fake(string ip, int _) =>
