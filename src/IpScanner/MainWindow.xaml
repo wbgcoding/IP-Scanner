@@ -147,14 +147,28 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <!-- Pin icon: click to unpin (with confirmation) -->
-                                    <TextBlock Text="📌 " Foreground="{Binding IpColor}" FontWeight="SemiBold"
+                                    <!-- Pin icon: hover turns red X, click unpins -->
+                                    <TextBlock Foreground="{Binding IpColor}" FontWeight="SemiBold"
                                                Cursor="Hand" ToolTip="{x:Static loc:Loc.TipUnpinIp}"
                                                MouseLeftButtonDown="OnPinIconClick">
-                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers><DataTrigger Binding="{Binding IsPinned}" Value="True">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                            </DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Setter Property="Text" Value="📌 "/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                    <MultiTrigger>
+                                                        <MultiTrigger.Conditions>
+                                                            <Condition Property="IsMouseOver" Value="True"/>
+                                                        </MultiTrigger.Conditions>
+                                                        <Setter Property="Text" Value="✕  "/>
+                                                        <Setter Property="Foreground" Value="{StaticResource Red}"/>
+                                                    </MultiTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
                                     </TextBlock>
                                     <!-- IP text: click to pin (if not already pinned) -->
                                     <TextBlock Text="{Binding IpText}" Foreground="{Binding IpColor}"

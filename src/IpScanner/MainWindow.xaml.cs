@@ -513,9 +513,6 @@ public partial class MainWindow : Window
     private void OnPinIconClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (RowVm(sender) is not { IsPinned: true } vm) return;
-        if (MessageBox.Show(this, $"{Loc.ConfirmUnpin}\n{vm.Ip}",
-            Loc.Confirm, MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-            return;
         _pinnedChips.RemoveEntry(vm.Ip);
         ApplyInstant();
         e.Handled = true;
@@ -779,6 +776,20 @@ public partial class MainWindow : Window
             }
         }
         catch { /* persisting is best-effort */ }
+    }
+
+    /// <summary>Return empty string when the path equals the computed default
+    /// so ConfigDirectory stays clean (no redundant absolute path stored).</summary>
+    private string ConfDirDefaultValue(string path)
+    {
+        if (path.Length == 0) return "";
+        try
+        {
+            var full = Path.GetFullPath(path);
+            var def = Path.GetDirectoryName(Path.GetFullPath(_config.DatabasePath));
+            return string.Equals(full, def, StringComparison.OrdinalIgnoreCase) ? "" : path;
+        }
+        catch { return path; }
     }
 
     private void OnBrowseConfDir(object sender, RoutedEventArgs e)
@@ -1088,7 +1099,9 @@ public partial class MainWindow : Window
         _hostChips.Load(c.InternetHosts);
         OutputDirBox.Text = c.OutputDirectory;
         DbPathBox.Text = c.DatabasePath;
-        ConfDirBox.Text = c.ConfigDirectory;
+        ConfDirBox.Text = c.ConfigDirectory.Length > 0
+            ? c.ConfigDirectory
+            : Path.GetDirectoryName(Path.GetFullPath(c.DatabasePath)) ?? ScanConfig.DefaultOutputDirectory;
         FileOutputBox.IsChecked = c.FileOutput;
         ExportCsvBox.IsChecked = c.ExportCsv;
         KnownDbBox.IsChecked = c.KnownDevicesDb;
@@ -1147,7 +1160,7 @@ public partial class MainWindow : Window
         {
             Subnets = _subnetChips.Entries.Select(en => en.ToString()).ToList(),
             PinnedIps = _pinnedChips.Entries.Select(en => en.ToString()).ToList(),
-            ConfigDirectory = ConfDirBox.Text.Trim(),
+            ConfigDirectory = ConfDirDefaultValue(ConfDirBox.Text.Trim()),
             GraphsEnabled = GraphsEnabledBox.IsChecked == true,
             GraphMaxSeconds = Math.Clamp(I(GraphMaxBox.Text, 300), 10, 300),
             PingCount = defaultPings is ScanConfig.InfinitePingCount or > 0 ? defaultPings : 10,
