@@ -28,4 +28,21 @@
     <Resource Include="Resources\network.ico" />
     <Resource Include="Resources\logo.png" />
   </ItemGroup>
+  <!-- The desktop runtime always bundles WinForms, XPS printing and the Ribbon
+       alongside WPF. None of them are used here — dropping them shrinks the
+       single-file exe considerably. -->
+  <Target Name="StripUnusedDesktopAssemblies" AfterTargets="ComputeResolvedFilesToPublishList"
+          Condition="'$(PublishSingleFile)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+        Condition="$([System.String]::Copy('%(ResolvedFileToPublish.Filename)').StartsWith('System.Windows.Forms')) or
+                   $([System.String]::Copy('%(ResolvedFileToPublish.Filename)').StartsWith('Microsoft.VisualBasic')) or
+                   $([System.String]::Copy('%(ResolvedFileToPublish.Filename)').StartsWith('WindowsFormsIntegration')) or
+                   '%(ResolvedFileToPublish.Filename)' == 'System.Drawing.Common' or
+                   '%(ResolvedFileToPublish.Filename)' == 'System.Drawing.Design' or
+                   '%(ResolvedFileToPublish.Filename)' == 'System.Windows.Controls.Ribbon' or
+                   '%(ResolvedFileToPublish.Filename)' == 'ReachFramework' or
+                   '%(ResolvedFileToPublish.Filename)' == 'System.Printing'" />
+    </ItemGroup>
+  </Target>
 </Project>
