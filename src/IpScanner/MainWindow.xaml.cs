@@ -512,7 +512,7 @@ public partial class MainWindow : Window
     // ── Pin / unpin via the IP column ──
     private void OnPinIconClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (RowVm(sender) is not { IsPinned: true } vm) return;
+        if (e.ClickCount != 2 || RowVm(sender) is not { IsPinned: true } vm) return;
         _pinnedChips.RemoveEntry(vm.Ip);
         ApplyInstant();
         e.Handled = true;
@@ -520,7 +520,7 @@ public partial class MainWindow : Window
 
     private void OnIpTextClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (RowVm(sender) is not { IsPinned: false } vm) return;
+        if (e.ClickCount != 2 || RowVm(sender) is not { IsPinned: false } vm) return;
         _pinnedChips.AddEntry(new NetEntry(vm.Ip, "", ""));
         ApplyInstant();
         e.Handled = true;
