@@ -26,18 +26,9 @@
                 <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
                     <TextBlock Text="{loc:L AppTitle}" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="16" HorizontalAlignment="Center"/>
-                    <Grid Width="42" Height="42" Margin="0,5,0,0" HorizontalAlignment="Center">
-                        <Image x:Name="LogoImage" Source="/Resources/logo.png"
-                               RenderTransformOrigin="0.5,0.5"
-                               RenderOptions.BitmapScalingMode="HighQuality"/>
-                        <!-- Centre dot brightens with the spin (color only, same size) -->
-                        <Ellipse x:Name="LogoGlow" Width="8" Height="8" Fill="#DCFFD2"
-                                 Opacity="0" IsHitTestVisible="False">
-                            <Ellipse.Effect>
-                                <DropShadowEffect Color="#A6E3A1" BlurRadius="4" ShadowDepth="0"/>
-                            </Ellipse.Effect>
-                        </Ellipse>
-                    </Grid>
+                    <!-- Spins on its own composition thread — immune to UI load -->
+                    <ctrl:SpinningLogo x:Name="Logo" Width="42" Height="42" Margin="0,5,0,0"
+                                       HorizontalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Center: progress bars -->

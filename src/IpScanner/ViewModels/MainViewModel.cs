@@ -66,17 +66,27 @@ public sealed class MainViewModel : ObservableObject
     public bool CanAddGraph => DeviceGraphs.Count < MaxDeviceGraphs;
     public bool CanRemoveGraph => DeviceGraphs.Count > 1;
 
+    // Guards collection snapshots taken by the graph worker thread.
+    private readonly object _graphListLock = new();
+
+    public IReadOnlyList<DeviceGraphViewModel> DeviceGraphsSnapshot()
+    { lock (_graphListLock) return DeviceGraphs.ToArray(); }
+
+    public IReadOnlyList<NetworkInfoViewModel> NetworksSnapshot()
+    { lock (_graphListLock) return Networks.ToArray(); }
+
     public void AddDeviceGraph()
     {
         if (!CanAddGraph) return;
-        DeviceGraphs.Add(new DeviceGraphViewModel { SelectedSource = GraphSources.FirstOrDefault() });
+        lock (_graphListLock)
+            DeviceGraphs.Add(new DeviceGraphViewModel { SelectedSource = GraphSources.FirstOrDefault() });
         Raise(nameof(CanAddGraph)); Raise(nameof(CanRemoveGraph));
     }
 
     public void RemoveDeviceGraph(DeviceGraphViewModel graph)
     {
         if (!CanRemoveGraph) return;
-        DeviceGraphs.Remove(graph);
+        lock (_graphListLock) DeviceGraphs.Remove(graph);
         Raise(nameof(CanAddGraph)); Raise(nameof(CanRemoveGraph));
     }
 
@@ -301,14 +311,17 @@ public sealed class MainViewModel : ObservableObject
             while (GraphSources.Count > 1) GraphSources.RemoveAt(GraphSources.Count - 1);
             foreach (var g in DeviceGraphs)
                 if (g.SelectedSource?.Ip is not null) g.SelectedSource = GraphSources.FirstOrDefault();
-            Networks.Clear();
-            for (int i = 0; i < prefixes.Count; i++)
+            lock (_graphListLock)
             {
-                var ni = i == 0 ? info : new NetworkInfo { Ip = prefixes[i] + ".0" };
-                _subnetMeta.TryGetValue(prefixes[i], out var meta);
-                var color = meta?.Color is { Length: > 0 } c ? c : GroupColorPalette.ColorForIndex(i);
-                Networks.Add(new NetworkInfoViewModel(i + 1, ni, color,
-                                                      primary: i == 0, name: meta?.Name ?? ""));
+                Networks.Clear();
+                for (int i = 0; i < prefixes.Count; i++)
+                {
+                    var ni = i == 0 ? info : new NetworkInfo { Ip = prefixes[i] + ".0" };
+                    _subnetMeta.TryGetValue(prefixes[i], out var meta);
+                    var color = meta?.Color is { Length: > 0 } c ? c : GroupColorPalette.ColorForIndex(i);
+                    Networks.Add(new NetworkInfoViewModel(i + 1, ni, color,
+                                                          primary: i == 0, name: meta?.Name ?? ""));
+                }
             }
         });
 

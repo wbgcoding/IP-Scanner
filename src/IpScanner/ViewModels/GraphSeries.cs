@@ -42,6 +42,7 @@ public static class GraphSeries
                 ticks.Add(new Tick(secs < 60 ? $"{secs}s" : $"{secs / 60}m", x - TickLabelHalfWidth));
             }
         }
+        points.Freeze();   // computed on a worker thread, consumed by UI bindings
         return new Result(points, maxText, minText, ticks);
     }
 }

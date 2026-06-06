@@ -55,8 +55,6 @@ public partial class MainWindow : Window
             if (ev.PropertyName == nameof(MainViewModel.IsScanning))
                 Dispatcher.BeginInvoke(UpdateScanButton);
         };
-        LogoImage.RenderTransform = _logoSpin;
-        System.Windows.Media.CompositionTarget.Rendering += OnSpinTick;
         ApplyUiScale();          // persisted text-scale takes effect at startup
         ApplyBarColors();        // persisted bar colors
         ApplyDefaultPingCount(); // persisted default ping count into the dropdown
@@ -84,40 +82,6 @@ public partial class MainWindow : Window
         };
     }
 
-    // Logo spin: speed eases toward a target so starting/stopping never jumps.
-    private readonly System.Windows.Media.RotateTransform _logoSpin = new();
-    private double _spinAngle, _spinSpeed, _spinTarget;   // deg, deg/s
-    private double _spinRef = 1;                          // last nonzero target (glow scale)
-    private long _spinLastTick = System.Diagnostics.Stopwatch.GetTimestamp();
-
-    private void OnSpinTick(object? sender, EventArgs e)
-    {
-        long now = System.Diagnostics.Stopwatch.GetTimestamp();
-        // Cap dt at ~2 frames: dropped frames slow the spin briefly instead of
-        // jumping the angle, which read as stutter under scan load.
-        double dt = Math.Min(0.033, (now - _spinLastTick) / (double)System.Diagnostics.Stopwatch.Frequency);
-        _spinLastTick = now;
-        if (_spinSpeed == 0 && _spinTarget == 0) return;
-
-        _spinSpeed += (_spinTarget - _spinSpeed) * Math.Min(1.0, dt * 2.0);   // smooth ramp
-
-        if (_spinTarget == 0 && Math.Abs(_spinSpeed) < 3)
-        {
-            _spinSpeed = 0;
-            LogoGlow.Opacity = 0;
-            return;
-        }
-
-        _spinAngle = (_spinAngle + _spinSpeed * dt) % 360;
-        _logoSpin.Angle = _spinAngle;
-
-        // Centre dot glow: brightness follows the eased spin speed, pulsing
-        // twice per revolution so it breathes in sync with the rotation.
-        double norm = Math.Clamp(_spinSpeed / _spinRef, 0, 1);
-        double pulse = 0.45 + 0.55 * (0.5 + 0.5 * Math.Sin(_spinAngle * Math.PI / 90));
-        LogoGlow.Opacity = norm * pulse;
-    }
-
     private void UpdateScanButton()
     {
         bool scanning = _vm.IsScanning;
@@ -127,8 +91,7 @@ public partial class MainWindow : Window
         // Spin while scanning — faster with more threads, eased in/out.
         int threads = _config.ScanThreads <= 0 ? 254 : _config.ScanThreads;
         double seconds = Math.Clamp(120.0 / threads, 0.6, 6.0);
-        _spinTarget = scanning ? 360.0 / seconds : 0.0;
-        if (_spinTarget > 0) _spinRef = _spinTarget;   // glow scales against full speed
+        Logo.SetSpeed(scanning ? 360.0 / seconds : 0.0);
     }
 
     /// <summary>Scale the whole UI (text included) by the configured percent.</summary>
@@ -578,31 +541,47 @@ public partial class MainWindow : Window
         _vm.NetworkGraphsOn = _config.GraphsEnabled && _config.NetworkGraphsEnabled;
     }
 
-    private System.Windows.Threading.DispatcherTimer? _graphTimer;
+    // Graph samples are computed on a worker thread (frozen geometry, bindings
+    // marshal the property changes); only the internet canvas and the source
+    // list are touched on the UI thread.
+    private System.Threading.Timer? _graphTimer;
+    private volatile bool _closing;
+    private int _graphTickRunning;
 
     private void InitGraph()
     {
-        _graphTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        _graphTimer.Tick += (_, _) => OnGraphTick();
-        _graphTimer.Start();
+        _graphTimer = new System.Threading.Timer(_ => GraphTickWorker(), null, 1000, 1000);
         Closed += (_, _) =>
         {
-            _graphTimer.Stop();
-            System.Windows.Media.CompositionTarget.Rendering -= OnSpinTick;
+            _closing = true;
+            _graphTimer.Dispose();
+            Logo.Shutdown();
         };
     }
 
-    private void OnGraphTick()
+    private void GraphTickWorker()
     {
-        if (!_config.GraphsEnabled) return;
-        _vm.UpdateGraphSources();
-        foreach (var g in _vm.DeviceGraphs)
-            g.AddSample(_vm.GraphValue(g.SelectedSource?.Ip), GraphWindowSeconds, TickIntervalSeconds());
-        Sample(_inetSamples, _vm.InternetGraphValue());
-        RenderInternetGraph();
-        if (_config.NetworkGraphsEnabled)
-            foreach (var net in _vm.Networks)
-                net.AddGraphSample(GraphWindowSeconds, TickIntervalSeconds());
+        if (_closing || !_config.GraphsEnabled) return;
+        if (Interlocked.Exchange(ref _graphTickRunning, 1) == 1) return;   // no overlap
+        try
+        {
+            int capacity = GraphWindowSeconds, tick = TickIntervalSeconds();
+            foreach (var g in _vm.DeviceGraphsSnapshot())
+                g.AddSample(_vm.GraphValue(g.SelectedSource?.Ip), capacity, tick);
+            if (_config.NetworkGraphsEnabled)
+                foreach (var net in _vm.NetworksSnapshot())
+                    net.AddGraphSample(capacity, tick);
+
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (_closing) return;
+                _vm.UpdateGraphSources();
+                Sample(_inetSamples, _vm.InternetGraphValue());
+                RenderInternetGraph();
+            });
+        }
+        catch { /* a failed tick must never kill the timer */ }
+        finally { Interlocked.Exchange(ref _graphTickRunning, 0); }
     }
 
     private void Sample(List<double?> series, double? value)
