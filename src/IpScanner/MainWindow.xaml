@@ -337,6 +337,27 @@
                                                     <TextBlock Text="{loc:L AvgLatency}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding AvgLatency}" Foreground="{Binding AvgLatencyColor}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                                 </Grid>
+                                                <!-- Average-latency history of this network -->
+                                                <Canvas Width="272" Height="38" Margin="0,7,0,0" ClipToBounds="True" HorizontalAlignment="Left"
+                                                        Visibility="{Binding DataContext.NetworkGraphsOn, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}">
+                                                    <Polyline Points="{Binding GraphPoints}" Stroke="{StaticResource Green}" StrokeThickness="1.2" StrokeLineJoin="Round"/>
+                                                    <TextBlock Text="{Binding GraphMaxText}" Canvas.Left="3" Canvas.Top="0" FontSize="8" Foreground="{StaticResource MidGray}"/>
+                                                    <TextBlock Text="{Binding GraphMinText}" Canvas.Left="3" Canvas.Bottom="0" FontSize="8" Foreground="{StaticResource MidGray}"/>
+                                                    <ItemsControl ItemsSource="{Binding GraphTicks}" Width="272" Height="38" Canvas.Left="0" Canvas.Top="0">
+                                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemContainerStyle>
+                                                            <Style TargetType="ContentPresenter">
+                                                                <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                                                <Setter Property="Canvas.Bottom" Value="0"/>
+                                                            </Style>
+                                                        </ItemsControl.ItemContainerStyle>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding Label}" FontSize="8" Foreground="{StaticResource MidGray}" Width="28" TextAlignment="Center"/>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </Canvas>
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
@@ -663,8 +684,12 @@
                                     <TextBox x:Name="GraphMaxBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/>
                                     <TextBlock Text="s" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                 </StackPanel>
-                                <CheckBox x:Name="GraphsEnabledBox" Content="{loc:L EnableGraphs}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"
-                                          ToolTip="{loc:L TipEnableGraphs}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                                <StackPanel VerticalAlignment="Center">
+                                    <CheckBox x:Name="GraphsEnabledBox" Content="{loc:L EnableGraphs}" Foreground="{StaticResource Text}" FontSize="13"
+                                              ToolTip="{loc:L TipEnableGraphs}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                                    <CheckBox x:Name="NetworkGraphsBox" Content="{loc:L EnableNetworkGraphs}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,8,0,0"
+                                              ToolTip="{loc:L TipEnableNetworkGraphs}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                                </StackPanel>
                             </DockPanel>
 
                             <!-- Ausgabe -->

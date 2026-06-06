@@ -14,7 +14,7 @@ public static class ConfigManager
         "ping_count", "ping_interval_ms", "offline_after_failed_pings", "init_ping_count",
         "startup_ping_count", "offline_recheck_seconds", "enable_internet_ping",
         "internet_timeout_ms", "internet_hosts", "known_devices_db", "database_path",
-        "config_directory", "graphs_enabled", "graph_max_seconds", "output_directory",
+        "config_directory", "graphs_enabled", "network_graphs_enabled", "graph_max_seconds", "output_directory",
         "file_output", "export_csv", "scan_threads", "ui_scale", "language",
         "color_online", "color_offline", "color_success", "color_failed", "color_skipped",
     };
@@ -56,6 +56,7 @@ public static class ConfigManager
                 case "database_path":               if (value.Length > 0) cfg.DatabasePath = value; break;
                 case "config_directory":            cfg.ConfigDirectory = value; break;
                 case "graphs_enabled":              cfg.GraphsEnabled = ParseBool(value); break;
+                case "network_graphs_enabled":      cfg.NetworkGraphsEnabled = ParseBool(value); break;
                 case "graph_max_seconds":           cfg.GraphMaxSeconds = ParseInt(value, 10, 300, 300); break;
                 case "output_directory":            cfg.OutputDirectory = value; break;
                 case "file_output":                 cfg.FileOutput = ParseBool(value); break;
@@ -136,6 +137,8 @@ public static class ConfigManager
         sb.AppendLine("# -- Graphen -------------------------------------------------");
         sb.AppendLine("# graphs_enabled  Latenz-Graphen in der Seitenleiste anzeigen. Standard true.");
         sb.AppendLine($"graphs_enabled = {B(c.GraphsEnabled)}");
+        sb.AppendLine("# network_graphs_enabled  Latenz-Verlauf unter jedem Netzwerk anzeigen. Standard true.");
+        sb.AppendLine($"network_graphs_enabled = {B(c.NetworkGraphsEnabled)}");
         sb.AppendLine("# graph_max_seconds  Sichtbare Zeitspanne der Graphen (10-300 s). Standard 300.");
         sb.AppendLine($"graph_max_seconds = {c.GraphMaxSeconds}");
         sb.AppendLine();

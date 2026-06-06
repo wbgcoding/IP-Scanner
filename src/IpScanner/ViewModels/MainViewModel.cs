@@ -58,6 +58,14 @@ public sealed class MainViewModel : ObservableObject
         private set { if (_isScanning != value) { _isScanning = value; Raise(nameof(IsScanning)); } }
     }
 
+    private bool _networkGraphsOn = true;
+    /// <summary>Visibility switch for the per-network graphs (set from settings).</summary>
+    public bool NetworkGraphsOn
+    {
+        get => _networkGraphsOn;
+        set { if (_networkGraphsOn != value) { _networkGraphsOn = value; Raise(nameof(NetworkGraphsOn)); } }
+    }
+
     public string? LastExportPath { get; private set; }
     /// <summary>"name (size)" per written report file, one line each.</summary>
     public string ExportInfo { get; private set; } = "";

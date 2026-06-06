@@ -35,6 +35,8 @@ public sealed class ScanConfig
     public string ConfigDirectory { get; set; } = DefaultOutputDirectory;
     /// <summary>Show the latency history graphs in the sidebar.</summary>
     public bool GraphsEnabled { get; set; } = true;
+    /// <summary>Show the small average-latency graph under each network.</summary>
+    public bool NetworkGraphsEnabled { get; set; } = true;
     /// <summary>Visible time span of the graphs in seconds (10–300).</summary>
     public int GraphMaxSeconds { get; set; } = 300;
 
@@ -65,6 +67,7 @@ public sealed class ScanConfig
         ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
         Language = Language, ConfigDirectory = ConfigDirectory,
         GraphsEnabled = GraphsEnabled, GraphMaxSeconds = GraphMaxSeconds,
+        NetworkGraphsEnabled = NetworkGraphsEnabled,
         ColorOnline = ColorOnline, ColorOffline = ColorOffline,
         ColorSuccess = ColorSuccess, ColorFailed = ColorFailed, ColorSkipped = ColorSkipped,
     };

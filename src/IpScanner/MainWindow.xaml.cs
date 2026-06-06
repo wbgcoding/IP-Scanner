@@ -575,12 +575,13 @@ public partial class MainWindow : Window
     /// <summary>Visible time window in samples (one per second).</summary>
     private int GraphWindowSeconds => Math.Clamp(_config.GraphMaxSeconds, 10, 300);
 
-    /// <summary>Show/hide both graphs per settings.</summary>
+    /// <summary>Show/hide the graphs per settings.</summary>
     private void ApplyGraphSettings()
     {
         var vis = _config.GraphsEnabled ? Visibility.Visible : Visibility.Collapsed;
         GraphSection.Visibility = vis;
         InetGraphSection.Visibility = vis;
+        _vm.NetworkGraphsOn = _config.GraphsEnabled && _config.NetworkGraphsEnabled;
     }
 
     private System.Windows.Threading.DispatcherTimer? _graphTimer;
@@ -605,6 +606,9 @@ public partial class MainWindow : Window
         Sample(_inetSamples, _vm.InternetGraphValue());
         RenderGraph();
         RenderInternetGraph();
+        if (_config.NetworkGraphsEnabled)
+            foreach (var net in _vm.Networks)
+                net.AddGraphSample(GraphWindowSeconds, TickIntervalSeconds());
     }
 
     private void Sample(List<double?> series, double? value)
@@ -658,68 +662,28 @@ public partial class MainWindow : Window
                               System.Windows.Shapes.Polyline line,
                               TextBlock maxText, TextBlock minText)
     {
-        const double padTop = 4, padBottom = 14;
-        double w = canvas.ActualWidth, h = canvas.ActualHeight;
-        var points = new System.Windows.Media.PointCollection();
-        var present = samples.Where(v => v is not null).Select(v => v!.Value).ToList();
-        double stepX = samples.Count > 1 ? w / (samples.Count - 1) : 0;
-        if (w > 0 && h > 0 && present.Count > 1)
-        {
-            double min = present.Min(), max = present.Max();
-            if (max - min < 0.5) { max += 0.5; min = Math.Max(0, min - 0.5); }
-            for (int i = 0; i < samples.Count; i++)
-            {
-                if (samples[i] is not { } v) continue;
-                double y = h - padBottom - (v - min) / (max - min) * (h - padTop - padBottom);
-                points.Add(new Point(i * stepX, y));
-            }
-            maxText.Text = Core.NumberFormat.Ms(max);
-            minText.Text = Core.NumberFormat.Ms(min);
-        }
-        else
-        {
-            maxText.Text = "";
-            minText.Text = "";
-        }
-        line.Points = points;
-        RenderTicks(canvas, w, h, samples.Count, stepX);
-    }
+        var r = GraphSeries.Compute(samples, canvas.ActualWidth, canvas.ActualHeight,
+                                    TickIntervalSeconds());
+        line.Points = r.Points;
+        maxText.Text = r.MaxText;
+        minText.Text = r.MinText;
 
-    private void RenderTicks(System.Windows.Controls.Canvas canvas, double w, double h,
-                             int sampleCount, double stepX)
-    {
         for (int i = canvas.Children.Count - 1; i >= 0; i--)
             if (canvas.Children[i] is FrameworkElement fe && "tick".Equals(fe.Tag))
                 canvas.Children.RemoveAt(i);
-
-        if (sampleCount < 2 || w <= 0) return;
-
-        int interval = TickIntervalSeconds();
         var brush = BrushFor(Core.Palette.MidGray);
-        const double labelW = 28, labelHalfW = 14;
-
-        for (int secs = interval; secs <= _config.GraphMaxSeconds; secs += interval)
+        foreach (var tick in r.Ticks)
         {
-            if (secs >= sampleCount) break;
-            double x = (sampleCount - 1 - secs) * stepX;
-            if (x < labelHalfW) continue;   // too close to left edge (min label)
-
             var lbl = new TextBlock
             {
-                Text = TickLabel(secs),
-                FontSize = 8,
-                Foreground = brush,
-                Width = labelW,
-                TextAlignment = TextAlignment.Center,
-                Tag = "tick",
+                Text = tick.Label, FontSize = 8, Foreground = brush,
+                Width = 28, TextAlignment = TextAlignment.Center, Tag = "tick",
             };
-            System.Windows.Controls.Canvas.SetLeft(lbl, x - labelHalfW);
+            System.Windows.Controls.Canvas.SetLeft(lbl, tick.X);
             System.Windows.Controls.Canvas.SetBottom(lbl, 0);
             canvas.Children.Add(lbl);
         }
     }
-
-    private static string TickLabel(int secs) => secs < 60 ? $"{secs}s" : $"{secs / 60}m";
 
     private int TickIntervalSeconds() => _config.GraphMaxSeconds switch
     {
@@ -1076,6 +1040,7 @@ public partial class MainWindow : Window
         _subnetChips.Load(c.Subnets);
         _pinnedChips.Load(c.PinnedIps);
         GraphsEnabledBox.IsChecked = c.GraphsEnabled;
+        NetworkGraphsBox.IsChecked = c.NetworkGraphsEnabled;
         GraphMaxBox.Text = c.GraphMaxSeconds.ToString();
         ScanThreadsBox.Text = c.ScanThreads.ToString();
         UiScaleBox.Text = c.UiScalePercent.ToString();
@@ -1156,6 +1121,7 @@ public partial class MainWindow : Window
             PinnedIps = _pinnedChips.Entries.Select(en => en.ToString()).ToList(),
             ConfigDirectory = ConfDirBox.Text.Trim(),
             GraphsEnabled = GraphsEnabledBox.IsChecked == true,
+            NetworkGraphsEnabled = NetworkGraphsBox.IsChecked == true,
             GraphMaxSeconds = Math.Clamp(I(GraphMaxBox.Text, 300), 10, 300),
             PingCount = defaultPings is ScanConfig.InfinitePingCount or > 0 ? defaultPings : 10,
             ScanThreads = I(ScanThreadsBox.Text, 50),

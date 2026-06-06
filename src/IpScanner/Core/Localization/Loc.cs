@@ -69,6 +69,10 @@ public static class Loc
     public static string TabGraphs => S("Graphen", "Graphs");
     public static string EnableGraphs => S("Graphen anzeigen", "Show graphs");
     public static string GraphMaxTime => S("Max. Zeitspanne", "Max time span");
+    public static string EnableNetworkGraphs => S("Netzwerk-Graphen anzeigen", "Show network graphs");
+    public static string TipEnableNetworkGraphs => S(
+        "Kleiner Latenz-Verlauf unter der Übersicht jedes Netzwerks.",
+        "Small latency history under each network overview.");
     public static string TipEnableGraphs => S(
         "Blendet die Latenz-Graphen in der Seitenleiste ein oder aus.",
         "Shows or hides the latency graphs in the sidebar.");
