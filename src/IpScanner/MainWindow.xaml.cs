@@ -105,21 +105,9 @@ public partial class MainWindow : Window
 
         _spinSpeed += (_spinTarget - _spinSpeed) * Math.Min(1.0, dt * 2.5);   // ~1s ramp
 
-        // Stopping: finish the remaining arc in spin direction, easing out.
         if (_spinTarget == 0 && Math.Abs(_spinSpeed) < 3)
         {
-            double remaining = (360 - _spinAngle) % 360;
-            double step = Math.Clamp(remaining * 1.2, 8, 60) * dt;
-            if (step >= remaining)
-            {
-                _spinAngle = 0;
-                _spinSpeed = 0;
-                _logoSpin.Angle = 0;
-                LogoGlow.Opacity = 0;
-                return;
-            }
-            _spinAngle += step;
-            _logoSpin.Angle = _spinAngle;
+            _spinSpeed = 0;
             LogoGlow.Opacity = 0;
             return;
         }
