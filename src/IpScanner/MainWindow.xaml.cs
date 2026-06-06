@@ -782,19 +782,7 @@ public partial class MainWindow : Window
     }
 
     private void OnConfDirChanged(object sender, TextChangedEventArgs e)
-    {
-        var path = ConfDirBox.Text.Trim();
-        if (path.Length > 0 && !IsValidPathText(path))
-        {
-            ConfDirBox.BorderBrush = (System.Windows.Media.Brush)FindResource("Red");
-            ConfDirError.Text = Loc.InvalidPath;
-            ConfDirError.Visibility = Visibility.Visible;
-            return;
-        }
-        ConfDirBox.ClearValue(System.Windows.Controls.Control.BorderBrushProperty);
-        ConfDirError.Visibility = Visibility.Collapsed;
-        ApplyInstant();
-    }
+        => ValidatePath(ConfDirBox, ConfDirError, allowEmpty: true);
 
     private void ApplyUiScale()
     {
@@ -879,13 +867,18 @@ public partial class MainWindow : Window
     }
 
     private void OnSettingsCancel(object sender, RoutedEventArgs e)
-        => SettingsOverlay.Visibility = Visibility.Collapsed;
+    {
+        ApplyInstant();
+        SettingsOverlay.Visibility = Visibility.Collapsed;
+    }
 
-    // Clicking the dimmed background (not the panel) closes the overlay.
     private void OnOverlayBackgroundClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (ReferenceEquals(e.OriginalSource, SettingsOverlay))
+        {
+            ApplyInstant();
             SettingsOverlay.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void OnResetDefaults(object sender, RoutedEventArgs e)
@@ -1101,11 +1094,15 @@ public partial class MainWindow : Window
     }
 
     // ── Live syntax validation for the path fields ──
+    // Path fields: validate on every keystroke but only persist on LostFocus
+    // or overlay close — otherwise Directory.CreateDirectory fires per character.
     private void OnOutputDirValidate(object sender, TextChangedEventArgs e)
-    { ValidatePath(OutputDirBox, OutputDirError); ApplyInstant(); }
+        => ValidatePath(OutputDirBox, OutputDirError);
 
     private void OnDbPathValidate(object sender, TextChangedEventArgs e)
-    { ValidatePath(DbPathBox, DbPathError); ApplyInstant(); }
+        => ValidatePath(DbPathBox, DbPathError);
+
+    private void OnPathFieldCommit(object sender, RoutedEventArgs e) => ApplyInstant();
 
     private static bool IsValidPathText(string path)
     {
@@ -1115,11 +1112,12 @@ public partial class MainWindow : Window
         catch { return false; }
     }
 
-    private void ValidatePath(TextBox box, TextBlock error)
+    private void ValidatePath(TextBox box, TextBlock error, bool allowEmpty = false)
     {
-        if (IsValidPathText(box.Text))
+        bool ok = (allowEmpty && box.Text.Trim().Length == 0) || IsValidPathText(box.Text);
+        box.ClearValue(System.Windows.Controls.Control.BorderBrushProperty);
+        if (ok)
         {
-            box.ClearValue(System.Windows.Controls.Control.BorderBrushProperty);
             error.Visibility = Visibility.Collapsed;
         }
         else

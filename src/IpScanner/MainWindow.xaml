@@ -672,7 +672,7 @@
                             <TextBlock Text="{x:Static loc:Loc.OutputDir}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipOutputDir}"/>
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowse" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
-                                <TextBox x:Name="OutputDirBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipOutputDir}" TextChanged="OnOutputDirValidate"/>
+                                <TextBox x:Name="OutputDirBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipOutputDir}" TextChanged="OnOutputDirValidate" LostFocus="OnPathFieldCommit"/>
                             </DockPanel>
                             <TextBlock x:Name="OutputDirError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
@@ -686,7 +686,7 @@
                             <TextBlock Text="{x:Static loc:Loc.DbFile}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipDbFile}"/>
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowseDb" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
-                                <TextBox x:Name="DbPathBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipDbFile}" TextChanged="OnDbPathValidate"/>
+                                <TextBox x:Name="DbPathBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipDbFile}" TextChanged="OnDbPathValidate" LostFocus="OnPathFieldCommit"/>
                             </DockPanel>
                             <TextBlock x:Name="DbPathError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,12"/>
                             <DockPanel Margin="0,12,0,0">
@@ -702,7 +702,7 @@
                             <TextBlock Text="{x:Static loc:Loc.ConfDirLabel}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipConfDir}"/>
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowseConfDir" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
-                                <TextBox x:Name="ConfDirBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipConfDir}" TextChanged="OnConfDirChanged"/>
+                                <TextBox x:Name="ConfDirBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipConfDir}" TextChanged="OnConfDirChanged" LostFocus="OnPathFieldCommit"/>
                             </DockPanel>
                             <TextBlock x:Name="ConfDirError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,8"/>
                             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
