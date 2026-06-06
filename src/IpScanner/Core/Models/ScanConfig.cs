@@ -31,8 +31,8 @@ public sealed class ScanConfig
     public int UiScalePercent { get; set; } = 100;
     /// <summary>UI language: "auto" (system, EN fallback), "de" or "en".</summary>
     public string Language { get; set; } = "auto";
-    /// <summary>Folder of ip_scanner.conf; empty = next to the database.</summary>
-    public string ConfigDirectory { get; set; } = "";
+    /// <summary>Folder where ip_scanner.conf is stored.</summary>
+    public string ConfigDirectory { get; set; } = DefaultOutputDirectory;
     /// <summary>Show the latency history graphs in the sidebar.</summary>
     public bool GraphsEnabled { get; set; } = true;
     /// <summary>Visible time span of the graphs in seconds (10–300).</summary>

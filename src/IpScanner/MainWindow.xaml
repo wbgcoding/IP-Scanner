@@ -518,7 +518,7 @@
                             <Button Content="{x:Static loc:Loc.Close}" Click="OnSettingsCancel" Style="{StaticResource AccentButton}" Padding="18,7" Margin="8,0,0,0"/>
                         </StackPanel>
                     </Grid>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
                         <StackPanel>
                             <!-- Netzwerk -->
                             <TextBlock Text="{x:Static loc:Loc.TabNetwork}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,0,0,8"/>

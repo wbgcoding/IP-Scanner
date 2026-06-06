@@ -512,7 +512,7 @@ public partial class MainWindow : Window
     // ── Pin / unpin via the IP column ──
     private void OnPinIconClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (e.ClickCount != 2 || RowVm(sender) is not { IsPinned: true } vm) return;
+        if (RowVm(sender) is not { IsPinned: true } vm) return;
         _pinnedChips.RemoveEntry(vm.Ip);
         ApplyInstant();
         e.Handled = true;
@@ -754,10 +754,13 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>Active config path: the chosen folder, or next to the database.</summary>
-    private string ActiveConfPath() => _config.ConfigDirectory.Trim().Length > 0
-        ? Path.Combine(Path.GetFullPath(_config.ConfigDirectory.Trim()), ScanConfig.ConfigFileName)
-        : ConfPathFor(_config.DatabasePath);
+    private string ActiveConfPath()
+    {
+        var dir = _config.ConfigDirectory.Trim().Length > 0
+            ? _config.ConfigDirectory.Trim()
+            : ScanConfig.DefaultOutputDirectory;
+        return Path.Combine(Path.GetFullPath(dir), ScanConfig.ConfigFileName);
+    }
 
     private void PersistConfig()
     {
@@ -766,30 +769,8 @@ public partial class MainWindow : Window
             var path = ActiveConfPath();
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             ConfigManager.Save(path, _config);
-            // Keep a copy at the default location so the next start finds the
-            // config_directory redirect.
-            var def = ConfPathFor(_config.DatabasePath);
-            if (!string.Equals(def, path, StringComparison.OrdinalIgnoreCase))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(def)!);
-                ConfigManager.Save(def, _config);
-            }
         }
         catch { /* persisting is best-effort */ }
-    }
-
-    /// <summary>Return empty string when the path equals the computed default
-    /// so ConfigDirectory stays clean (no redundant absolute path stored).</summary>
-    private string ConfDirDefaultValue(string path)
-    {
-        if (path.Length == 0) return "";
-        try
-        {
-            var full = Path.GetFullPath(path);
-            var def = Path.GetDirectoryName(Path.GetFullPath(_config.DatabasePath));
-            return string.Equals(full, def, StringComparison.OrdinalIgnoreCase) ? "" : path;
-        }
-        catch { return path; }
     }
 
     private void OnBrowseConfDir(object sender, RoutedEventArgs e)
@@ -963,23 +944,28 @@ public partial class MainWindow : Window
     {
         try
         {
+            // 1. Try the default location (next to the default DB).
             var def = ConfPathFor(new ScanConfig().DatabasePath);
             ConfigManager.MigrateIfNeeded(def);
             var cfg = File.Exists(def) ? ConfigManager.Load(def) : new ScanConfig();
-            var at = ConfPathFor(cfg.DatabasePath);
-            if (!string.Equals(at, def, StringComparison.OrdinalIgnoreCase) && File.Exists(at))
+
+            // 2. If the loaded config has a non-default DB path, its sibling conf wins.
+            var atDb = ConfPathFor(cfg.DatabasePath);
+            if (!string.Equals(atDb, def, StringComparison.OrdinalIgnoreCase) && File.Exists(atDb))
             {
-                ConfigManager.MigrateIfNeeded(at);
-                cfg = ConfigManager.Load(at);
+                ConfigManager.MigrateIfNeeded(atDb);
+                cfg = ConfigManager.Load(atDb);
             }
-            if (cfg.ConfigDirectory.Trim().Length > 0)
+
+            // 3. A configured conf directory always takes priority.
+            var dir = cfg.ConfigDirectory.Trim();
+            if (dir.Length > 0)
             {
-                var redirected = Path.Combine(Path.GetFullPath(cfg.ConfigDirectory.Trim()),
-                                              ScanConfig.ConfigFileName);
-                if (File.Exists(redirected))
+                var custom = Path.Combine(Path.GetFullPath(dir), ScanConfig.ConfigFileName);
+                if (File.Exists(custom))
                 {
-                    ConfigManager.MigrateIfNeeded(redirected);
-                    cfg = ConfigManager.Load(redirected);
+                    ConfigManager.MigrateIfNeeded(custom);
+                    cfg = ConfigManager.Load(custom);
                 }
             }
             return cfg;
@@ -1099,9 +1085,7 @@ public partial class MainWindow : Window
         _hostChips.Load(c.InternetHosts);
         OutputDirBox.Text = c.OutputDirectory;
         DbPathBox.Text = c.DatabasePath;
-        ConfDirBox.Text = c.ConfigDirectory.Length > 0
-            ? c.ConfigDirectory
-            : Path.GetDirectoryName(Path.GetFullPath(c.DatabasePath)) ?? ScanConfig.DefaultOutputDirectory;
+        ConfDirBox.Text = c.ConfigDirectory.Length > 0 ? c.ConfigDirectory : ScanConfig.DefaultOutputDirectory;
         FileOutputBox.IsChecked = c.FileOutput;
         ExportCsvBox.IsChecked = c.ExportCsv;
         KnownDbBox.IsChecked = c.KnownDevicesDb;
@@ -1160,7 +1144,7 @@ public partial class MainWindow : Window
         {
             Subnets = _subnetChips.Entries.Select(en => en.ToString()).ToList(),
             PinnedIps = _pinnedChips.Entries.Select(en => en.ToString()).ToList(),
-            ConfigDirectory = ConfDirDefaultValue(ConfDirBox.Text.Trim()),
+            ConfigDirectory = ConfDirBox.Text.Trim(),
             GraphsEnabled = GraphsEnabledBox.IsChecked == true,
             GraphMaxSeconds = Math.Clamp(I(GraphMaxBox.Text, 300), 10, 300),
             PingCount = defaultPings is ScanConfig.InfinitePingCount or > 0 ? defaultPings : 10,
