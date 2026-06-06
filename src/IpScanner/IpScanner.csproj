@@ -34,15 +34,14 @@
   <Target Name="StripUnusedDesktopAssemblies" AfterTargets="ComputeResolvedFilesToPublishList"
           Condition="'$(PublishSingleFile)' == 'true'">
     <ItemGroup>
+      <!-- Ribbon/Reach/Printing/WindowsFormsIntegration must stay: they are
+           registered on the WPF presentation xmlns and BAML template loading
+           resolves that namespace eagerly. -->
       <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
         Condition="$([System.String]::Copy('%(ResolvedFileToPublish.Filename)').StartsWith('System.Windows.Forms')) or
                    $([System.String]::Copy('%(ResolvedFileToPublish.Filename)').StartsWith('Microsoft.VisualBasic')) or
-                   $([System.String]::Copy('%(ResolvedFileToPublish.Filename)').StartsWith('WindowsFormsIntegration')) or
                    '%(ResolvedFileToPublish.Filename)' == 'System.Drawing.Common' or
-                   '%(ResolvedFileToPublish.Filename)' == 'System.Drawing.Design' or
-                   '%(ResolvedFileToPublish.Filename)' == 'System.Windows.Controls.Ribbon' or
-                   '%(ResolvedFileToPublish.Filename)' == 'ReachFramework' or
-                   '%(ResolvedFileToPublish.Filename)' == 'System.Printing'" />
+                   '%(ResolvedFileToPublish.Filename)' == 'System.Drawing.Design'" />
     </ItemGroup>
   </Target>
 </Project>
