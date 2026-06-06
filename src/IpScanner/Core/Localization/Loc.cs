@@ -178,6 +178,7 @@ public static class Loc
     public static string Threads => S("Threads", "Threads");
     public static string MaxLabel => S("max", "max");
     public static string ClearDbConfirm => S("Known-Devices-Datenbank wirklich leeren?", "Really clear the known-devices database?");
+    public static string ResetConfirm => S("Alle Einstellungen löschen?", "Delete all settings?");
     public static string Confirm => S("Bestätigen", "Confirm");
 
     // ── Settings tooltips ──

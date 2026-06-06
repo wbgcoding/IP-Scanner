@@ -559,7 +559,7 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <ComboBox x:Name="LanguageBox" Width="140" Height="32" VerticalAlignment="Center"
                                       SelectionChanged="OnLanguageChanged" ToolTip="{loc:L TipLanguage}"/>
-                            <Button Content="{loc:L ResetDefaults}" Click="OnResetDefaults" Style="{StaticResource GhostButton}" Padding="14,7" Margin="10,0,0,0" ToolTip="{loc:L TipResetDefaults}"/>
+                            <Button x:Name="ResetButton" Content="{loc:L ResetDefaults}" Click="OnResetDefaults" Style="{StaticResource GhostButton}" Padding="14,7" Margin="10,0,0,0" ToolTip="{loc:L TipResetDefaults}"/>
                             <Button Content="{loc:L Close}" Click="OnSettingsCancel" Style="{StaticResource AccentButton}" Padding="18,7" Margin="8,0,0,0"/>
                         </StackPanel>
                     </Grid>

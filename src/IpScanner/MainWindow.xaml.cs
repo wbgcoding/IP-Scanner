@@ -807,6 +807,7 @@ public partial class MainWindow : Window
 
     private void OnSettingsCancel(object sender, RoutedEventArgs e)
     {
+        DisarmReset();
         ApplyInstant();
         SettingsOverlay.Visibility = Visibility.Collapsed;
     }
@@ -820,8 +821,36 @@ public partial class MainWindow : Window
         }
     }
 
+    // First click arms the button (turns red and asks), second click resets.
+    private bool _resetArmed;
+    private System.Windows.Threading.DispatcherTimer? _resetDisarmTimer;
+
+    private void DisarmReset()
+    {
+        _resetArmed = false;
+        _resetDisarmTimer?.Stop();
+        ResetButton.Content = Loc.ResetDefaults;
+        ResetButton.Style = (Style)FindResource("GhostButton");
+    }
+
     private void OnResetDefaults(object sender, RoutedEventArgs e)
     {
+        if (!_resetArmed)
+        {
+            _resetArmed = true;
+            ResetButton.Content = Loc.ResetConfirm;
+            ResetButton.Style = (Style)FindResource("DangerButton");
+            if (_resetDisarmTimer is null)
+            {
+                _resetDisarmTimer = new System.Windows.Threading.DispatcherTimer
+                { Interval = TimeSpan.FromSeconds(4) };
+                _resetDisarmTimer.Tick += (_, _) => DisarmReset();
+            }
+            _resetDisarmTimer.Stop();
+            _resetDisarmTimer.Start();
+            return;
+        }
+        DisarmReset();
         // Reset removes the persisted config files and applies the defaults
         // without writing a new file.
         foreach (var p in new[] { ActiveConfPath(), ConfPathFor(_config.DatabasePath),
