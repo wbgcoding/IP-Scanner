@@ -20,6 +20,8 @@ public sealed class ScanEngine
     private const int EnrichGateSize = 24;          // concurrent enrichment batches
     private const int FastRecheckWindowMs = 10_000; // burst window after a device drops
     private const int FastRecheckIntervalMs = 1000; // probe cadence inside the window
+    private const int OfflineBurstPings = 5;        // immediate probes after going offline
+    private const int OfflineBurstIntervalMs = 500;
     private const int ThreadPoolHeadroom = 16;      // extra pool threads beyond the workers
     private const int MaxPoolMinimum = 1024;
 
@@ -281,11 +283,13 @@ public sealed class ScanEngine
                 {
                     if (cfg.PingIntervalMs > 0) InterruptibleSleep(cfg.PingIntervalMs, ct);
                     if (ct.IsCancellationRequested) break;
+                    bool wasOnline = device.IsOnline;
                     var ar = Ping(device.Ip);
                     device.RecordPing(ar);
                     if (ar.Success) Progress.AddSuccess(); else Progress.AddFailed();
                     Progress.NotifyChanged();
                     DeviceUpdated?.Invoke(device);
+                    if (wasOnline && !device.IsOnline) OfflineBurst(device, ct);
                 }
             }, ct).ConfigureAwait(false);
         }
@@ -298,6 +302,34 @@ public sealed class ScanEngine
             if (!device.IsOnline && !ct.IsCancellationRequested)
                 analyzing.TryRemove(device.Ip, out _);
         }
+    }
+
+    private readonly ConcurrentDictionary<string, byte> _bursting = new();
+
+    /// <summary>Right after a device drops offline, probe it a few times in
+    /// quick succession so short dropouts recover within seconds.</summary>
+    private void OfflineBurst(Device device, CancellationToken ct)
+    {
+        if (!_bursting.TryAdd(device.Ip, 0)) return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var worker = new WorkerScope(this);
+                for (int i = 0; i < OfflineBurstPings && !ct.IsCancellationRequested; i++)
+                {
+                    await Task.Delay(OfflineBurstIntervalMs, ct).ConfigureAwait(false);
+                    if (device.IsOnline) return;   // recovered by another path
+                    var r = Ping(device.Ip);
+                    device.RecordPing(r);
+                    if (r.Success) { Progress.AddSuccess(); Progress.NotifyChanged(); }
+                    DeviceUpdated?.Invoke(device);
+                    if (r.Success) return;
+                }
+            }
+            catch (OperationCanceledException) { }
+            finally { _bursting.TryRemove(device.Ip, out _); }
+        }, CancellationToken.None);
     }
 
     private static async Task RunParallel(IReadOnlyList<string> items, int maxParallel,

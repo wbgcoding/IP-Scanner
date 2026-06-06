@@ -29,6 +29,33 @@ public class ScanEngineTests
     }
 
     [Fact]
+    public async Task OfflineBurst_RecoversShortDropout()
+    {
+        int calls = 0;
+        PingResult Fake(string ip, int _)
+        {
+            if (!ip.EndsWith(".1")) return new PingResult(false, null, null);
+            int n = Interlocked.Increment(ref calls);
+            // 1: discovery ok; 2-3: dropout (device goes offline); 4+: back again
+            return n is 2 or 3 ? new PingResult(false, null, null) : new PingResult(true, 1.0, 64);
+        }
+
+        var engine = new ScanEngine(Fake);
+        var cfg = new ScanConfig
+        {
+            PingCount = 3, PingIntervalMs = 0, ScanThreads = 16,
+            OfflineAfterFailedPings = 2, OfflineRecheckSeconds = 0,
+        };
+
+        await engine.ScanAsync(new[] { "10.0.0" }, cfg, CancellationToken.None);
+        var device = engine.Devices.Single(d => d.Ip == "10.0.0.1");
+        Assert.False(device.IsOnline);          // dropped at scan end
+
+        await Task.Delay(2000);                 // burst pings every 500 ms
+        Assert.True(device.IsOnline);           // burst brought it back
+    }
+
+    [Fact]
     public async Task Scan_OnlyOneHostOnline_ProducesOneOnlineDevice()
     {
         PingResult Fake(string ip, int _) =>
