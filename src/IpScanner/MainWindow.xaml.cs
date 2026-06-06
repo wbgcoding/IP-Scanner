@@ -10,12 +10,6 @@ using IpScanner.Views;
 
 namespace IpScanner;
 
-/// <summary>Selectable graph source: overall average (Ip = null) or one device.</summary>
-public sealed record GraphSource(string Label, string? Ip)
-{
-    public override string ToString() => Label;
-}
-
 public partial class MainWindow : Window
 {
     private readonly MainViewModel _vm;
@@ -567,10 +561,8 @@ public partial class MainWindow : Window
         }
     }
 
-    // ── Latency history graphs (device graph at the bottom, internet mini graph) ──
-    private readonly List<double?> _graphSamples = new();
+    // ── Latency history graphs (device graphs at the bottom, internet mini graph) ──
     private readonly List<double?> _inetSamples = new();
-    private string? _graphIp;                        // null = overall average
 
     /// <summary>Visible time window in samples (one per second).</summary>
     private int GraphWindowSeconds => Math.Clamp(_config.GraphMaxSeconds, 10, 300);
@@ -601,10 +593,10 @@ public partial class MainWindow : Window
     private void OnGraphTick()
     {
         if (!_config.GraphsEnabled) return;
-        RefreshGraphSources();
-        Sample(_graphSamples, _vm.GraphValue(_graphIp));
+        _vm.UpdateGraphSources();
+        foreach (var g in _vm.DeviceGraphs)
+            g.AddSample(_vm.GraphValue(g.SelectedSource?.Ip), GraphWindowSeconds, TickIntervalSeconds());
         Sample(_inetSamples, _vm.InternetGraphValue());
-        RenderGraph();
         RenderInternetGraph();
         if (_config.NetworkGraphsEnabled)
             foreach (var net in _vm.Networks)
@@ -617,43 +609,15 @@ public partial class MainWindow : Window
         while (series.Count > GraphWindowSeconds) series.RemoveAt(0);
     }
 
-    /// <summary>Keep the source dropdown in sync with the device list.
-    /// Labels show the hostname when known, otherwise the IP.</summary>
-    private void RefreshGraphSources()
+    private void OnAddDeviceGraph(object sender, RoutedEventArgs e) => _vm.AddDeviceGraph();
+
+    private void OnRemoveDeviceGraph(object sender, RoutedEventArgs e)
     {
-        if (GraphSourceBox.IsDropDownOpen) return;   // don't yank an open list
-        var items = new List<GraphSource> { new(Loc.AllDevices, null) };
-        items.AddRange(_vm.Devices.Select(d =>
-            new GraphSource(d.Hostname != "—" ? d.Hostname : d.Ip, d.Ip)));
-        if (GraphSourceBox.ItemsSource is List<GraphSource> cur &&
-            cur.Count == items.Count && cur.Zip(items).All(p => p.First == p.Second)) return;
-        GraphSourceBox.ItemsSource = items;
-        int idx = items.FindIndex(i => i.Ip == _graphIp);
-        GraphSourceBox.SelectedIndex = idx >= 0 ? idx : 0;
+        if ((sender as FrameworkElement)?.DataContext is DeviceGraphViewModel g)
+            _vm.RemoveDeviceGraph(g);
     }
 
-    private void OnGraphSourceChanged(object sender, SelectionChangedEventArgs e)
-    {
-        var ip = (GraphSourceBox.SelectedItem as GraphSource)?.Ip;
-        if (ip == _graphIp) return;
-        _graphIp = ip;
-        _graphSamples.Clear();   // fresh line for the new source
-        RenderGraph();
-    }
-
-    private void OnGraphSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        RenderGraph();
-        RenderInternetGraph();
-    }
-
-    private void RenderGraph()
-    {
-        RenderSeries(_graphSamples, GraphCanvas, GraphLine, GraphMaxText, GraphMinText);
-        var last = _graphSamples.Count > 0 ? _graphSamples[^1] : null;
-        GraphValueText.Text = Core.NumberFormat.Ms(last);
-        GraphValueText.Foreground = BrushFor(Core.Palette.Heat(last));
-    }
+    private void OnGraphSizeChanged(object sender, SizeChangedEventArgs e) => RenderInternetGraph();
 
     private void RenderInternetGraph()
         => RenderSeries(_inetSamples, InetGraphCanvas, InetGraphLine, InetGraphMaxText, InetGraphMinText);
@@ -753,7 +717,7 @@ public partial class MainWindow : Window
         };
         if (DirOf(ConfDirBox.Text.Length > 0 ? ConfDirBox.Text : ".") is { } dir)
             dlg.InitialDirectory = dir;
-        if (dlg.ShowDialog(this) == true) ConfDirBox.Text = dlg.FileName;
+        if (dlg.ShowDialog(this) == true) ConfDirBox.Text = MakeRelative(dlg.FileName);
     }
 
     private void OnConfDirChanged(object sender, TextChangedEventArgs e)
@@ -870,6 +834,23 @@ public partial class MainWindow : Window
         ApplyBarColors();
         ApplyDefaultPingCount();
         ApplyGraphSettings();
+    }
+
+    /// <summary>Paths inside the working directory become "./" relative paths.</summary>
+    private static string MakeRelative(string path)
+    {
+        try
+        {
+            var full = Path.GetFullPath(path);
+            var baseDir = Path.GetFullPath(".").TrimEnd(Path.DirectorySeparatorChar);
+            if (string.Equals(full.TrimEnd(Path.DirectorySeparatorChar), baseDir,
+                              StringComparison.OrdinalIgnoreCase))
+                return "./";
+            if (full.StartsWith(baseDir + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                return "./" + Path.GetRelativePath(baseDir, full).Replace('\\', '/');
+            return path;
+        }
+        catch { return path; }
     }
 
     /// <summary>Existing directory of a (possibly relative) path, or null.</summary>
@@ -1024,8 +1005,7 @@ public partial class MainWindow : Window
         }
         finally { _loadingSettings = false; }
         UpdateScanButton();
-        GraphSourceBox.ItemsSource = null;   // forces relabel ("all devices" entry)
-        RefreshGraphSources();
+        _vm.UpdateGraphSources();            // relabels the "all devices" entry
         _vm.RefreshAllRows();                // ONLINE/OFFLINE status texts
     }
 
@@ -1145,7 +1125,7 @@ public partial class MainWindow : Window
         {
             Subnets = _subnetChips.Entries.Select(en => en.ToString()).ToList(),
             PinnedIps = _pinnedChips.Entries.Select(en => en.ToString()).ToList(),
-            ConfigDirectory = ConfDirFromInput(ConfDirBox.Text),
+            ConfigDirectory = MakeRelative(ConfDirFromInput(ConfDirBox.Text)),
             GraphsEnabled = GraphsEnabledBox.IsChecked == true,
             NetworkGraphsEnabled = NetworkGraphsBox.IsChecked == true,
             GraphMaxSeconds = Math.Clamp(I(GraphMaxBox.Text, 300), 10, 300),
@@ -1160,8 +1140,9 @@ public partial class MainWindow : Window
             EnableInternetPing = EnableInternetBox.IsChecked == true,
             InternetTimeoutMs = Math.Clamp(I(InternetTimeoutBox.Text, 1000), 100, 10_000),
             InternetHosts = _hostChips.Entries.Select(en => en.ToString()).ToList(),
-            OutputDirectory = OutputDirBox.Text.Trim(),
-            DatabasePath = DbPathBox.Text.Trim().Length > 0 ? DbPathBox.Text.Trim() : ScanConfig.DefaultDatabasePath,
+            OutputDirectory = MakeRelative(OutputDirBox.Text.Trim()),
+            DatabasePath = DbPathBox.Text.Trim().Length > 0
+                ? MakeRelative(DbPathBox.Text.Trim()) : ScanConfig.DefaultDatabasePath,
             FileOutput = FileOutputBox.IsChecked == true,
             ExportCsv = ExportCsvBox.IsChecked == true,
             KnownDevicesDb = KnownDbBox.IsChecked == true,
@@ -1177,7 +1158,7 @@ public partial class MainWindow : Window
     {
         var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.OutputDir };
         if (DirOf(OutputDirBox.Text) is { } dir) dlg.InitialDirectory = dir;
-        if (dlg.ShowDialog(this) == true) OutputDirBox.Text = dlg.FolderName;
+        if (dlg.ShowDialog(this) == true) OutputDirBox.Text = MakeRelative(dlg.FolderName);
     }
 
     private void OnClearDb(object sender, RoutedEventArgs e)
@@ -1198,7 +1179,7 @@ public partial class MainWindow : Window
             OverwritePrompt = false,    // existing db is opened, not replaced
         };
         if (DirOf(DbPathBox.Text) is { } dir) dlg.InitialDirectory = dir;
-        if (dlg.ShowDialog(this) == true) DbPathBox.Text = dlg.FileName;
+        if (dlg.ShowDialog(this) == true) DbPathBox.Text = MakeRelative(dlg.FileName);
     }
 
     // Extract a CIDR number from the dropdown text ("/24", "24", "/16" ...).

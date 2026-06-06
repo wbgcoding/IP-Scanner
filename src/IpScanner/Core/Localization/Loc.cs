@@ -44,6 +44,10 @@ public static class Loc
     public static string TipResetValue => S("Zurück zum automatischen Wert", "Back to the automatic value");
     public static string AllDevices => S("Alle Geräte", "All devices");
     public static string LatencyHistory => S("LATENZ-VERLAUF", "LATENCY HISTORY");
+    public static string TipAddGraph => S(
+        "Weiteren Graphen für ein anderes Gerät hinzufügen (max. 10)",
+        "Add another graph for a different device (max. 10)");
+    public static string TipRemoveGraph => S("Graphen entfernen", "Remove graph");
     public static string TipGraphSource => S(
         "Quelle des Graphen: Gesamtdurchschnitt oder ein einzelnes Gerät.",
         "Graph source: overall average or a single device.");

@@ -42,6 +42,7 @@ public sealed class MainViewModel : ObservableObject
         _detectNetwork = detectNetwork;
         _dispatch = dispatch;
         _enrichers = enrichers;
+        DeviceGraphs.Add(new DeviceGraphViewModel());
     }
 
     public ObservableCollection<DeviceViewModel> Devices { get; } = new();
@@ -56,6 +57,47 @@ public sealed class MainViewModel : ObservableObject
     {
         get => _isScanning;
         private set { if (_isScanning != value) { _isScanning = value; Raise(nameof(IsScanning)); } }
+    }
+
+    // ── Device latency graphs (sidebar bottom, up to MaxDeviceGraphs) ──
+    public const int MaxDeviceGraphs = 10;
+    public ObservableCollection<GraphSource> GraphSources { get; } = new();
+    public ObservableCollection<DeviceGraphViewModel> DeviceGraphs { get; } = new();
+    public bool CanAddGraph => DeviceGraphs.Count < MaxDeviceGraphs;
+    public bool CanRemoveGraph => DeviceGraphs.Count > 1;
+
+    public void AddDeviceGraph()
+    {
+        if (!CanAddGraph) return;
+        DeviceGraphs.Add(new DeviceGraphViewModel { SelectedSource = GraphSources.FirstOrDefault() });
+        Raise(nameof(CanAddGraph)); Raise(nameof(CanRemoveGraph));
+    }
+
+    public void RemoveDeviceGraph(DeviceGraphViewModel graph)
+    {
+        if (!CanRemoveGraph) return;
+        DeviceGraphs.Remove(graph);
+        Raise(nameof(CanAddGraph)); Raise(nameof(CanRemoveGraph));
+    }
+
+    /// <summary>Sync the source dropdown entries with the device list
+    /// (labels show the hostname when known, otherwise the IP).</summary>
+    public void UpdateGraphSources()
+    {
+        if (GraphSources.Count == 0) GraphSources.Add(new GraphSource(Loc.AllDevices, null));
+        GraphSources[0].Label = Loc.AllDevices;
+        var byIp = new Dictionary<string, GraphSource>();
+        for (int i = 1; i < GraphSources.Count; i++) byIp[GraphSources[i].Ip!] = GraphSources[i];
+        lock (_byIpLock)
+        {
+            foreach (var vm in Devices)
+            {
+                var label = vm.Hostname != "—" ? vm.Hostname : vm.Ip;
+                if (byIp.TryGetValue(vm.Ip, out var src)) src.Label = label;
+                else GraphSources.Add(new GraphSource(label, vm.Ip));
+            }
+        }
+        foreach (var g in DeviceGraphs) g.SelectedSource ??= GraphSources[0];
     }
 
     private bool _networkGraphsOn = true;
@@ -243,6 +285,10 @@ public sealed class MainViewModel : ObservableObject
         _dispatch(() =>
         {
             lock (_byIpLock) { Devices.Clear(); _byIp.Clear(); }
+            // Device sources from the previous run are gone — keep only "all".
+            while (GraphSources.Count > 1) GraphSources.RemoveAt(GraphSources.Count - 1);
+            foreach (var g in DeviceGraphs)
+                if (g.SelectedSource?.Ip is not null) g.SelectedSource = GraphSources.FirstOrDefault();
             Networks.Clear();
             for (int i = 0; i < prefixes.Count; i++)
             {

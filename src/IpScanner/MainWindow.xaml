@@ -453,24 +453,49 @@
                         <!-- Latency history graph (overall average or one device) -->
                         <Border x:Name="GraphSection" Padding="13,12" BorderBrush="{StaticResource Surface}" BorderThickness="0,1,0,0">
                             <StackPanel>
-                                <DockPanel>
-                                    <TextBlock Text="{loc:L LatencyHistory}" Foreground="{StaticResource Subtext}"
-                                               FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="GraphValueText" DockPanel.Dock="Right" FontSize="10" FontWeight="SemiBold"
-                                               VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                                    <ComboBox x:Name="GraphSourceBox" DockPanel.Dock="Right" MinWidth="104" Height="22"
-                                              FontSize="10" Margin="8,0" SelectionChanged="OnGraphSourceChanged"
-                                              ToolTip="{loc:L TipGraphSource}"/>
-                                </DockPanel>
-                                <Canvas x:Name="GraphCanvas" Height="64" Margin="0,9,0,0" ClipToBounds="True"
-                                        SizeChanged="OnGraphSizeChanged">
-                                    <Polyline x:Name="GraphLine" Stroke="{StaticResource Green}" StrokeThickness="1.5"
-                                              StrokeLineJoin="Round"/>
-                                    <TextBlock x:Name="GraphMaxText" Canvas.Left="4" Canvas.Top="1" FontSize="9"
-                                               Foreground="{StaticResource MidGray}"/>
-                                    <TextBlock x:Name="GraphMinText" Canvas.Left="4" Canvas.Bottom="0" FontSize="9"
-                                               Foreground="{StaticResource MidGray}"/>
-                                </Canvas>
+                                <TextBlock Text="{loc:L LatencyHistory}" Foreground="{StaticResource Subtext}"
+                                           FontSize="10" FontWeight="Bold"/>
+                                <ItemsControl ItemsSource="{Binding DeviceGraphs}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,9,0,0">
+                                                <DockPanel>
+                                                    <Button Content="✕" DockPanel.Dock="Right" FontSize="10" Padding="6,1"
+                                                            Style="{StaticResource GhostButton}" Click="OnRemoveDeviceGraph"
+                                                            ToolTip="{loc:L TipRemoveGraph}" VerticalAlignment="Center"
+                                                            Visibility="{Binding DataContext.CanRemoveGraph, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
+                                                    <TextBlock Text="{Binding ValueText}" Foreground="{Binding ValueColor}" DockPanel.Dock="Right"
+                                                               FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0"/>
+                                                    <ComboBox ItemsSource="{Binding DataContext.GraphSources, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              SelectedItem="{Binding SelectedSource}" MinWidth="104" Height="22"
+                                                              FontSize="10" ToolTip="{loc:L TipGraphSource}"/>
+                                                </DockPanel>
+                                                <Canvas Width="272" Height="64" Margin="0,7,0,0" ClipToBounds="True" HorizontalAlignment="Left">
+                                                    <Polyline Points="{Binding GraphPoints}" Stroke="{StaticResource Green}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                                    <TextBlock Text="{Binding GraphMaxText}" Canvas.Left="4" Canvas.Top="1" FontSize="9" Foreground="{StaticResource MidGray}"/>
+                                                    <TextBlock Text="{Binding GraphMinText}" Canvas.Left="4" Canvas.Bottom="0" FontSize="9" Foreground="{StaticResource MidGray}"/>
+                                                    <ItemsControl ItemsSource="{Binding GraphTicks}" Width="272" Height="64" Canvas.Left="0" Canvas.Top="0">
+                                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemContainerStyle>
+                                                            <Style TargetType="ContentPresenter">
+                                                                <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                                                <Setter Property="Canvas.Bottom" Value="0"/>
+                                                            </Style>
+                                                        </ItemsControl.ItemContainerStyle>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding Label}" FontSize="8" Foreground="{StaticResource MidGray}" Width="28" TextAlignment="Center"/>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </Canvas>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Content="+" HorizontalAlignment="Right" FontSize="13" Padding="10,2" Margin="0,8,0,0"
+                                        Style="{StaticResource GhostButton}" Click="OnAddDeviceGraph"
+                                        ToolTip="{loc:L TipAddGraph}" IsEnabled="{Binding CanAddGraph}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
