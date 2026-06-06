@@ -48,12 +48,12 @@ public sealed class ScanConfig
     public string ColorSkipped { get; set; } = Palette.MidGray;
 
     public const int InfinitePingCount = -1;
-    public const string DefaultDatabasePath = "./scanner.db";
+    public const string DefaultDatabasePath = @".\scanner.db";
     public const string DefaultDatabaseFileName = "scanner.db";
     public const string ConfigFileName = "ip_scanner.conf";
     public const string OverridesFileName = "overrides.conf";
-    public const string DefaultOutputDirectory = "./Scans";
-    public const string DefaultConfigDirectory = "./";
+    public const string DefaultOutputDirectory = @".\Scans";
+    public const string DefaultConfigDirectory = @".\";
 
     /// <summary>Copy with a different ping count (lists shared, read-only use).</summary>
     public ScanConfig CloneWith(int pingCount) => new()

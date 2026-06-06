@@ -144,7 +144,7 @@ public static class ConfigManager
         sb.AppendLine();
 
         sb.AppendLine("# -- Ausgabe -------------------------------------------------");
-        sb.AppendLine("# output_directory  Speicherort der Berichte. Standard ./Scans");
+        sb.AppendLine(@"# output_directory  Speicherort der Berichte. Standard .\Scans");
         sb.AppendLine($"output_directory = {c.OutputDirectory}");
         sb.AppendLine("# file_output  TXT-Bericht nach jedem Scan schreiben. Standard false.");
         sb.AppendLine($"file_output = {B(c.FileOutput)}");
@@ -155,9 +155,9 @@ public static class ConfigManager
         sb.AppendLine("# -- Datenbank -----------------------------------------------");
         sb.AppendLine("# known_devices_db  Gerate je Netz in der Datenbank merken. Standard true.");
         sb.AppendLine($"known_devices_db = {B(c.KnownDevicesDb)}");
-        sb.AppendLine("# database_path  Pfad der Datenbankdatei. Standard ./scanner.db");
+        sb.AppendLine(@"# database_path  Pfad der Datenbankdatei. Standard .\scanner.db");
         sb.AppendLine($"database_path = {c.DatabasePath}");
-        sb.AppendLine("# config_directory  Ordner dieser Konfigurationsdatei. Standard ./ (neben der Programmdatei).");
+        sb.AppendLine(@"# config_directory  Ordner dieser Konfigurationsdatei. Standard .\ (neben der Programmdatei).");
         sb.AppendLine($"config_directory = {c.ConfigDirectory}");
         sb.AppendLine();
 

@@ -836,7 +836,7 @@ public partial class MainWindow : Window
         ApplyGraphSettings();
     }
 
-    /// <summary>Paths inside the working directory become "./" relative paths.</summary>
+    /// <summary>Paths inside the working directory become ".\" relative paths.</summary>
     private static string MakeRelative(string path)
     {
         try
@@ -845,9 +845,9 @@ public partial class MainWindow : Window
             var baseDir = Path.GetFullPath(".").TrimEnd(Path.DirectorySeparatorChar);
             if (string.Equals(full.TrimEnd(Path.DirectorySeparatorChar), baseDir,
                               StringComparison.OrdinalIgnoreCase))
-                return "./";
+                return @".\";
             if (full.StartsWith(baseDir + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-                return "./" + Path.GetRelativePath(baseDir, full).Replace('\\', '/');
+                return @".\" + Path.GetRelativePath(baseDir, full);
             return path;
         }
         catch { return path; }
