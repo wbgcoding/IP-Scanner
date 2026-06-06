@@ -924,6 +924,10 @@ public partial class MainWindow : Window
                     cfg = ConfigManager.Load(custom);
                 }
             }
+            // Normalize to Windows-style relative paths (older confs used "./").
+            cfg.DatabasePath = MakeRelative(cfg.DatabasePath);
+            cfg.OutputDirectory = MakeRelative(cfg.OutputDirectory);
+            cfg.ConfigDirectory = MakeRelative(cfg.ConfigDirectory);
             return cfg;
         }
         catch { return new ScanConfig(); }
@@ -1057,11 +1061,11 @@ public partial class MainWindow : Window
         EnableInternetBox.IsChecked = c.EnableInternetPing;
         InternetTimeoutBox.Text = c.InternetTimeoutMs.ToString();
         _hostChips.Load(c.InternetHosts);
-        OutputDirBox.Text = c.OutputDirectory;
-        DbPathBox.Text = c.DatabasePath;
-        ConfDirBox.Text = Path.Combine(
+        OutputDirBox.Text = MakeRelative(c.OutputDirectory);
+        DbPathBox.Text = MakeRelative(c.DatabasePath);
+        ConfDirBox.Text = MakeRelative(Path.Combine(
             c.ConfigDirectory.Length > 0 ? c.ConfigDirectory : ScanConfig.DefaultConfigDirectory,
-            ScanConfig.ConfigFileName);
+            ScanConfig.ConfigFileName));
         FileOutputBox.IsChecked = c.FileOutput;
         ExportCsvBox.IsChecked = c.ExportCsv;
         KnownDbBox.IsChecked = c.KnownDevicesDb;

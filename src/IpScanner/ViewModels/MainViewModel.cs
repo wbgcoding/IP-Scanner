@@ -80,8 +80,9 @@ public sealed class MainViewModel : ObservableObject
         Raise(nameof(CanAddGraph)); Raise(nameof(CanRemoveGraph));
     }
 
-    /// <summary>Sync the source dropdown entries with the device list
-    /// (labels show the hostname when known, otherwise the IP).</summary>
+    /// <summary>Sync the source dropdown with the device list: pinned devices
+    /// first, then IP order (mirrors the table). Instances are kept stable so
+    /// open dropdowns and selections survive label or position updates.</summary>
     public void UpdateGraphSources()
     {
         if (GraphSources.Count == 0) GraphSources.Add(new GraphSource(Loc.AllDevices, null));
@@ -90,11 +91,22 @@ public sealed class MainViewModel : ObservableObject
         for (int i = 1; i < GraphSources.Count; i++) byIp[GraphSources[i].Ip!] = GraphSources[i];
         lock (_byIpLock)
         {
+            int target = 1;   // walks the sorted Devices order
             foreach (var vm in Devices)
             {
                 var label = vm.Hostname != "—" ? vm.Hostname : vm.Ip;
-                if (byIp.TryGetValue(vm.Ip, out var src)) src.Label = label;
-                else GraphSources.Add(new GraphSource(label, vm.Ip));
+                if (byIp.TryGetValue(vm.Ip, out var src))
+                {
+                    src.Label = label;
+                    int current = GraphSources.IndexOf(src);
+                    if (current != target && target < GraphSources.Count)
+                        GraphSources.Move(current, target);
+                }
+                else
+                {
+                    GraphSources.Insert(Math.Min(target, GraphSources.Count), new GraphSource(label, vm.Ip));
+                }
+                target++;
             }
         }
         foreach (var g in DeviceGraphs) g.SelectedSource ??= GraphSources[0];

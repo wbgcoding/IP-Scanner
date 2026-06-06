@@ -495,7 +495,8 @@
                                 </ItemsControl>
                                 <Button Content="+" HorizontalAlignment="Right" FontSize="13" Padding="10,2" Margin="0,8,0,0"
                                         Style="{StaticResource GhostButton}" Click="OnAddDeviceGraph"
-                                        ToolTip="{loc:L TipAddGraph}" IsEnabled="{Binding CanAddGraph}"/>
+                                        ToolTip="{loc:L TipAddGraph}"
+                                        Visibility="{Binding CanAddGraph, Converter={StaticResource BoolToVis}}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
