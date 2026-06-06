@@ -148,24 +148,22 @@
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <!-- Pin icon: hover turns red X, click unpins -->
-                                    <TextBlock Foreground="{Binding IpColor}" FontWeight="SemiBold"
-                                               Cursor="Hand" ToolTip="{x:Static loc:Loc.TipUnpinIp}"
+                                    <TextBlock FontWeight="SemiBold" Cursor="Hand"
+                                               ToolTip="{x:Static loc:Loc.TipUnpinIp}"
                                                MouseLeftButtonDown="OnPinIconClick">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                 <Setter Property="Text" Value="📌 "/>
+                                                <Setter Property="Foreground" Value="{Binding IpColor}"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsPinned}" Value="True">
                                                         <Setter Property="Visibility" Value="Visible"/>
                                                     </DataTrigger>
-                                                    <MultiTrigger>
-                                                        <MultiTrigger.Conditions>
-                                                            <Condition Property="IsMouseOver" Value="True"/>
-                                                        </MultiTrigger.Conditions>
+                                                    <Trigger Property="IsMouseOver" Value="True">
                                                         <Setter Property="Text" Value="✕  "/>
                                                         <Setter Property="Foreground" Value="{StaticResource Red}"/>
-                                                    </MultiTrigger>
+                                                    </Trigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </TextBlock.Style>
