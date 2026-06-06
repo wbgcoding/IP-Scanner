@@ -56,7 +56,6 @@ public static class Loc
     public static string TipUnpinIp => S(
         "Klick entfernt den Pin.",
         "Click to remove the pin.");
-    public static string ConfirmUnpin => S("Pin wirklich entfernen?", "Remove pin?");
     public static string ConfDirLabel => S("Speicherort der Konfigurationsdatei", "Configuration file location");
     public static string TipConfDir => S(
         "Ordner, in dem ip_scanner.conf gespeichert wird. Leer = neben der Datenbank.",
@@ -76,11 +75,6 @@ public static class Loc
     public static string TipGraphMaxTime => S(
         "Sichtbare Zeitspanne der Graphen in Sekunden (10–300).",
         "Visible time span of the graphs in seconds (10–300).");
-    public static string TimeWindow(string span) => German ? $"letzte {span}" : $"last {span}";
-    public static string ConfLocation => S("Speicherort …", "Location …");
-    public static string TipConfLocation => S(
-        "Ordner wählen, in dem die ip_scanner.conf gespeichert wird (leer = neben der Datenbank).",
-        "Choose the folder where ip_scanner.conf is stored (empty = next to the database).");
     public static string ExampleSubnets => "192.168.2.0/24";
     public static string ExamplePinnedIp => "192.168.2.10";
     public static string ExampleHostIp => "8.8.8.8";
@@ -237,8 +231,8 @@ public static class Loc
         "ICMP-Timeout für die Internet-Host-Pings in Millisekunden. Standard 1000.",
         "ICMP timeout for the internet host pings in milliseconds. Default 1000.");
     public static string TipLanguage => S(
-        "Sprache der Oberfläche. Automatisch folgt der Systemsprache (Englisch als Fallback). Wechsel startet das Programm neu.",
-        "UI language. Automatic follows the system language (English fallback). Changing it restarts the app.");
+        "Sprache der Oberfläche. Automatisch folgt der Systemsprache (Englisch als Fallback).",
+        "UI language. Automatic follows the system language (English fallback).");
     public static string TipDbFile => S(
         "Pfad der Known-Devices-Datenbank. Liegt standardmäßig im Scans-Ordner.",
         "Path of the known-devices database. Lives in the scans folder by default.");

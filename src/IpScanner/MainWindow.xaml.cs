@@ -105,13 +105,13 @@ public partial class MainWindow : Window
 
         _spinSpeed += (_spinTarget - _spinSpeed) * Math.Min(1.0, dt * 2.5);   // ~1s ramp
 
-        // Stopping: glide the rest of the turn so the logo always comes to
-        // rest in its starting position instead of freezing mid-rotation.
+        // Stopping: ease back to the rest position via the shortest direction.
         if (_spinTarget == 0 && Math.Abs(_spinSpeed) < 3)
         {
-            double remaining = (360 - _spinAngle) % 360;
-            double step = Math.Clamp(remaining * 1.5, 12, 120) * dt;   // ease-out
-            if (step >= remaining)
+            double remaining = _spinAngle <= 180 ? -_spinAngle : 360 - _spinAngle;
+            double dist = Math.Abs(remaining);
+            double step = Math.Clamp(dist * 1.5, 8, 90) * dt;
+            if (step >= dist)
             {
                 _spinAngle = 0;
                 _spinSpeed = 0;
@@ -119,7 +119,7 @@ public partial class MainWindow : Window
                 LogoGlow.Opacity = 0;
                 return;
             }
-            _spinAngle += step;
+            _spinAngle = (_spinAngle + Math.Sign(remaining) * step + 360) % 360;
             _logoSpin.Angle = _spinAngle;
             LogoGlow.Opacity = 0;
             return;
@@ -596,11 +596,18 @@ public partial class MainWindow : Window
         InetGraphSection.Visibility = vis;
     }
 
+    private System.Windows.Threading.DispatcherTimer? _graphTimer;
+
     private void InitGraph()
     {
-        var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-        timer.Tick += (_, _) => OnGraphTick();
-        timer.Start();
+        _graphTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _graphTimer.Tick += (_, _) => OnGraphTick();
+        _graphTimer.Start();
+        Closed += (_, _) =>
+        {
+            _graphTimer.Stop();
+            System.Windows.Media.CompositionTarget.Rendering -= OnSpinTick;
+        };
     }
 
     private void OnGraphTick()
@@ -1026,11 +1033,25 @@ public partial class MainWindow : Window
         var mode = LanguageModes[LanguageBox.SelectedIndex];
         if (mode == _config.Language) return;
         _config.Language = mode;
+        Loc.SetLanguage(mode);
         PersistConfig();
-        // x:Static strings are cached — restart so the new language shows everywhere.
-        if (Environment.ProcessPath is { } exe)
-            System.Diagnostics.Process.Start(exe);
-        Application.Current.Shutdown();
+        LocSource.Instance.Refresh();   // re-evaluates all {loc:L} bindings
+        RefreshDynamicTexts();
+    }
+
+    /// <summary>Re-applies texts that are set from code (not via bindings).</summary>
+    private void RefreshDynamicTexts()
+    {
+        _loadingSettings = true;
+        try
+        {
+            LoadSettings(_config);   // language combo items, chip tooltips
+        }
+        finally { _loadingSettings = false; }
+        UpdateScanButton();
+        GraphSourceBox.ItemsSource = null;   // forces relabel ("all devices" entry)
+        RefreshGraphSources();
+        _vm.RefreshAllRows();                // ONLINE/OFFLINE status texts
     }
 
     private void OnExportConf(object sender, RoutedEventArgs e)
@@ -1155,8 +1176,8 @@ public partial class MainWindow : Window
             PingIntervalMs = I(IntervalBox.Text, 100),
             OfflineAfterFailedPings = I(OfflineAfterBox.Text, 5),
             InitPingCount = I(InitPingCountBox.Text, 1),
-            StartupPingCount = Math.Clamp(I(StartupPingsBox.Text, 5), 0, 10_000),
-            OfflineRecheckSeconds = Math.Clamp(I(OfflineRecheckBox.Text, 2), 0, 3600),
+            StartupPingCount = Math.Clamp(I(StartupPingsBox.Text, 10), 0, 10_000),
+            OfflineRecheckSeconds = Math.Clamp(I(OfflineRecheckBox.Text, 5), 0, 3600),
             EnableInternetPing = EnableInternetBox.IsChecked == true,
             InternetTimeoutMs = Math.Clamp(I(InternetTimeoutBox.Text, 1000), 100, 10_000),
             InternetHosts = _hostChips.Entries.Select(en => en.ToString()).ToList(),

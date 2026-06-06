@@ -501,6 +501,9 @@ public sealed class MainViewModel : ObservableObject
         Devices.Insert(i, vm);
     }
 
+    /// <summary>Re-raise all row properties (e.g. after a language change).</summary>
+    public void RefreshAllRows() => RefreshAll();
+
     private void RefreshAll()
     {
         lock (_byIpLock)

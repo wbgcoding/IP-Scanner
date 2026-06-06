@@ -10,9 +10,9 @@ public sealed class ScanConfig
     public int OfflineAfterFailedPings { get; set; } = 5;
     public int InitPingCount { get; set; } = 1;
     /// <summary>Ping count for the automatic sweep right after the app starts.</summary>
-    public int StartupPingCount { get; set; } = 5;
+    public int StartupPingCount { get; set; } = 10;
     /// <summary>Recheck offline IPs every N seconds during a run (0 = off).</summary>
-    public int OfflineRecheckSeconds { get; set; } = 2;
+    public int OfflineRecheckSeconds { get; set; } = 5;
     public bool EnableInternetPing { get; set; } = true;
     /// <summary>ICMP timeout for the internet host pings (ms).</summary>
     public int InternetTimeoutMs { get; set; } = 1000;

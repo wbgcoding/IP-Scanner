@@ -4,7 +4,7 @@
         xmlns:ctrl="clr-namespace:IpScanner.Views.Controls"
         xmlns:loc="clr-namespace:IpScanner.Core.Localization"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        Title="{x:Static loc:Loc.AppTitle}" Height="720" Width="1320" MinWidth="700" MinHeight="480"
+        Title="{loc:L AppTitle}" Height="720" Width="1320" MinWidth="700" MinHeight="480"
         Icon="Resources/network.ico" Background="{StaticResource Bg}"
         WindowStartupLocation="Manual" PreviewMouseDown="OnWindowPreviewMouseDown">
     <Grid x:Name="RootLayout">
@@ -24,7 +24,7 @@
 
                 <!-- Title + logo -->
                 <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
-                    <TextBlock Text="{x:Static loc:Loc.AppTitle}" Foreground="{StaticResource Mauve}"
+                    <TextBlock Text="{loc:L AppTitle}" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="16" HorizontalAlignment="Center"/>
                     <Grid Width="42" Height="42" Margin="0,5,0,0" HorizontalAlignment="Center">
                         <Image x:Name="LogoImage" Source="/Resources/logo.png"
@@ -46,7 +46,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{x:Static loc:Loc.Devices}" Foreground="{StaticResource Subtext}" FontSize="11"
+                        <TextBlock Text="{loc:L Devices}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <ctrl:SegmentedProgressBar x:Name="DevBar" Grid.Column="1" Height="13"
                             Track="{StaticResource Surface}"
@@ -67,7 +67,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{x:Static loc:Loc.Pings}" Foreground="{StaticResource Subtext}" FontSize="11"
+                        <TextBlock Text="{loc:L Pings}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
                         <ctrl:SegmentedProgressBar x:Name="PingBar" Grid.Column="1" Height="13"
                             Track="{StaticResource Surface}"
@@ -94,26 +94,26 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,6">
                         <TextBox x:Name="SubnetBox" Width="160" Height="30" Margin="0,0,6,0" VerticalAlignment="Center"
                                  Foreground="{StaticResource Text}" FontSize="12" VerticalContentAlignment="Center" Padding="8,0"
-                                 KeyDown="OnSubnetKeyDown" ToolTip="{x:Static loc:Loc.SubnetTooltip}"/>
+                                 KeyDown="OnSubnetKeyDown" ToolTip="{loc:L SubnetTooltip}"/>
                         <ComboBox x:Name="CidrBox" Width="80" Height="30" SelectedIndex="0" IsEditable="True"
-                                  VerticalAlignment="Center" ToolTip="{x:Static loc:Loc.MaskTooltip}">
+                                  VerticalAlignment="Center" ToolTip="{loc:L MaskTooltip}">
                             <sys:String>/24</sys:String>
                             <sys:String>/16</sys:String>
                             <sys:String>/8</sys:String>
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <TextBlock Text="{x:Static loc:Loc.PingsLabel}" Foreground="{StaticResource Subtext}" FontSize="11"
+                        <TextBlock Text="{loc:L PingsLabel}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    VerticalAlignment="Center" Margin="0,0,4,0"/>
                         <ComboBox x:Name="PingCountBox" Width="80" Margin="0,0,6,0" SelectedIndex="0" IsEditable="True">
                             <sys:String>10</sys:String><sys:String>100</sys:String>
                             <sys:String>1000</sys:String><sys:String>10000</sys:String>
                             <sys:String>100000</sys:String><sys:String>∞</sys:String>
                         </ComboBox>
-                        <Button x:Name="ScanStopButton" Content="{x:Static loc:Loc.Scan}" Click="OnScanStopClick"
+                        <Button x:Name="ScanStopButton" Content="{loc:L Scan}" Click="OnScanStopClick"
                                 Style="{StaticResource AccentButton}" MinWidth="86"/>
                         <Button x:Name="SettingsButton" Click="OnSettingsClick" Style="{StaticResource IconButton}"
-                                ToolTip="{x:Static loc:Loc.Settings}">
+                                ToolTip="{loc:L Settings}">
                             <Viewbox Width="16" Height="16">
                                 <!-- Gear (cog) vector -->
                                 <Path Fill="{StaticResource Text}" Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
@@ -143,13 +143,13 @@
                       BorderThickness="0" EnableRowVirtualization="True"
                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.IpAddress}" Width="Auto" MinWidth="132">
+                    <DataGridTemplateColumn Header="{loc:L IpAddress}" Width="Auto" MinWidth="132">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
                                     <!-- Pin icon: hover turns red X, click unpins -->
                                     <TextBlock FontWeight="SemiBold" Cursor="Hand"
-                                               ToolTip="{x:Static loc:Loc.TipUnpinIp}"
+                                               ToolTip="{loc:L TipUnpinIp}"
                                                MouseLeftButtonDown="OnPinIconClick">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
@@ -171,7 +171,7 @@
                                     <!-- IP text: click to pin (if not already pinned) -->
                                     <TextBlock Text="{Binding IpText}" Foreground="{Binding IpColor}"
                                                FontWeight="SemiBold" Cursor="Hand"
-                                               ToolTip="{x:Static loc:Loc.TipPinIp}"
+                                               ToolTip="{loc:L TipPinIp}"
                                                MouseLeftButtonDown="OnIpTextClick">
                                         <TextBlock.Style><Style TargetType="TextBlock">
                                             <Style.Triggers><DataTrigger Binding="{Binding IsPinned}" Value="True">
@@ -183,7 +183,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Status}" Width="Auto" MinWidth="84">
+                    <DataGridTemplateColumn Header="{loc:L Status}" Width="Auto" MinWidth="84">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
@@ -191,29 +191,29 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Group}" Width="Auto" MinWidth="64">
+                    <DataGridTemplateColumn Header="{loc:L Group}" Width="Auto" MinWidth="64">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid Background="Transparent" MouseLeftButtonDown="OnGroupCellClick"
-                                      ToolTip="{x:Static loc:Loc.TipEditCell}">
+                                      ToolTip="{loc:L TipEditCell}">
                                     <Border Width="14" Height="14" CornerRadius="2" HorizontalAlignment="Center"
                                             Background="{Binding GroupColor}"/>
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Hostname}" Width="*" MinWidth="110"
+                    <DataGridTemplateColumn Header="{loc:L Hostname}" Width="*" MinWidth="110"
                                             SortMemberPath="Hostname">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid Background="Transparent" MouseLeftButtonDown="OnHostnameCellClick"
-                                      ToolTip="{x:Static loc:Loc.TipEditCell}">
+                                      ToolTip="{loc:L TipEditCell}">
                                     <TextBlock Text="{Binding Hostname}" VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Avg}" Width="Auto" MinWidth="80">
+                    <DataGridTemplateColumn Header="{loc:L Avg}" Width="Auto" MinWidth="80">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -223,7 +223,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Min}" Width="Auto" MinWidth="72">
+                    <DataGridTemplateColumn Header="{loc:L Min}" Width="Auto" MinWidth="72">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -233,7 +233,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Max}" Width="Auto" MinWidth="72">
+                    <DataGridTemplateColumn Header="{loc:L Max}" Width="Auto" MinWidth="72">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -243,7 +243,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:Loc.Last}" Width="Auto" MinWidth="84">
+                    <DataGridTemplateColumn Header="{loc:L Last}" Width="Auto" MinWidth="84">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -253,9 +253,9 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="{x:Static loc:Loc.Progress}" Binding="{Binding ProgressDisplay}" Width="Auto" MinWidth="84"
+                    <DataGridTextColumn Header="{loc:L Progress}" Binding="{Binding ProgressDisplay}" Width="Auto" MinWidth="84"
                                         ElementStyle="{StaticResource CenterCell}"/>
-                    <DataGridTextColumn Header="{x:Static loc:Loc.Mac}" Binding="{Binding Mac}" Width="Auto" MinWidth="136"
+                    <DataGridTextColumn Header="{loc:L Mac}" Binding="{Binding Mac}" Width="Auto" MinWidth="136"
                                         ElementStyle="{StaticResource CenterCell}"/>
                 </DataGrid.Columns>
             </DataGrid>
@@ -267,15 +267,15 @@
                 <TextBlock Text="{Binding ThreadsText}" Foreground="{StaticResource Subtext}"
                            FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{x:Static loc:Loc.TotalRow}" Foreground="{StaticResource Mauve}"
+                    <TextBlock Text="{loc:L TotalRow}" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="11" VerticalAlignment="Center" Margin="0,0,18,0"/>
-                    <TextBlock Text="{x:Static loc:Loc.Avg}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock Text="{loc:L Avg}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding TotalAvg}" Foreground="{Binding TotalAvgColor}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="{x:Static loc:Loc.Min}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock Text="{loc:L Min}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding TotalMin}" Foreground="{Binding TotalMinColor}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="{x:Static loc:Loc.Max}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock Text="{loc:L Max}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding TotalMax}" Foreground="{Binding TotalMaxColor}" FontWeight="SemiBold" FontSize="11" Margin="5,0,16,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="{x:Static loc:Loc.Last}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock Text="{loc:L Last}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding TotalLast}" Foreground="{Binding TotalLastColor}" FontWeight="SemiBold" FontSize="11" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
                 </Grid>
@@ -302,39 +302,39 @@
                                             <StackPanel>
                                                 <!-- Rows collapse when the value wasn't detected (extra subnets). -->
                                                 <Grid Height="18" Visibility="{Binding HasIp, Converter={StaticResource BoolToVis}}">
-                                                    <TextBlock Text="{x:Static loc:Loc.OwnIp}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{loc:L OwnIp}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Ip}" Foreground="{StaticResource Text}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <Grid Height="18" Visibility="{Binding HasGateway, Converter={StaticResource BoolToVis}}">
-                                                    <TextBlock Text="{x:Static loc:Loc.Gateway}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{loc:L Gateway}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Gateway}" Foreground="{StaticResource Green}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <Grid Height="18" Visibility="{Binding HasMask, Converter={StaticResource BoolToVis}}">
-                                                    <TextBlock Text="{x:Static loc:Loc.Mask}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{loc:L Mask}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding SubnetMask}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <Grid Visibility="{Binding HasDns, Converter={StaticResource BoolToVis}}" MinHeight="18">
-                                                    <TextBlock Text="{x:Static loc:Loc.Dns}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{loc:L Dns}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Dns}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right" TextWrapping="Wrap" MaxWidth="170"/>
                                                 </Grid>
                                                 <Grid Height="18" Visibility="{Binding HasMac, Converter={StaticResource BoolToVis}}">
-                                                    <TextBlock Text="{x:Static loc:Loc.Mac}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{loc:L Mac}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Mac}" Foreground="{StaticResource MidGray}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <Grid Height="18" Visibility="{Binding HasInterface, Converter={StaticResource BoolToVis}}">
-                                                    <TextBlock Text="{x:Static loc:Loc.Interface}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{loc:L Interface}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding Interface}" Foreground="{StaticResource Text}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <Grid Height="18">
-                                                    <TextBlock Text="{x:Static loc:Loc.Online}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{loc:L Online}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding OnlineCount}" Foreground="{StaticResource Green}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <Grid Height="18">
-                                                    <TextBlock Text="{x:Static loc:Loc.Offline}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{loc:L Offline}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding OfflineCount}" Foreground="{StaticResource Subtext}" FontSize="11" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <Grid Height="18">
-                                                    <TextBlock Text="{x:Static loc:Loc.AvgLatency}" Foreground="{StaticResource Subtext}" FontSize="11"/>
+                                                    <TextBlock Text="{loc:L AvgLatency}" Foreground="{StaticResource Subtext}" FontSize="11"/>
                                                     <TextBlock Text="{Binding AvgLatency}" Foreground="{Binding AvgLatencyColor}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                                 </Grid>
                                             </StackPanel>
@@ -347,7 +347,7 @@
                         <!-- Internet latency -->
                         <Border Padding="13,12" BorderBrush="{StaticResource Surface}" BorderThickness="0,0,0,1">
                             <StackPanel>
-                                <TextBlock Text="{x:Static loc:Loc.InternetLatency}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="0,0,0,7"/>
+                                <TextBlock Text="{loc:L InternetLatency}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="0,0,0,7"/>
                                 <!-- Header row, columns match the item template below -->
                                 <Grid Margin="0,0,0,3">
                                     <Grid.ColumnDefinitions>
@@ -355,10 +355,10 @@
                                         <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="1" Text="{x:Static loc:Loc.Avg}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{x:Static loc:Loc.Min}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="3" Text="{x:Static loc:Loc.Max}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
-                                    <TextBlock Grid.Column="4" Text="{x:Static loc:Loc.Last}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{loc:L Avg}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{loc:L Min}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="3" Text="{loc:L Max}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="4" Text="{loc:L Last}" Foreground="{StaticResource MidGray}" FontSize="10" HorizontalAlignment="Center"/>
                                 </Grid>
                                 <ItemsControl ItemsSource="{Binding InternetHosts}">
                                     <ItemsControl.ItemTemplate>
@@ -385,7 +385,7 @@
                                         <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="52"/><ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{x:Static loc:Loc.TotalLabel}" Foreground="{StaticResource Mauve}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:L TotalLabel}" Foreground="{StaticResource Mauve}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding InternetTotalAvg}" Foreground="{Binding InternetTotalAvgColor}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding InternetTotalMin}" Foreground="{Binding InternetTotalMinColor}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="3" Text="{Binding InternetTotalMax}" Foreground="{Binding InternetTotalMaxColor}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -412,16 +412,16 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Button x:Name="OpenScansButton" Style="{StaticResource IconButton}" Margin="0,0,10,0"
                                             VerticalAlignment="Center" Click="OnOpenScansFolder"
-                                            ToolTip="{x:Static loc:Loc.TipOpenScans}">
+                                            ToolTip="{loc:L TipOpenScans}">
                                         <Viewbox Width="15" Height="15">
                                             <!-- Folder vector -->
                                             <Path Fill="{StaticResource Text}" Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>
                                         </Viewbox>
                                     </Button>
-                                    <ToggleButton x:Name="TxtToggle" Content="{x:Static loc:Loc.TxtExport}" Style="{StaticResource PillToggle}"
-                                                  Click="OnExportToggle" ToolTip="{x:Static loc:Loc.TipWriteTxt}"/>
-                                    <ToggleButton x:Name="CsvToggle" Content="{x:Static loc:Loc.CsvExport}" Style="{StaticResource PillToggle}"
-                                                  Click="OnExportToggle" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipExportCsv}"/>
+                                    <ToggleButton x:Name="TxtToggle" Content="{loc:L TxtExport}" Style="{StaticResource PillToggle}"
+                                                  Click="OnExportToggle" ToolTip="{loc:L TipWriteTxt}"/>
+                                    <ToggleButton x:Name="CsvToggle" Content="{loc:L CsvExport}" Style="{StaticResource PillToggle}"
+                                                  Click="OnExportToggle" Margin="10,0,0,0" ToolTip="{loc:L TipExportCsv}"/>
                                 </StackPanel>
                                 <TextBlock Text="{Binding ExportInfo}" Foreground="{StaticResource MidGray}" FontSize="10"
                                            TextWrapping="Wrap" Margin="0,9,0,0" HorizontalAlignment="Center"
@@ -433,13 +433,13 @@
                         <Border x:Name="GraphSection" Padding="13,12" BorderBrush="{StaticResource Surface}" BorderThickness="0,1,0,0">
                             <StackPanel>
                                 <DockPanel>
-                                    <TextBlock Text="{x:Static loc:Loc.LatencyHistory}" Foreground="{StaticResource Subtext}"
+                                    <TextBlock Text="{loc:L LatencyHistory}" Foreground="{StaticResource Subtext}"
                                                FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
                                     <TextBlock x:Name="GraphValueText" DockPanel.Dock="Right" FontSize="10" FontWeight="SemiBold"
                                                VerticalAlignment="Center" HorizontalAlignment="Right"/>
                                     <ComboBox x:Name="GraphSourceBox" DockPanel.Dock="Right" MinWidth="104" Height="22"
                                               FontSize="10" Margin="8,0" SelectionChanged="OnGraphSourceChanged"
-                                              ToolTip="{x:Static loc:Loc.TipGraphSource}"/>
+                                              ToolTip="{loc:L TipGraphSource}"/>
                                 </DockPanel>
                                 <Canvas x:Name="GraphCanvas" Height="64" Margin="0,9,0,0" ClipToBounds="True"
                                         SizeChanged="OnGraphSizeChanged">
@@ -468,13 +468,13 @@
                         <Border x:Name="HexPreview" Width="26" Height="26" CornerRadius="6"
                                 BorderBrush="{StaticResource Surface2}" BorderThickness="1"
                                 Background="{StaticResource Surface}" VerticalAlignment="Center"/>
-                        <Button x:Name="ApplyColorBtn" DockPanel.Dock="Right" Content="{x:Static loc:Loc.Ok}"
+                        <Button x:Name="ApplyColorBtn" DockPanel.Dock="Right" Content="{loc:L Ok}"
                                 Style="{StaticResource AccentButton}" Padding="12,5" Margin="8,0,0,0"
                                 Click="OnHexColorApply"/>
                         <Button x:Name="PickerResetBtn" DockPanel.Dock="Right" Content="✕"
                                 Style="{StaticResource GhostButton}" Padding="10,5" Margin="8,0,0,0"
                                 Click="OnPickerReset" Visibility="Collapsed"
-                                ToolTip="{x:Static loc:Loc.TipResetValue}"/>
+                                ToolTip="{loc:L TipResetValue}"/>
                         <TextBox x:Name="HexBox" Margin="8,0,0,0" VerticalAlignment="Center"
                                  FontSize="12" MaxLength="7" TextChanged="OnHexColorChanged"
                                  KeyDown="OnHexColorKeyDown"/>
@@ -491,8 +491,8 @@
                 <DockPanel>
                     <Button x:Name="CellEditResetBtn" DockPanel.Dock="Right" Content="✕"
                             Style="{StaticResource GhostButton}" Padding="10,5" Margin="6,0,0,0"
-                            Click="OnCellEditReset" ToolTip="{x:Static loc:Loc.TipResetValue}"/>
-                    <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Ok}"
+                            Click="OnCellEditReset" ToolTip="{loc:L TipResetValue}"/>
+                    <Button DockPanel.Dock="Right" Content="{loc:L Ok}"
                             Style="{StaticResource AccentButton}" Padding="12,5" Margin="8,0,0,0"
                             Click="OnCellEditOk"/>
                     <TextBox x:Name="CellEditBox" MinWidth="170" FontSize="13" VerticalAlignment="Center"
@@ -508,38 +508,38 @@
                     CornerRadius="10" Margin="40" MaxWidth="840">
                 <DockPanel Margin="22">
                     <Grid DockPanel.Dock="Top" Margin="0,0,0,14">
-                        <TextBlock Text="{x:Static loc:Loc.Settings}" Foreground="{StaticResource Mauve}" FontSize="20" FontWeight="Bold"/>
+                        <TextBlock Text="{loc:L Settings}" Foreground="{StaticResource Mauve}" FontSize="20" FontWeight="Bold"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <ComboBox x:Name="LanguageBox" Width="140" Height="32" VerticalAlignment="Center"
-                                      SelectionChanged="OnLanguageChanged" ToolTip="{x:Static loc:Loc.TipLanguage}"/>
-                            <Button Content="{x:Static loc:Loc.ResetDefaults}" Click="OnResetDefaults" Style="{StaticResource GhostButton}" Padding="14,7" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipResetDefaults}"/>
-                            <Button Content="{x:Static loc:Loc.Close}" Click="OnSettingsCancel" Style="{StaticResource AccentButton}" Padding="18,7" Margin="8,0,0,0"/>
+                                      SelectionChanged="OnLanguageChanged" ToolTip="{loc:L TipLanguage}"/>
+                            <Button Content="{loc:L ResetDefaults}" Click="OnResetDefaults" Style="{StaticResource GhostButton}" Padding="14,7" Margin="10,0,0,0" ToolTip="{loc:L TipResetDefaults}"/>
+                            <Button Content="{loc:L Close}" Click="OnSettingsCancel" Style="{StaticResource AccentButton}" Padding="18,7" Margin="8,0,0,0"/>
                         </StackPanel>
                     </Grid>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
                         <StackPanel>
                             <!-- Netzwerk -->
-                            <TextBlock Text="{x:Static loc:Loc.TabNetwork}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,0,0,8"/>
+                            <TextBlock Text="{loc:L TabNetwork}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,0,0,8"/>
                             <!-- Subnets: target + name + color -> chip per entry -->
-                            <TextBlock Text="{x:Static loc:Loc.Subnets}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipSubnets}"/>
+                            <TextBlock Text="{loc:L Subnets}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{loc:L TipSubnets}"/>
                             <DockPanel>
                                 <Button x:Name="SubnetDeleteBtn" DockPanel.Dock="Right" Content="✕" FontSize="13" Padding="10,2" Margin="6,0,0,0"
                                         Style="{StaticResource GhostButton}" Click="OnSubnetDelete" Visibility="Collapsed"
-                                        ToolTip="{x:Static loc:Loc.TipRemoveChip}"/>
+                                        ToolTip="{loc:L TipRemoveChip}"/>
                                 <Button x:Name="SubnetAddBtn" DockPanel.Dock="Right" Content="+" FontSize="15" Padding="12,2" Margin="6,0,0,0"
-                                        Style="{StaticResource AccentButton}" Click="OnSubnetAdd" ToolTip="{x:Static loc:Loc.TipAddEntry}"/>
+                                        Style="{StaticResource AccentButton}" Click="OnSubnetAdd" ToolTip="{loc:L TipAddEntry}"/>
                                 <Border x:Name="SubnetColorBtn" DockPanel.Dock="Right" Width="28" Height="28" CornerRadius="6" Margin="6,0,0,0"
                                         Background="{StaticResource Surface}" BorderBrush="{StaticResource Surface2}" BorderThickness="1"
-                                        Cursor="Hand" MouseLeftButtonDown="OnSubnetColorClick" ToolTip="{x:Static loc:Loc.TipChipColor}"/>
+                                        Cursor="Hand" MouseLeftButtonDown="OnSubnetColorClick" ToolTip="{loc:L TipChipColor}"/>
                                 <Grid DockPanel.Dock="Right" Width="150" Margin="6,0,0,0">
                                     <TextBox x:Name="SubnetNameBox" FontSize="13" KeyDown="OnSubnetInputKey"/>
-                                    <TextBlock Text="{x:Static loc:Loc.NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{loc:L NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                         <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                     </TextBlock>
                                 </Grid>
                                 <Grid>
                                     <TextBox x:Name="SubnetNetBox" FontSize="13" KeyDown="OnSubnetInputKey"/>
-                                    <TextBlock Text="{x:Static loc:Loc.ExampleSubnets}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{loc:L ExampleSubnets}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                         <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetNetBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                     </TextBlock>
                                 </Grid>
@@ -548,25 +548,25 @@
                             <WrapPanel x:Name="SubnetChips" Margin="0,7,0,0"/>
 
                             <!-- Pinned IPs: same pattern -->
-                            <TextBlock Text="{x:Static loc:Loc.PinnedIps}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,14,0,4" ToolTip="{x:Static loc:Loc.TipPinnedIps}"/>
+                            <TextBlock Text="{loc:L PinnedIps}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,14,0,4" ToolTip="{loc:L TipPinnedIps}"/>
                             <DockPanel>
                                 <Button x:Name="PinnedDeleteBtn" DockPanel.Dock="Right" Content="✕" FontSize="13" Padding="10,2" Margin="6,0,0,0"
                                         Style="{StaticResource GhostButton}" Click="OnPinnedDelete" Visibility="Collapsed"
-                                        ToolTip="{x:Static loc:Loc.TipRemoveChip}"/>
+                                        ToolTip="{loc:L TipRemoveChip}"/>
                                 <Button x:Name="PinnedAddBtn" DockPanel.Dock="Right" Content="+" FontSize="15" Padding="12,2" Margin="6,0,0,0"
-                                        Style="{StaticResource AccentButton}" Click="OnPinnedAdd" ToolTip="{x:Static loc:Loc.TipAddEntry}"/>
+                                        Style="{StaticResource AccentButton}" Click="OnPinnedAdd" ToolTip="{loc:L TipAddEntry}"/>
                                 <Border x:Name="PinnedColorBtn" DockPanel.Dock="Right" Width="28" Height="28" CornerRadius="6" Margin="6,0,0,0"
                                         Background="{StaticResource Surface}" BorderBrush="{StaticResource Surface2}" BorderThickness="1"
-                                        Cursor="Hand" MouseLeftButtonDown="OnPinnedColorClick" ToolTip="{x:Static loc:Loc.TipChipColor}"/>
+                                        Cursor="Hand" MouseLeftButtonDown="OnPinnedColorClick" ToolTip="{loc:L TipChipColor}"/>
                                 <Grid DockPanel.Dock="Right" Width="150" Margin="6,0,0,0">
                                     <TextBox x:Name="PinnedNameBox" FontSize="13" KeyDown="OnPinnedInputKey"/>
-                                    <TextBlock Text="{x:Static loc:Loc.NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{loc:L NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                         <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                     </TextBlock>
                                 </Grid>
                                 <Grid>
                                     <TextBox x:Name="PinnedIpBox" FontSize="13" KeyDown="OnPinnedInputKey"/>
-                                    <TextBlock Text="{x:Static loc:Loc.ExamplePinnedIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{loc:L ExamplePinnedIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                         <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                     </TextBlock>
                                 </Grid>
@@ -575,7 +575,7 @@
                             <WrapPanel x:Name="PinnedChips" Margin="0,7,0,0"/>
 
                             <!-- Ping -->
-                            <TextBlock Text="{x:Static loc:Loc.TabPing}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
+                            <TextBlock Text="{loc:L TabPing}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <!-- Two columns to save height; inputs right, labels left. -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -588,66 +588,66 @@
                                     <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <!-- Right-aligned numbers with a fixed (read-only) unit suffix. -->
-                                <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipScanThreads}">
+                                <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipScanThreads}">
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="ScanThreadsBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                    <TextBlock Text="{x:Static loc:Loc.ScanThreads}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:L ScanThreads}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
                                 </DockPanel>
-                                <DockPanel Grid.Row="1" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipPingInterval}">
+                                <DockPanel Grid.Row="1" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipPingInterval}">
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="IntervalBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/><TextBlock Text="ms" Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                    <TextBlock Text="{x:Static loc:Loc.PingInterval}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:L PingInterval}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
                                 </DockPanel>
-                                <DockPanel Grid.Row="2" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineAfter}">
+                                <DockPanel Grid.Row="2" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipOfflineAfter}">
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="OfflineAfterBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                    <TextBlock Text="{x:Static loc:Loc.OfflineAfter}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:L OfflineAfter}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
                                 </DockPanel>
-                                <DockPanel Grid.Row="3" Grid.Column="0" Margin="0,5" ToolTip="{x:Static loc:Loc.TipTextScale}">
+                                <DockPanel Grid.Row="3" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipTextScale}">
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="UiScaleBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged" LostFocus="OnUiScaleCommit"/><TextBlock Text="%" Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                    <TextBlock Text="{x:Static loc:Loc.TextScale}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:L TextScale}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
                                 </DockPanel>
-                                <DockPanel Grid.Row="0" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipDefaultPings}">
+                                <DockPanel Grid.Row="0" Grid.Column="2" Margin="0,5" ToolTip="{loc:L TipDefaultPings}">
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="DefaultPingsBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                    <TextBlock Text="{x:Static loc:Loc.DefaultPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:L DefaultPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
                                 </DockPanel>
-                                <DockPanel Grid.Row="1" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipStartupPings}">
+                                <DockPanel Grid.Row="1" Grid.Column="2" Margin="0,5" ToolTip="{loc:L TipStartupPings}">
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="StartupPingsBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                    <TextBlock Text="{x:Static loc:Loc.StartupPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:L StartupPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
                                 </DockPanel>
-                                <DockPanel Grid.Row="2" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipOfflineRecheck}">
+                                <DockPanel Grid.Row="2" Grid.Column="2" Margin="0,5" ToolTip="{loc:L TipOfflineRecheck}">
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="OfflineRecheckBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/><TextBlock Text="s" Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                    <TextBlock Text="{x:Static loc:Loc.OfflineRecheck}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:L OfflineRecheck}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
                                 </DockPanel>
-                                <DockPanel Grid.Row="3" Grid.Column="2" Margin="0,5" ToolTip="{x:Static loc:Loc.TipInitPings}">
+                                <DockPanel Grid.Row="3" Grid.Column="2" Margin="0,5" ToolTip="{loc:L TipInitPings}">
                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"><TextBox x:Name="InitPingCountBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/><TextBlock Width="26" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/></StackPanel>
-                                    <TextBlock Text="{x:Static loc:Loc.InitPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:L InitPings}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Grid>
 
                             <!-- Internet -->
-                            <TextBlock Text="{x:Static loc:Loc.TabInternet}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
+                            <TextBlock Text="{loc:L TabInternet}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <DockPanel>
-                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{x:Static loc:Loc.TipInternetTimeout}">
-                                    <TextBlock Text="{x:Static loc:Loc.InternetTimeout}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{loc:L TipInternetTimeout}">
+                                    <TextBlock Text="{loc:L InternetTimeout}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBox x:Name="InternetTimeoutBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/>
                                     <TextBlock Text="ms" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                 </StackPanel>
-                                <CheckBox x:Name="EnableInternetBox" Content="{x:Static loc:Loc.EnableInternet}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" ToolTip="{x:Static loc:Loc.TipEnableInternet}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                                <CheckBox x:Name="EnableInternetBox" Content="{loc:L EnableInternet}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" ToolTip="{loc:L TipEnableInternet}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                             </DockPanel>
-                            <TextBlock Text="{x:Static loc:Loc.InternetHosts}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,12,0,4" ToolTip="{x:Static loc:Loc.TipInternetHosts}"/>
+                            <TextBlock Text="{loc:L InternetHosts}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,12,0,4" ToolTip="{loc:L TipInternetHosts}"/>
                             <DockPanel>
                                 <Button x:Name="HostDeleteBtn" DockPanel.Dock="Right" Content="✕" FontSize="13" Padding="10,2" Margin="6,0,0,0"
                                         Style="{StaticResource GhostButton}" Click="OnHostDelete" Visibility="Collapsed"
-                                        ToolTip="{x:Static loc:Loc.TipRemoveChip}"/>
+                                        ToolTip="{loc:L TipRemoveChip}"/>
                                 <Button x:Name="HostAddBtn" DockPanel.Dock="Right" Content="+" FontSize="15" Padding="12,2" Margin="6,0,0,0"
-                                        Style="{StaticResource AccentButton}" Click="OnHostAdd" ToolTip="{x:Static loc:Loc.TipAddEntry}"/>
+                                        Style="{StaticResource AccentButton}" Click="OnHostAdd" ToolTip="{loc:L TipAddEntry}"/>
                                 <Grid DockPanel.Dock="Right" Width="150" Margin="6,0,0,0">
                                     <TextBox x:Name="HostNameBox" FontSize="13" KeyDown="OnHostInputKey"/>
-                                    <TextBlock Text="{x:Static loc:Loc.NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{loc:L NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                         <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=HostNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                     </TextBlock>
                                 </Grid>
                                 <Grid>
                                     <TextBox x:Name="HostIpBox" FontSize="13" KeyDown="OnHostInputKey"/>
-                                    <TextBlock Text="{x:Static loc:Loc.ExampleHostIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{loc:L ExampleHostIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
                                         <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=HostIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
                                     </TextBlock>
                                 </Grid>
@@ -656,58 +656,58 @@
                             <WrapPanel x:Name="HostChips" Margin="0,7,0,0"/>
 
                             <!-- Graphen -->
-                            <TextBlock Text="{x:Static loc:Loc.TabGraphs}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
+                            <TextBlock Text="{loc:L TabGraphs}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <DockPanel>
-                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{x:Static loc:Loc.TipGraphMaxTime}">
-                                    <TextBlock Text="{x:Static loc:Loc.GraphMaxTime}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{loc:L TipGraphMaxTime}">
+                                    <TextBlock Text="{loc:L GraphMaxTime}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBox x:Name="GraphMaxBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/>
                                     <TextBlock Text="s" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                 </StackPanel>
-                                <CheckBox x:Name="GraphsEnabledBox" Content="{x:Static loc:Loc.EnableGraphs}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"
-                                          ToolTip="{x:Static loc:Loc.TipEnableGraphs}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                                <CheckBox x:Name="GraphsEnabledBox" Content="{loc:L EnableGraphs}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center"
+                                          ToolTip="{loc:L TipEnableGraphs}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                             </DockPanel>
 
                             <!-- Ausgabe -->
-                            <TextBlock Text="{x:Static loc:Loc.TabOutput}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
-                            <TextBlock Text="{x:Static loc:Loc.OutputDir}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipOutputDir}"/>
+                            <TextBlock Text="{loc:L TabOutput}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
+                            <TextBlock Text="{loc:L OutputDir}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{loc:L TipOutputDir}"/>
                             <DockPanel>
-                                <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowse" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
-                                <TextBox x:Name="OutputDirBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipOutputDir}" TextChanged="OnOutputDirValidate" LostFocus="OnPathFieldCommit"/>
+                                <Button DockPanel.Dock="Right" Content="{loc:L Browse}" Click="OnBrowse" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
+                                <TextBox x:Name="OutputDirBox" FontSize="13" ToolTip="{loc:L TipOutputDir}" TextChanged="OnOutputDirValidate" LostFocus="OnPathFieldCommit"/>
                             </DockPanel>
                             <TextBlock x:Name="OutputDirError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                <CheckBox x:Name="FileOutputBox" Content="{x:Static loc:Loc.WriteTxt}" Foreground="{StaticResource Text}" FontSize="13" ToolTip="{x:Static loc:Loc.TipWriteTxt}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
-                                <CheckBox x:Name="ExportCsvBox" Content="{x:Static loc:Loc.ExportCsv}" Foreground="{StaticResource Text}" FontSize="13" Margin="24,0,0,0" ToolTip="{x:Static loc:Loc.TipExportCsv}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                                <CheckBox x:Name="FileOutputBox" Content="{loc:L WriteTxt}" Foreground="{StaticResource Text}" FontSize="13" ToolTip="{loc:L TipWriteTxt}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                                <CheckBox x:Name="ExportCsvBox" Content="{loc:L ExportCsv}" Foreground="{StaticResource Text}" FontSize="13" Margin="24,0,0,0" ToolTip="{loc:L TipExportCsv}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                             </StackPanel>
 
                             <!-- Datenbank -->
-                            <TextBlock Text="{x:Static loc:Loc.TabDatabase}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
-                            <TextBlock Text="{x:Static loc:Loc.ConfNote}" Foreground="{StaticResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                            <TextBlock Text="{x:Static loc:Loc.DbFile}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipDbFile}"/>
+                            <TextBlock Text="{loc:L TabDatabase}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
+                            <TextBlock Text="{loc:L ConfNote}" Foreground="{StaticResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                            <TextBlock Text="{loc:L DbFile}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{loc:L TipDbFile}"/>
                             <DockPanel>
-                                <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowseDb" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
-                                <TextBox x:Name="DbPathBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipDbFile}" TextChanged="OnDbPathValidate" LostFocus="OnPathFieldCommit"/>
+                                <Button DockPanel.Dock="Right" Content="{loc:L Browse}" Click="OnBrowseDb" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
+                                <TextBox x:Name="DbPathBox" FontSize="13" ToolTip="{loc:L TipDbFile}" TextChanged="OnDbPathValidate" LostFocus="OnPathFieldCommit"/>
                             </DockPanel>
                             <TextBlock x:Name="DbPathError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,12"/>
                             <DockPanel Margin="0,12,0,0">
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                                    <Button Content="{x:Static loc:Loc.MergeDb}" Click="OnMergeDb" Style="{StaticResource GhostButton}" ToolTip="{x:Static loc:Loc.TipMergeDb}"/>
-                                    <Button Content="{x:Static loc:Loc.ClearDb}" Click="OnClearDb" Style="{StaticResource DangerButton}" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipClearDb}"/>
+                                    <Button Content="{loc:L MergeDb}" Click="OnMergeDb" Style="{StaticResource GhostButton}" ToolTip="{loc:L TipMergeDb}"/>
+                                    <Button Content="{loc:L ClearDb}" Click="OnClearDb" Style="{StaticResource DangerButton}" Margin="10,0,0,0" ToolTip="{loc:L TipClearDb}"/>
                                 </StackPanel>
-                                <CheckBox x:Name="KnownDbBox" Content="{x:Static loc:Loc.KnownDb}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" ToolTip="{x:Static loc:Loc.TipKnownDb}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                                <CheckBox x:Name="KnownDbBox" Content="{loc:L KnownDb}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" ToolTip="{loc:L TipKnownDb}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                             </DockPanel>
 
                             <!-- Konfigurationsdatei -->
-                            <TextBlock Text="{x:Static loc:Loc.TabConfig}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
-                            <TextBlock Text="{x:Static loc:Loc.ConfDirLabel}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{x:Static loc:Loc.TipConfDir}"/>
+                            <TextBlock Text="{loc:L TabConfig}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
+                            <TextBlock Text="{loc:L ConfDirLabel}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{loc:L TipConfDir}"/>
                             <DockPanel>
-                                <Button DockPanel.Dock="Right" Content="{x:Static loc:Loc.Browse}" Click="OnBrowseConfDir" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
-                                <TextBox x:Name="ConfDirBox" FontSize="13" ToolTip="{x:Static loc:Loc.TipConfDir}" TextChanged="OnConfDirChanged" LostFocus="OnPathFieldCommit"/>
+                                <Button DockPanel.Dock="Right" Content="{loc:L Browse}" Click="OnBrowseConfDir" Style="{StaticResource GhostButton}" Margin="8,0,0,0"/>
+                                <TextBox x:Name="ConfDirBox" FontSize="13" ToolTip="{loc:L TipConfDir}" TextChanged="OnConfDirChanged" LostFocus="OnPathFieldCommit"/>
                             </DockPanel>
                             <TextBlock x:Name="ConfDirError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,8"/>
                             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                <Button Content="{x:Static loc:Loc.ExportConf}" Click="OnExportConf" Style="{StaticResource AccentButton}" ToolTip="{x:Static loc:Loc.TipExportConf}"/>
-                                <Button Content="{x:Static loc:Loc.ImportConf}" Click="OnImportConf" Style="{StaticResource GhostButton}" Margin="10,0,0,0" ToolTip="{x:Static loc:Loc.TipImportConf}"/>
+                                <Button Content="{loc:L ExportConf}" Click="OnExportConf" Style="{StaticResource AccentButton}" ToolTip="{loc:L TipExportConf}"/>
+                                <Button Content="{loc:L ImportConf}" Click="OnImportConf" Style="{StaticResource GhostButton}" Margin="10,0,0,0" ToolTip="{loc:L TipImportConf}"/>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>

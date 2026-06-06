@@ -47,35 +47,38 @@ public sealed class Device
 
     public void RecordPing(PingResult r)
     {
-        CurrentPings++;
-        if (r.Success)
+        lock (this)   // recheck and analysis threads may touch the same device
         {
-            Seen = true;
-            IsOnline = true;
-            WentOffline = false;
-            OfflineSince = null;
-            _consecutiveFails = 0;
-            SuccessCount++;
-            LastFailed = false;
-            if (r.LatencyMs is { } ms)
+            CurrentPings++;
+            if (r.Success)
             {
-                LastMs = ms;
-                MinMs = MinMs is null ? ms : Math.Min(MinMs.Value, ms);
-                MaxMs = MaxMs is null ? ms : Math.Max(MaxMs.Value, ms);
-                _sumMs += ms;
-                AvgMs = _sumMs / SuccessCount;
+                Seen = true;
+                IsOnline = true;
+                WentOffline = false;
+                OfflineSince = null;
+                _consecutiveFails = 0;
+                SuccessCount++;
+                LastFailed = false;
+                if (r.LatencyMs is { } ms)
+                {
+                    LastMs = ms;
+                    MinMs = MinMs is null ? ms : Math.Min(MinMs.Value, ms);
+                    MaxMs = MaxMs is null ? ms : Math.Max(MaxMs.Value, ms);
+                    _sumMs += ms;
+                    AvgMs = _sumMs / SuccessCount;
+                }
             }
-        }
-        else
-        {
-            FailCount++;
-            LastFailed = true;
-            _consecutiveFails++;
-            if (Seen && _consecutiveFails >= OfflineAfterFailures)
+            else
             {
-                if (IsOnline) OfflineSince = Environment.TickCount64;   // transition only
-                IsOnline = false;
-                WentOffline = true;
+                FailCount++;
+                LastFailed = true;
+                _consecutiveFails++;
+                if (Seen && _consecutiveFails >= OfflineAfterFailures)
+                {
+                    if (IsOnline) OfflineSince = Environment.TickCount64;
+                    IsOnline = false;
+                    WentOffline = true;
+                }
             }
         }
     }
