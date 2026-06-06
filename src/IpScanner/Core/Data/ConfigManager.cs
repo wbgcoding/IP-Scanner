@@ -155,9 +155,9 @@ public static class ConfigManager
         sb.AppendLine("# -- Datenbank -----------------------------------------------");
         sb.AppendLine("# known_devices_db  Gerate je Netz in der Datenbank merken. Standard true.");
         sb.AppendLine($"known_devices_db = {B(c.KnownDevicesDb)}");
-        sb.AppendLine("# database_path  Pfad der Datenbankdatei. Standard ./Scans/scanner.db");
+        sb.AppendLine("# database_path  Pfad der Datenbankdatei. Standard ./scanner.db");
         sb.AppendLine($"database_path = {c.DatabasePath}");
-        sb.AppendLine("# config_directory  Ordner dieser Konfigurationsdatei (leer = neben der Datenbank).");
+        sb.AppendLine("# config_directory  Ordner dieser Konfigurationsdatei. Standard ./ (neben der Programmdatei).");
         sb.AppendLine($"config_directory = {c.ConfigDirectory}");
         sb.AppendLine();
 

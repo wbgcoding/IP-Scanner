@@ -32,7 +32,7 @@ public sealed class ScanConfig
     /// <summary>UI language: "auto" (system, EN fallback), "de" or "en".</summary>
     public string Language { get; set; } = "auto";
     /// <summary>Folder where ip_scanner.conf is stored.</summary>
-    public string ConfigDirectory { get; set; } = DefaultOutputDirectory;
+    public string ConfigDirectory { get; set; } = DefaultConfigDirectory;
     /// <summary>Show the latency history graphs in the sidebar.</summary>
     public bool GraphsEnabled { get; set; } = true;
     /// <summary>Show the small average-latency graph under each network.</summary>
@@ -48,11 +48,12 @@ public sealed class ScanConfig
     public string ColorSkipped { get; set; } = Palette.MidGray;
 
     public const int InfinitePingCount = -1;
-    public const string DefaultDatabasePath = "./Scans/scanner.db";
+    public const string DefaultDatabasePath = "./scanner.db";
     public const string DefaultDatabaseFileName = "scanner.db";
     public const string ConfigFileName = "ip_scanner.conf";
     public const string OverridesFileName = "overrides.conf";
     public const string DefaultOutputDirectory = "./Scans";
+    public const string DefaultConfigDirectory = "./";
 
     /// <summary>Copy with a different ping count (lists shared, read-only use).</summary>
     public ScanConfig CloneWith(int pingCount) => new()

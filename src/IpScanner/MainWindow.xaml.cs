@@ -731,12 +731,29 @@ public partial class MainWindow : Window
         catch { /* persisting is best-effort */ }
     }
 
+    /// <summary>The field shows the full file path; only its folder is stored —
+    /// the file name is always ip_scanner.conf.</summary>
+    private static string ConfDirFromInput(string text)
+    {
+        var t = text.Trim();
+        if (t.Length == 0) return ScanConfig.DefaultConfigDirectory;
+        if (t.EndsWith(".conf", StringComparison.OrdinalIgnoreCase))
+            return Path.GetDirectoryName(t) is { Length: > 0 } dir ? dir : ScanConfig.DefaultConfigDirectory;
+        return t;
+    }
+
     private void OnBrowseConfDir(object sender, RoutedEventArgs e)
     {
-        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.ConfDirLabel };
-        if (DirOf(ConfDirBox.Text.Length > 0 ? ConfDirBox.Text : _config.DatabasePath) is { } dir)
+        var dlg = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = Loc.ConfDirLabel,
+            Filter = Loc.ConfFileFilter,
+            FileName = ScanConfig.ConfigFileName,
+            OverwritePrompt = false,
+        };
+        if (DirOf(ConfDirBox.Text.Length > 0 ? ConfDirBox.Text : ".") is { } dir)
             dlg.InitialDirectory = dir;
-        if (dlg.ShowDialog(this) == true) ConfDirBox.Text = dlg.FolderName;
+        if (dlg.ShowDialog(this) == true) ConfDirBox.Text = dlg.FileName;
     }
 
     private void OnConfDirChanged(object sender, TextChangedEventArgs e)
@@ -895,8 +912,15 @@ public partial class MainWindow : Window
     {
         try
         {
-            // 1. Try the default location (next to the default DB).
+            // 1. Try the default location (next to the exe); fall back to the
+            //    pre-2.6 location in the scans folder for existing installs.
             var def = ConfPathFor(new ScanConfig().DatabasePath);
+            if (!File.Exists(def))
+            {
+                var legacy = Path.Combine(Path.GetFullPath(ScanConfig.DefaultOutputDirectory),
+                                          ScanConfig.ConfigFileName);
+                if (File.Exists(legacy)) def = legacy;
+            }
             ConfigManager.MigrateIfNeeded(def);
             var cfg = File.Exists(def) ? ConfigManager.Load(def) : new ScanConfig();
 
@@ -1055,7 +1079,9 @@ public partial class MainWindow : Window
         _hostChips.Load(c.InternetHosts);
         OutputDirBox.Text = c.OutputDirectory;
         DbPathBox.Text = c.DatabasePath;
-        ConfDirBox.Text = c.ConfigDirectory.Length > 0 ? c.ConfigDirectory : ScanConfig.DefaultOutputDirectory;
+        ConfDirBox.Text = Path.Combine(
+            c.ConfigDirectory.Length > 0 ? c.ConfigDirectory : ScanConfig.DefaultConfigDirectory,
+            ScanConfig.ConfigFileName);
         FileOutputBox.IsChecked = c.FileOutput;
         ExportCsvBox.IsChecked = c.ExportCsv;
         KnownDbBox.IsChecked = c.KnownDevicesDb;
@@ -1119,7 +1145,7 @@ public partial class MainWindow : Window
         {
             Subnets = _subnetChips.Entries.Select(en => en.ToString()).ToList(),
             PinnedIps = _pinnedChips.Entries.Select(en => en.ToString()).ToList(),
-            ConfigDirectory = ConfDirBox.Text.Trim(),
+            ConfigDirectory = ConfDirFromInput(ConfDirBox.Text),
             GraphsEnabled = GraphsEnabledBox.IsChecked == true,
             NetworkGraphsEnabled = NetworkGraphsBox.IsChecked == true,
             GraphMaxSeconds = Math.Clamp(I(GraphMaxBox.Text, 300), 10, 300),

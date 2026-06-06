@@ -56,10 +56,10 @@ public static class Loc
     public static string TipUnpinIp => S(
         "Klick entfernt den Pin.",
         "Click to remove the pin.");
-    public static string ConfDirLabel => S("Speicherort der Konfigurationsdatei", "Configuration file location");
+    public static string ConfDirLabel => S("Pfad der Konfigurationsdatei", "Configuration file path");
     public static string TipConfDir => S(
-        "Ordner, in dem ip_scanner.conf gespeichert wird. Leer = neben der Datenbank.",
-        "Folder where ip_scanner.conf is saved. Empty = next to the database.");
+        "Speicherort der ip_scanner.conf. Standard: neben der Programmdatei. Der Dateiname bleibt ip_scanner.conf.",
+        "Where ip_scanner.conf is stored. Default: next to the program file. The file name stays ip_scanner.conf.");
     public static string TotalLabel => S("Gesamt", "Total");
     public static string NamePlaceholder => S("Name", "Name");
     public static string TipChipColor => S("Farbe wählen", "Pick a color");
@@ -165,8 +165,8 @@ public static class Loc
     public static string DbFile => S("Datenbankdatei", "Database file");
     public static string InternetTimeout => S("Ping-Timeout", "Ping timeout");
     public static string ConfNote => S(
-        "Die Einstellungen werden automatisch als ip_scanner.conf im Ordner der Datenbank gespeichert und beim Start geladen.",
-        "Settings are saved automatically as ip_scanner.conf next to the database and loaded at startup.");
+        "Die Einstellungen werden automatisch als ip_scanner.conf gespeichert und beim Start geladen.",
+        "Settings are saved automatically as ip_scanner.conf and loaded at startup.");
     public static string MergeDone(int n) => German
         ? $"{n} Einträge zusammengeführt."
         : $"{n} entries merged.";
@@ -238,8 +238,8 @@ public static class Loc
         "Sprache der Oberfläche. Automatisch folgt der Systemsprache (Englisch als Fallback).",
         "UI language. Automatic follows the system language (English fallback).");
     public static string TipDbFile => S(
-        "Pfad der Known-Devices-Datenbank. Liegt standardmäßig im Scans-Ordner.",
-        "Path of the known-devices database. Lives in the scans folder by default.");
+        "Pfad der Known-Devices-Datenbank. Liegt standardmäßig neben der Programmdatei.",
+        "Path of the known-devices database. Lives next to the program file by default.");
     public static string TipMergeDb => S(
         "Wählt die scanner.db einer anderen Programm-Instanz und führt deren Geräte in die eigene Datenbank zusammen (neuere Einträge gewinnen).",
         "Pick another instance's scanner.db and merge its devices into this database (newer entries win).");
