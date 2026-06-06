@@ -8,6 +8,7 @@ public sealed class NetworkInfoViewModel : ObservableObject
                                 bool primary = true, string name = "")
     {
         Index = index; BadgeColor = badgeColor; _name = name;
+        BadgeForeground = Core.Palette.ContrastOn(badgeColor);
         Cidr       = info.Cidr       ?? "—";
         Ip         = info.Ip         ?? "—";
         Mac        = info.Mac        ?? "—";
@@ -29,6 +30,7 @@ public sealed class NetworkInfoViewModel : ObservableObject
     private readonly string _name;
     public int    Index      { get; }
     public string BadgeColor { get; }
+    public string BadgeForeground { get; }
     public string Title      => _name.Length > 0 ? _name : $"{Core.Localization.Loc.Network} {Index}";
     public string Cidr       { get; }
     public string Ip         { get; }

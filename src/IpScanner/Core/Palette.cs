@@ -17,6 +17,19 @@ public static class Palette
     /// <summary>Ubiquiti brand blue (gateway color for UniFi hostnames).</summary>
     public const string UnifiBlue = "#0559C9";
     public const string Transparent = "#00000000";
+    public const string DarkText = "#1E1E2E";
+
+    /// <summary>Readable text color (dark or white) for the given background.</summary>
+    public static string ContrastOn(string hex)
+    {
+        var h = hex.TrimStart('#');
+        if (h.Length != 6) return Text;
+        int r = Convert.ToInt32(h[..2], 16);
+        int g = Convert.ToInt32(h.Substring(2, 2), 16);
+        int b = Convert.ToInt32(h.Substring(4, 2), 16);
+        double luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+        return luminance < 140 ? "#FFFFFF" : DarkText;
+    }
 
     /// <summary>Latency heatmap: green (fast) -> red (slow). Mirrors Python thresholds.</summary>
     public static string Heat(double? ms) => ms switch

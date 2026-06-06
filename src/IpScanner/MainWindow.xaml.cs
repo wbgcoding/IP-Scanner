@@ -438,7 +438,7 @@ public partial class MainWindow : Window
                     {
                         Text = e.Name.Length > 0 ? e.Name : e.Target,
                         FontSize = 12,
-                        Foreground = colored ? (System.Windows.Media.Brush)_w.FindResource("BgDark")
+                        Foreground = colored ? BrushFor(Core.Palette.ContrastOn(e.Color))
                                              : (System.Windows.Media.Brush)_w.FindResource("Text"),
                     },
                 };
