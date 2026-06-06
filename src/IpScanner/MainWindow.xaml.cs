@@ -93,11 +93,13 @@ public partial class MainWindow : Window
     private void OnSpinTick(object? sender, EventArgs e)
     {
         long now = System.Diagnostics.Stopwatch.GetTimestamp();
-        double dt = Math.Min(0.1, (now - _spinLastTick) / (double)System.Diagnostics.Stopwatch.Frequency);
+        // Cap dt at ~2 frames: dropped frames slow the spin briefly instead of
+        // jumping the angle, which read as stutter under scan load.
+        double dt = Math.Min(0.033, (now - _spinLastTick) / (double)System.Diagnostics.Stopwatch.Frequency);
         _spinLastTick = now;
         if (_spinSpeed == 0 && _spinTarget == 0) return;
 
-        _spinSpeed += (_spinTarget - _spinSpeed) * Math.Min(1.0, dt * 2.5);   // ~1s ramp
+        _spinSpeed += (_spinTarget - _spinSpeed) * Math.Min(1.0, dt * 2.0);   // smooth ramp
 
         if (_spinTarget == 0 && Math.Abs(_spinSpeed) < 3)
         {
