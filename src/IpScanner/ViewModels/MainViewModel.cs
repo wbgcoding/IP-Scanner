@@ -331,6 +331,7 @@ public sealed class MainViewModel : ObservableObject
 
         var engine = new ScanEngine(_pingFunc, _enrichers);
         engine.DeviceUpdated += OnDeviceUpdated;
+        engine.DeviceRemoved += OnDeviceRemoved;
         // Per-device row refreshes stay immediate (OnDeviceUpdated); the heavy
         // aggregate pass (bars, groups, extremes) is throttled so a fast ping
         // stream can't flood the UI thread and stall the table.
@@ -551,6 +552,20 @@ public sealed class MainViewModel : ObservableObject
                 var vm = new DeviceViewModel(d, d.Ip == _selfIp, _pinned.Contains(d.Ip));
                 _byIp[d.Ip] = vm;
                 InsertSorted(vm);
+            }
+        });
+    }
+
+    private void OnDeviceRemoved(Device d)
+    {
+        _dirty.TryRemove(d.Ip, out _);
+        _dispatch(() =>
+        {
+            lock (_byIpLock)
+            {
+                if (!_byIp.TryGetValue(d.Ip, out var vm)) return;
+                _byIp.Remove(d.Ip);
+                Devices.Remove(vm);
             }
         });
     }

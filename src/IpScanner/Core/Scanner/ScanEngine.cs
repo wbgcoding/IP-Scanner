@@ -42,7 +42,13 @@ public sealed class ScanEngine
     /// <summary>Raised whenever a device's state changes (online, new ping, etc.).</summary>
     public event Action<Device>? DeviceUpdated;
 
+    /// <summary>Raised when a stale IP entry is evicted because the same MAC was
+    /// seen at a different (new) IP address.</summary>
+    public event Action<Device>? DeviceRemoved;
+
     private readonly ConcurrentDictionary<string, Device> _devices = new();
+    private readonly ConcurrentDictionary<string, string> _macToIp =
+        new(StringComparer.OrdinalIgnoreCase);
     public IReadOnlyCollection<Device> Devices => _devices.Values.ToArray();
 
     private int _activeWorkers;
@@ -66,13 +72,15 @@ public sealed class ScanEngine
                 OfflineAfterFailures = cfg.OfflineAfterFailedPings,
             });
             d.FromDb = true;
+            string? macToTrack = null;
             lock (d)
             {
                 if (d.Hostname is null && k.Hostname is { } h && h != Device.Unknown)
                 { d.Hostname = h; d.HostnameRank = DbRank; }
                 if (d.Mac is null && k.Mac is { } m && m != Device.Unknown)
-                { d.Mac = m; d.MacRank = DbRank; }
+                { d.Mac = m; d.MacRank = DbRank; macToTrack = m; }
             }
+            if (macToTrack is not null) TrackMacOrEvict(d, macToTrack);
             DeviceUpdated?.Invoke(d);
         }
     }
@@ -355,6 +363,21 @@ public sealed class ScanEngine
 
     /// <summary>Fire-and-forget MAC/hostname resolution on dedicated threads
     /// (the pool is saturated with pings); better-ranked results replace worse ones.</summary>
+    /// <summary>Register MAC→IP. If this MAC was previously at a different offline IP,
+    /// evict that stale entry and raise <see cref="DeviceRemoved"/>.</summary>
+    private void TrackMacOrEvict(Device owner, string mac)
+    {
+        if (_macToIp.TryGetValue(mac, out var oldIp) && oldIp != owner.Ip)
+        {
+            if (_devices.TryGetValue(oldIp, out var stale) && !stale.IsOnline)
+            {
+                _devices.TryRemove(oldIp, out _);
+                DeviceRemoved?.Invoke(stale);
+            }
+        }
+        _macToIp[mac] = owner.Ip;
+    }
+
     private void TryEnrich(Device device)
     {
         if (_enrichers is null || _enrichers.Count == 0) return;
@@ -390,13 +413,15 @@ public sealed class ScanEngine
         {
             var (mac, host) = resolve(device.Ip);
             bool changed = false;
+            string? macToTrack = null;
             lock (device)
             {
                 if (!string.IsNullOrEmpty(host) && rank < device.HostnameRank)
                 { device.Hostname = host; device.HostnameRank = rank; changed = true; }
                 if (!string.IsNullOrEmpty(mac) && rank < device.MacRank)
-                { device.Mac = mac; device.MacRank = rank; changed = true; }
+                { device.Mac = mac; device.MacRank = rank; changed = true; macToTrack = mac; }
             }
+            if (macToTrack is not null) TrackMacOrEvict(device, macToTrack);
             if (changed) DeviceUpdated?.Invoke(device);
         }
         catch { /* each technique is best-effort */ }
