@@ -2,6 +2,29 @@
 
 All notable changes, written for people who just use the app.
 
+## 2.7 — 2026-06-19
+
+Automatic updates and a thorough reliability pass.
+
+### Added
+- The app checks GitHub for a newer version at startup. If one exists it
+  offers to download and install it in one click; the program restarts on
+  the new version automatically. Can be turned off with
+  `check_for_updates = false` in the configuration file.
+
+### Changed
+- When a device changes its IP address it is no longer listed twice — the
+  old entry is dropped and only the current address is kept (matched by MAC).
+- Smoother table and graphs under heavy scanning: per-ping and per-second
+  work no longer redoes the same calculations.
+- The generated configuration file is now documented in English.
+
+### Fixed
+- A rare crash that could end a running scan when a device moved to a new
+  IP at the same moment it was being rechecked.
+- Long hostnames now show an ellipsis with the full name on hover instead
+  of being cut off, and the totals row never overlaps the thread counter.
+
 ## 2.6 — 2026-06-06
 
 Graphs everywhere and a silky-smooth UI.

@@ -15,7 +15,7 @@ public static class ConfigManager
         "startup_ping_count", "offline_recheck_seconds", "enable_internet_ping",
         "internet_timeout_ms", "internet_hosts", "known_devices_db", "database_path",
         "config_directory", "graphs_enabled", "network_graphs_enabled", "graph_max_seconds", "output_directory",
-        "file_output", "export_csv", "scan_threads", "ui_scale", "language",
+        "file_output", "export_csv", "scan_threads", "ui_scale", "language", "check_for_updates",
         "color_online", "color_offline", "color_success", "color_failed", "color_skipped",
     };
 
@@ -58,6 +58,7 @@ public static class ConfigManager
                 case "graphs_enabled":              cfg.GraphsEnabled = ParseBool(value); break;
                 case "network_graphs_enabled":      cfg.NetworkGraphsEnabled = ParseBool(value); break;
                 case "graph_max_seconds":           cfg.GraphMaxSeconds = ParseInt(value, 10, 300, 300); break;
+                case "check_for_updates":           cfg.CheckForUpdates = ParseBool(value); break;
                 case "output_directory":            cfg.OutputDirectory = value; break;
                 case "file_output":                 cfg.FileOutput = ParseBool(value); break;
                 case "export_csv":                  cfg.ExportCsv = ParseBool(value); break;
@@ -168,6 +169,8 @@ public static class ConfigManager
         sb.AppendLine($"ui_scale = {c.UiScalePercent}");
         sb.AppendLine("# language  Language: auto, de, en. Default auto.");
         sb.AppendLine($"language = {c.Language}");
+        sb.AppendLine("# check_for_updates  Check GitHub for a newer release on startup. Default true.");
+        sb.AppendLine($"check_for_updates = {B(c.CheckForUpdates)}");
         sb.AppendLine();
 
         // Hex without '#' — the parser treats '#' as a comment marker.

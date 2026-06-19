@@ -70,6 +70,7 @@ public partial class MainWindow : Window
         // the sidebar network info and online devices show up without a manual scan.
         Loaded += async (_, _) =>
         {
+            if (_config.CheckForUpdates) CheckForUpdatesAsync();   // runs alongside the sweep
             try
             {
                 await _vm.RunInitScanAsync();
@@ -80,6 +81,26 @@ public partial class MainWindow : Window
             }
             catch { /* best-effort */ }
         };
+    }
+
+    /// <summary>Ask GitHub for a newer release; if found, offer to download it
+    /// and swap the exe. Silent when up to date or offline.</summary>
+    private async void CheckForUpdatesAsync()
+    {
+        var release = await Core.UpdateService.CheckAsync();
+        if (release is null || _closing) return;
+
+        var prompt = Loc.UpdatePrompt(release.Version.ToString(3),
+                                      Core.UpdateService.CurrentVersion.ToString(3));
+        if (MessageBox.Show(this, prompt, Loc.UpdateTitle,
+                            MessageBoxButton.YesNo, MessageBoxImage.Information) != MessageBoxResult.Yes)
+            return;
+
+        if (await Core.UpdateService.DownloadAndApplyAsync(release.DownloadUrl))
+            Application.Current.Shutdown();   // updater takes over once we exit
+        else
+            MessageBox.Show(this, Loc.UpdateFailed, Loc.UpdateTitle,
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private void UpdateScanButton()

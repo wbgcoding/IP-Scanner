@@ -254,6 +254,15 @@ public static class Loc
     public static string TipClearDb => S(
         "Löscht alle gespeicherten Geräte aus der Datenbank. Kann nicht rückgängig gemacht werden.",
         "Deletes all stored devices from the database. Cannot be undone.");
+    // ── Updates ──
+    public static string UpdateTitle => S("Update verfügbar", "Update available");
+    public static string UpdatePrompt(string newVersion, string currentVersion) => German
+        ? $"Version {newVersion} ist verfügbar (installiert: {currentVersion}).\n\nJetzt herunterladen und aktualisieren? Das Programm startet danach neu."
+        : $"Version {newVersion} is available (installed: {currentVersion}).\n\nDownload and update now? The app will restart afterwards.";
+    public static string UpdateFailed => S(
+        "Das Update konnte nicht installiert werden. Bitte später erneut versuchen.",
+        "The update could not be installed. Please try again later.");
+
     public static string ScanError => S("Scan-Fehler", "Scan error");
     public static string LargeRange => S("Großer Bereich", "Large range");
     public static string LargeRangeMsg(int cidr, int subnets, long hosts) => German

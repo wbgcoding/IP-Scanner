@@ -39,6 +39,8 @@ public sealed class ScanConfig
     public bool NetworkGraphsEnabled { get; set; } = true;
     /// <summary>Visible time span of the graphs in seconds (10–300).</summary>
     public int GraphMaxSeconds { get; set; } = 300;
+    /// <summary>Check GitHub for a newer release on startup.</summary>
+    public bool CheckForUpdates { get; set; } = true;
 
     // Progress-bar colors (clickable legend squares; persisted, not shown in settings).
     public string ColorOnline { get; set; } = Palette.Green;
@@ -68,7 +70,7 @@ public sealed class ScanConfig
         ExportCsv = ExportCsv, ScanThreads = ScanThreads, UiScalePercent = UiScalePercent,
         Language = Language, ConfigDirectory = ConfigDirectory,
         GraphsEnabled = GraphsEnabled, GraphMaxSeconds = GraphMaxSeconds,
-        NetworkGraphsEnabled = NetworkGraphsEnabled,
+        NetworkGraphsEnabled = NetworkGraphsEnabled, CheckForUpdates = CheckForUpdates,
         ColorOnline = ColorOnline, ColorOffline = ColorOffline,
         ColorSuccess = ColorSuccess, ColorFailed = ColorFailed, ColorSkipped = ColorSkipped,
     };
