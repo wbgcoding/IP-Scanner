@@ -252,7 +252,9 @@ public sealed class ScanEngine
             {
                 if (loopCt.IsCancellationRequested) return;
                 using var worker = new WorkerScope(this);
-                var device = _devices[ip];
+                // The entry may have been evicted (MAC moved to a new IP) since
+                // the due-list was built — skip it rather than throwing.
+                if (!_devices.TryGetValue(ip, out var device)) return;
                 var r = Ping(ip);
                 device.RecordPing(r);
                 // Failed probes are not counted as scan pings (they would grow
@@ -283,13 +285,19 @@ public sealed class ScanEngine
         catch (OperationCanceledException) { return; }
         try
         {
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 using var _ = new WorkerScope(this);
                 int target = infinite ? int.MaxValue : cfg.PingCount;
                 for (int i = 1; i < target && !ct.IsCancellationRequested; i++)
                 {
-                    if (cfg.PingIntervalMs > 0) InterruptibleSleep(cfg.PingIntervalMs, ct);
+                    // Async wait releases the pool thread between pings instead
+                    // of blocking it for the whole interval.
+                    if (cfg.PingIntervalMs > 0)
+                    {
+                        try { await Task.Delay(cfg.PingIntervalMs, ct).ConfigureAwait(false); }
+                        catch (OperationCanceledException) { break; }
+                    }
                     if (ct.IsCancellationRequested) break;
                     bool wasOnline = device.IsOnline;
                     var ar = Ping(device.Ip);
@@ -361,8 +369,6 @@ public sealed class ScanEngine
     private static readonly SemaphoreSlim EnrichGate = new(EnrichGateSize);
     private readonly ConcurrentDictionary<string, byte> _enriching = new();
 
-    /// <summary>Fire-and-forget MAC/hostname resolution on dedicated threads
-    /// (the pool is saturated with pings); better-ranked results replace worse ones.</summary>
     /// <summary>Register MAC→IP. If this MAC was previously at a different offline IP,
     /// evict that stale entry and raise <see cref="DeviceRemoved"/>.</summary>
     private void TrackMacOrEvict(Device owner, string mac)
@@ -378,6 +384,8 @@ public sealed class ScanEngine
         _macToIp[mac] = owner.Ip;
     }
 
+    /// <summary>Fire-and-forget MAC/hostname resolution on dedicated threads
+    /// (the pool is saturated with pings); better-ranked results replace worse ones.</summary>
     private void TryEnrich(Device device)
     {
         if (_enrichers is null || _enrichers.Count == 0) return;
@@ -425,11 +433,5 @@ public sealed class ScanEngine
             if (changed) DeviceUpdated?.Invoke(device);
         }
         catch { /* each technique is best-effort */ }
-    }
-
-    private static void InterruptibleSleep(int ms, CancellationToken ct)
-    {
-        try { Task.Delay(ms, ct).Wait(); }
-        catch (AggregateException) { /* cancelled */ }
     }
 }

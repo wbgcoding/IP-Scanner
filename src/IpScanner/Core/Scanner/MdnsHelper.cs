@@ -47,8 +47,10 @@ public static class MdnsHelper
     /// <summary>DNS PTR query for "d.c.b.a.in-addr.arpa" with the QU bit set.</summary>
     internal static byte[] BuildPtrQuery(string ip)
     {
-        var o = ip.Split('.');
-        var name = $"{o[3]}.{o[2]}.{o[1]}.{o[0]}.in-addr.arpa";
+        // Build the reverse name from the parsed bytes so abbreviated forms
+        // (e.g. "1.2.3") still yield four canonical octets.
+        var oct = IPAddress.Parse(ip).GetAddressBytes();
+        var name = $"{oct[3]}.{oct[2]}.{oct[1]}.{oct[0]}.in-addr.arpa";
         using var ms = new MemoryStream();
         void W16(int v) { ms.WriteByte((byte)(v >> 8)); ms.WriteByte((byte)v); }
         W16(0); W16(0); W16(1); W16(0); W16(0); W16(0);     // header: 1 question

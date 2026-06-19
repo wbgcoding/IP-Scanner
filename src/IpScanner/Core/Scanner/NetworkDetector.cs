@@ -7,7 +7,7 @@ namespace IpScanner.Core.Scanner;
 
 /// <summary>
 /// Fast local-network detection. Uses a UDP-connect trick for the own IP and
-/// .NET NetworkInformation for gateway/MAC/mask/DNS (replaces Python P/Invoke).
+/// .NET NetworkInformation for gateway/MAC/mask/DNS.
 /// </summary>
 public static class NetworkDetector
 {
@@ -32,21 +32,15 @@ public static class NetworkDetector
         try
         {
             string? any = null;
-            foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+            foreach (var (ni, ua) in Ipv4Interfaces())
             {
-                if (ni.OperationalStatus != OperationalStatus.Up) continue;
-                if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
-                var props = ni.GetIPProperties();
-                bool hasGateway = props.GatewayAddresses.Any(g => g.Address.AddressFamily == AddressFamily.InterNetwork
-                                                                  && !g.Address.ToString().StartsWith("0."));
-                foreach (var ua in props.UnicastAddresses)
-                {
-                    if (ua.Address.AddressFamily != AddressFamily.InterNetwork) continue;
-                    var ip = ua.Address.ToString();
-                    if (ip.StartsWith("127.") || ip.StartsWith("169.254.")) continue;
-                    if (hasGateway) return ip;     // best candidate
-                    any ??= ip;                    // remember as fallback
-                }
+                var ip = ua.Address.ToString();
+                if (ip.StartsWith("169.254.")) continue;      // link-local APIPA
+                bool hasGateway = ni.GetIPProperties().GatewayAddresses
+                    .Any(g => g.Address.AddressFamily == AddressFamily.InterNetwork
+                              && !g.Address.ToString().StartsWith("0."));
+                if (hasGateway) return ip;     // best candidate
+                any ??= ip;                    // remember as fallback
             }
             return any;
         }
@@ -60,28 +54,36 @@ public static class NetworkDetector
         info.Ip = localIp;
         if (localIp is null) return info;
 
+        foreach (var (ni, ua) in Ipv4Interfaces())
+        {
+            if (ua.Address.ToString() != localIp) continue;
+
+            var props = ni.GetIPProperties();
+            info.Interface = ni.Name;
+            info.Mac = FormatMac(ni.GetPhysicalAddress().GetAddressBytes());
+            info.SubnetMask = ua.IPv4Mask?.ToString();
+            info.Gateway = props.GatewayAddresses
+                .FirstOrDefault(g => g.Address.AddressFamily == AddressFamily.InterNetwork)
+                ?.Address.ToString();
+            info.DnsServers = props.DnsAddresses
+                .Where(d => d.AddressFamily == AddressFamily.InterNetwork)
+                .Select(d => d.ToString()).ToList();
+            return info;
+        }
+        return info;
+    }
+
+    /// <summary>Up, non-loopback NICs paired with each of their IPv4 unicast addresses.</summary>
+    private static IEnumerable<(NetworkInterface Ni, UnicastIPAddressInformation Addr)> Ipv4Interfaces()
+    {
         foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
         {
             if (ni.OperationalStatus != OperationalStatus.Up) continue;
-            var props = ni.GetIPProperties();
-            foreach (var ua in props.UnicastAddresses)
-            {
-                if (ua.Address.AddressFamily != AddressFamily.InterNetwork) continue;
-                if (ua.Address.ToString() != localIp) continue;
-
-                info.Interface = ni.Name;
-                info.Mac = FormatMac(ni.GetPhysicalAddress().GetAddressBytes());
-                info.SubnetMask = ua.IPv4Mask?.ToString();
-                info.Gateway = props.GatewayAddresses
-                    .FirstOrDefault(g => g.Address.AddressFamily == AddressFamily.InterNetwork)
-                    ?.Address.ToString();
-                info.DnsServers = props.DnsAddresses
-                    .Where(d => d.AddressFamily == AddressFamily.InterNetwork)
-                    .Select(d => d.ToString()).ToList();
-                return info;
-            }
+            if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+            foreach (var ua in ni.GetIPProperties().UnicastAddresses)
+                if (ua.Address.AddressFamily == AddressFamily.InterNetwork)
+                    yield return (ni, ua);
         }
-        return info;
     }
 
     private static string FormatMac(byte[] bytes)

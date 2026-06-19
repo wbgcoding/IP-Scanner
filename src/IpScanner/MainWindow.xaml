@@ -32,7 +32,7 @@
                 </StackPanel>
 
                 <!-- Center: progress bars -->
-                <StackPanel Grid.Column="1" Margin="18,0" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Margin="18,0" MinWidth="220" VerticalAlignment="Center">
                     <Grid Margin="0,0,0,2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
@@ -47,7 +47,7 @@
                         <TextBlock Grid.Column="2" Text="{Binding Progress.DeviceCountText}"
                                    Foreground="{StaticResource Text}" FontSize="10" Margin="6,0,0,0" VerticalAlignment="Center"/>
                     </Grid>
-                    <!-- Geräte legend (squares are clickable color pickers) -->
+                    <!-- Devices legend (squares are clickable color pickers) -->
                     <StackPanel Orientation="Horizontal" Margin="56,0,0,4">
                         <Border x:Name="LegOnline" Tag="online" Background="{StaticResource Green}" Width="9" Height="9" CornerRadius="1" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonDown="OnLegendColorClick"/>
                         <TextBlock Text="{Binding Progress.OnlineText}" Foreground="{StaticResource Subtext}" FontSize="10" Margin="4,0,10,0"/>
@@ -199,7 +199,8 @@
                             <DataTemplate>
                                 <Grid Background="Transparent" MouseLeftButtonDown="OnHostnameCellClick"
                                       ToolTip="{loc:L TipEditCell}">
-                                    <TextBlock Text="{Binding Hostname}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Hostname}" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Hostname}"/>
                                 </Grid>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -255,9 +256,13 @@
             <Border Grid.Row="1" Background="{StaticResource BgDark}"
                     BorderBrush="{StaticResource Surface}" BorderThickness="0,1,0,0" Padding="10,6">
                 <Grid>
-                <TextBlock Text="{Binding ThreadsText}" Foreground="{StaticResource Subtext}"
-                           FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <StackPanel Orientation="Horizontal">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="1" Text="{Binding ThreadsText}" Foreground="{StaticResource Subtext}"
+                           FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
                     <TextBlock Text="{loc:L TotalRow}" Foreground="{StaticResource Mauve}"
                                FontWeight="Bold" FontSize="11" VerticalAlignment="Center" Margin="0,0,18,0"/>
                     <TextBlock Text="{loc:L Avg}" Foreground="{StaticResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
@@ -556,7 +561,7 @@
                     </Grid>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
                         <StackPanel>
-                            <!-- Netzwerk -->
+                            <!-- Network -->
                             <TextBlock Text="{loc:L TabNetwork}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,0,0,8"/>
                             <!-- Subnets: target + name + color -> chip per entry -->
                             <TextBlock Text="{loc:L Subnets}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{loc:L TipSubnets}"/>
@@ -693,7 +698,7 @@
                             <TextBlock x:Name="InternetHostsError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
                             <WrapPanel x:Name="HostChips" Margin="0,7,0,0"/>
 
-                            <!-- Graphen -->
+                            <!-- Graphs -->
                             <TextBlock Text="{loc:L TabGraphs}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <DockPanel>
                                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{loc:L TipGraphMaxTime}">
@@ -709,7 +714,7 @@
                                 </StackPanel>
                             </DockPanel>
 
-                            <!-- Ausgabe -->
+                            <!-- Output -->
                             <TextBlock Text="{loc:L TabOutput}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <TextBlock Text="{loc:L OutputDir}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{loc:L TipOutputDir}"/>
                             <DockPanel>
@@ -722,7 +727,7 @@
                                 <CheckBox x:Name="ExportCsvBox" Content="{loc:L ExportCsv}" Foreground="{StaticResource Text}" FontSize="13" Margin="24,0,0,0" ToolTip="{loc:L TipExportCsv}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                             </StackPanel>
 
-                            <!-- Datenbank -->
+                            <!-- Database -->
                             <TextBlock Text="{loc:L TabDatabase}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <TextBlock Text="{loc:L ConfNote}" Foreground="{StaticResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
                             <TextBlock Text="{loc:L DbFile}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{loc:L TipDbFile}"/>
@@ -739,7 +744,7 @@
                                 <CheckBox x:Name="KnownDbBox" Content="{loc:L KnownDb}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" ToolTip="{loc:L TipKnownDb}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                             </DockPanel>
 
-                            <!-- Konfigurationsdatei -->
+                            <!-- Configuration file -->
                             <TextBlock Text="{loc:L TabConfig}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <TextBlock Text="{loc:L ConfDirLabel}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,0,0,4" ToolTip="{loc:L TipConfDir}"/>
                             <DockPanel>

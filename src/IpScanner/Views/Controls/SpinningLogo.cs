@@ -20,7 +20,8 @@ public sealed class SpinningLogo : FrameworkElement
 
     private readonly HostVisual _host = new();
     private Thread? _thread;
-    private Dispatcher? _workerDispatcher;
+    private volatile Dispatcher? _workerDispatcher;
+    private volatile bool _shutdownRequested;
 
     // Written by the UI thread, read by the worker (lock-free via Interlocked).
     private long _targetBits = BitConverter.DoubleToInt64Bits(0);
@@ -45,7 +46,11 @@ public sealed class SpinningLogo : FrameworkElement
     }
 
     /// <summary>Stop the render thread (call when the window closes).</summary>
-    public void Shutdown() => _workerDispatcher?.BeginInvokeShutdown(DispatcherPriority.Send);
+    public void Shutdown()
+    {
+        _shutdownRequested = true;
+        _workerDispatcher?.BeginInvokeShutdown(DispatcherPriority.Send);
+    }
 
     private void StartWorker()
     {
@@ -60,6 +65,7 @@ public sealed class SpinningLogo : FrameworkElement
     private void RenderLoop(BitmapSource logo)
     {
         _workerDispatcher = Dispatcher.CurrentDispatcher;
+        if (_shutdownRequested) return;   // window closed before the loop started
 
         var target = new VisualTarget(_host);
         var spin = new RotateTransform(0, Center, Center);

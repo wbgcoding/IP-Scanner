@@ -71,7 +71,7 @@ public sealed class DeviceViewModel : ObservableObject
     public double? MaxRaw => _device.MaxMs;
     public double? LastRaw => _device.LastFailed ? null : _device.LastMs;
 
-    // Best (lowest) / worst (highest) marker per column: green ● best, red ● worst.
+    // Best (lowest) / worst (highest) marker per column: green ▼ best, red ▲ worst.
     private const string Best = "▼", Worst = "▲";
     private static readonly string BestColor = Core.Palette.Green, WorstColor = Core.Palette.Red, NoColor = Core.Palette.Transparent;
     private int _avgMark, _minMark, _maxMark, _lastMark;   // -1 best, 1 worst, 0 none

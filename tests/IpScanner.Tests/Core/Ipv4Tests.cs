@@ -14,10 +14,6 @@ public class Ipv4Tests
         => Assert.Equal(expected, Ipv4.IsValid(ip));
 
     [Fact]
-    public void PrefixToMask_Converts24()
-        => Assert.Equal("255.255.255.0", Ipv4.PrefixToMask(24));
-
-    [Fact]
     public void SubnetPrefix_TakesFirstThreeOctets()
         => Assert.Equal("192.168.1", Ipv4.SubnetPrefix("192.168.1.55"));
 

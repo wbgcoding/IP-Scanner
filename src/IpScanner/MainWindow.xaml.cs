@@ -89,7 +89,7 @@ public partial class MainWindow : Window
         ScanStopButton.Style = (Style)FindResource(scanning ? "DangerButton" : "AccentButton");
 
         // Spin while scanning — faster with more threads, eased in/out.
-        int threads = _config.ScanThreads <= 0 ? 254 : _config.ScanThreads;
+        int threads = _config.ScanThreads <= 0 ? Core.Net.Ipv4.HostsPerSubnet : _config.ScanThreads;
         double seconds = Math.Clamp(120.0 / threads, 0.6, 6.0);
         Logo.SetSpeed(scanning ? 360.0 / seconds : 0.0);
     }
@@ -98,30 +98,20 @@ public partial class MainWindow : Window
     // ── Progress-bar colors (legend squares act as color pickers) ──
     private void ApplyBarColors()
     {
-        static System.Windows.Media.SolidColorBrush B(string hex) =>
-            new((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex));
-        DevBar.Color1 = B(_config.ColorOnline);  LegOnline.Background = B(_config.ColorOnline);
-        DevBar.Color2 = B(_config.ColorOffline); LegOffline.Background = B(_config.ColorOffline);
-        PingBar.Color1 = B(_config.ColorSuccess); LegSuccess.Background = B(_config.ColorSuccess);
-        PingBar.Color2 = B(_config.ColorFailed);  LegFailed.Background = B(_config.ColorFailed);
-        PingBar.Color3 = B(_config.ColorSkipped); LegSkipped.Background = B(_config.ColorSkipped);
+        DevBar.Color1 = BrushFor(_config.ColorOnline);  LegOnline.Background = BrushFor(_config.ColorOnline);
+        DevBar.Color2 = BrushFor(_config.ColorOffline); LegOffline.Background = BrushFor(_config.ColorOffline);
+        PingBar.Color1 = BrushFor(_config.ColorSuccess); LegSuccess.Background = BrushFor(_config.ColorSuccess);
+        PingBar.Color2 = BrushFor(_config.ColorFailed);  LegFailed.Background = BrushFor(_config.ColorFailed);
+        PingBar.Color3 = BrushFor(_config.ColorSkipped); LegSkipped.Background = BrushFor(_config.ColorSkipped);
     }
 
     // ── Themed color picker (popup with palette swatches + hex field) ──
     // The OK button routes the chosen color to whoever opened the popup.
     private Action<string>? _pickerApply;
 
-    private static readonly string[] SwatchColors =
-    {
-        "#F5E0DC", "#F2CDCD", "#F5C2E7", "#CBA6F7", "#F38BA8",
-        "#EBA0AC", "#FAB387", "#F9E2AF", "#A6E3A1", "#94E2D5",
-        "#89DCEB", "#74C7EC", "#89B4FA", "#B4BEFE", "#CDD6F4",
-        "#A6ADC8", "#6C7086", "#585B70", "#45475A", "#313244",
-    };
-
     private void InitColorPicker()
     {
-        foreach (var hex in SwatchColors)
+        foreach (var hex in Core.Palette.Swatches)
         {
             var swatch = new System.Windows.Controls.Border
             {
@@ -185,12 +175,13 @@ public partial class MainWindow : Window
             CellEditPopup.IsOpen = false;
     }
 
-    private static bool IsHexColor(string s) =>
-        System.Text.RegularExpressions.Regex.IsMatch(s.Trim(), "^#[0-9A-Fa-f]{6}$");
+    /// <summary>Validated, '#'-prefixed, upper-case hex color, or null if invalid.</summary>
+    private static string? NormalizeHex(string s) =>
+        Core.Palette.IsHexColor(s) ? "#" + s.Trim().TrimStart('#').ToUpperInvariant() : null;
 
     private void OnHexColorChanged(object sender, TextChangedEventArgs e)
     {
-        if (IsHexColor(HexBox.Text)) HexPreview.Background = BrushFor(HexBox.Text.Trim());
+        if (NormalizeHex(HexBox.Text) is { } hex) HexPreview.Background = BrushFor(hex);
     }
 
     private void OnHexColorKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -200,7 +191,7 @@ public partial class MainWindow : Window
 
     private void OnHexColorApply(object sender, RoutedEventArgs e)
     {
-        if (IsHexColor(HexBox.Text)) ApplyPickedColor(HexBox.Text.Trim().ToUpperInvariant());
+        if (NormalizeHex(HexBox.Text) is { } hex) ApplyPickedColor(hex);
     }
 
     private void ApplyPickedColor(string hex)
@@ -327,7 +318,7 @@ public partial class MainWindow : Window
         public void RandomColor()
         {
             if (_colorBtn is null) return;
-            _color = SwatchColors[Random.Shared.Next(SwatchColors.Length)];
+            _color = Core.Palette.Swatches[Random.Shared.Next(Core.Palette.Swatches.Length)];
             _colorBtn.Background = BrushFor(_color);
         }
 
@@ -1207,7 +1198,7 @@ public partial class MainWindow : Window
     private bool ConfirmLargeRange(int cidr)
     {
         int subnets = cidr >= 16 ? 256 : 65536;
-        var r = MessageBox.Show(this, Loc.LargeRangeMsg(cidr, subnets, (long)subnets * 254),
+        var r = MessageBox.Show(this, Loc.LargeRangeMsg(cidr, subnets, (long)subnets * Core.Net.Ipv4.HostsPerSubnet),
             Loc.LargeRange, MessageBoxButton.YesNo, MessageBoxImage.Warning);
         return r == MessageBoxResult.Yes;
     }

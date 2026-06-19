@@ -1,9 +1,22 @@
+using System.Text.RegularExpressions;
+
 namespace IpScanner.Core;
 
 /// <summary>Catppuccin Mocha hex colors used from C# (mirrors Resources/Styles.xaml).
 /// Single source for code-side colors so they don't drift across view models.</summary>
 public static class Palette
 {
+    public const string Rosewater = "#F5E0DC";
+    public const string Flamingo = "#F2CDCD";
+    public const string Pink = "#F5C2E7";
+    public const string Maroon = "#EBA0AC";
+    public const string Teal = "#94E2D5";
+    public const string Sky = "#89DCEB";
+    public const string Sapphire = "#74C7EC";
+    public const string Lavender = "#B4BEFE";
+    public const string Subtext0 = "#A6ADC8";
+    public const string Overlay0 = "#6C7086";
+    public const string Surface0 = "#313244";
     public const string Text = "#CDD6F4";
     public const string MidGray = "#585B70";
     public const string Surface2 = "#45475A";
@@ -18,6 +31,20 @@ public static class Palette
     public const string UnifiBlue = "#0559C9";
     public const string Transparent = "#00000000";
     public const string DarkText = "#1E1E2E";
+
+    /// <summary>Color-picker palette swatches (Catppuccin Mocha spectrum).</summary>
+    public static readonly string[] Swatches =
+    {
+        Rosewater, Flamingo, Pink, Mauve, Red,
+        Maroon, Peach, Yellow, Green, Teal,
+        Sky, Sapphire, Blue, Lavender, Text,
+        Subtext0, Overlay0, MidGray, Surface2, Surface0,
+    };
+
+    private static readonly Regex HexPattern = new("^#?[0-9A-Fa-f]{6}$", RegexOptions.Compiled);
+
+    /// <summary>True for a 6-digit hex color, with or without a leading '#'.</summary>
+    public static bool IsHexColor(string? s) => s is not null && HexPattern.IsMatch(s.Trim());
 
     /// <summary>Readable text color (dark or white) for the given background.</summary>
     public static string ContrastOn(string hex)

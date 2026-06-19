@@ -48,8 +48,9 @@ public static class DeviceGrouper
         if (!string.IsNullOrEmpty(d.Hostname) && d.Hostname != Device.Unknown && d.Hostname.Length >= 2)
         {
             // Leading letters only: "pc-a"/"pc-b" -> "pc", "desktop-01" -> "desktop".
-            var prefix = new string(d.Hostname.TakeWhile(char.IsLetter).ToArray());
-            if (prefix.Length >= 2) return "host:" + prefix.ToLowerInvariant();
+            int len = 0;
+            while (len < d.Hostname.Length && char.IsLetter(d.Hostname[len])) len++;
+            if (len >= 2) return "host:" + d.Hostname[..len].ToLowerInvariant();
         }
         if (!string.IsNullOrEmpty(d.Mac) && d.Mac != Device.Unknown && d.Mac.Length >= 8)
             return "mac:" + d.Mac[..8].ToUpperInvariant();

@@ -11,9 +11,6 @@ public sealed class OverrideStore
 {
     public sealed record Entry(string? Hostname, string? Color);
 
-    private static readonly System.Text.RegularExpressions.Regex HexColor =
-        new("^#[0-9A-Fa-f]{6}$", System.Text.RegularExpressions.RegexOptions.Compiled);
-
     private readonly Dictionary<string, Entry> _entries = new();
     private string? _path;
 
@@ -29,7 +26,7 @@ public sealed class OverrideStore
                 var p = line.Split('\t');
                 if (p.Length < 3 || p[0].Length == 0) continue;
                 var host = p[1].Length > 0 ? p[1] : null;
-                var color = HexColor.IsMatch(p[2]) ? p[2].ToUpperInvariant() : null;
+                var color = Core.Palette.IsHexColor(p[2]) ? p[2].ToUpperInvariant() : null;
                 if (host is not null || color is not null)
                     _entries[p[0]] = new Entry(host, color);
             }

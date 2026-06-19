@@ -19,12 +19,21 @@ public static class GraphSeries
         var points = new PointCollection();
         var ticks = new List<Tick>();
         string maxText = "", minText = "";
-        var present = samples.Where(v => v is not null).Select(v => v!.Value).ToList();
+
+        // Single pass: count present samples and their min/max (no LINQ allocs).
+        int present = 0;
+        double min = double.MaxValue, max = double.MinValue;
+        foreach (var s in samples)
+        {
+            if (s is not { } v) continue;
+            present++;
+            if (v < min) min = v;
+            if (v > max) max = v;
+        }
         double stepX = samples.Count > 1 ? width / (samples.Count - 1) : 0;
 
-        if (width > 0 && height > 0 && present.Count > 1)
+        if (width > 0 && height > 0 && present > 1)
         {
-            double min = present.Min(), max = present.Max();
             if (max - min < 0.5) { max += 0.5; min = Math.Max(0, min - 0.5); }   // flat-line guard
             for (int i = 0; i < samples.Count; i++)
             {

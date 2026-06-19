@@ -29,8 +29,8 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>Split an "ip name" config entry; without a name the IP doubles as name.</summary>
     private static (string ip, string name) ParseHostEntry(string entry)
     {
-        var parts = entry.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return parts.Length == 2 ? (parts[0], parts[1]) : (entry.Trim(), entry.Trim());
+        var e = NetEntry.Parse(entry);
+        return (e.Target, e.Name.Length > 0 ? e.Name : e.Target);
     }
 
     public MainViewModel(Func<string, int, PingResult> pingFunc,
@@ -159,16 +159,20 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>Load manual hostname/group overrides (file lives next to the db).</summary>
     public void InitOverrides(string path) => _overrides.Load(path);
 
-    /// <summary>Rebuild pinned-IP name/color metadata from current Config and
-    /// re-apply to all already-visible devices. Call when PinnedIps settings change.</summary>
-    /// <summary>Rebuild pinned metadata and re-apply to all visible devices.
-    /// Handles pin/unpin state, hostnames, and colors. Call after PinnedIps change.</summary>
-    public void RefreshPinnedNames()
+    /// <summary>Rebuild pinned-IP name/color metadata from the current config.</summary>
+    private void RebuildPinnedMeta()
     {
         _pinnedMeta = Config.PinnedIps.Select(NetEntry.Parse)
             .Where(e => e.Target.Length > 0)
             .GroupBy(e => e.Target).ToDictionary(g => g.Key, g => g.First());
         _pinned = new HashSet<string>(_pinnedMeta.Keys);
+    }
+
+    /// <summary>Rebuild pinned metadata and re-apply to all visible devices.
+    /// Handles pin/unpin state, hostnames, and colors. Call after PinnedIps change.</summary>
+    public void RefreshPinnedNames()
+    {
+        RebuildPinnedMeta();
 
         lock (_byIpLock)
         {
@@ -277,10 +281,7 @@ public sealed class MainViewModel : ObservableObject
         _selfMac = info.Mac;
         _selfHost = Environment.MachineName;
         _gatewayIp = info.Gateway;
-        _pinnedMeta = Config.PinnedIps.Select(NetEntry.Parse)
-            .Where(e => e.Target.Length > 0)
-            .GroupBy(e => e.Target).ToDictionary(g => g.Key, g => g.First());
-        _pinned = new HashSet<string>(_pinnedMeta.Keys);
+        RebuildPinnedMeta();
         _subnetMeta = new Dictionary<string, NetEntry>();
         foreach (var s in Config.Subnets)
         {
@@ -300,8 +301,7 @@ public sealed class MainViewModel : ObservableObject
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
         Progress.InfinitePings = infinite;
         int perIp = infinite ? 1 : Math.Max(1, cfg.PingCount);
-        int hostsPerSubnet = Ipv4.LastHost - Ipv4.FirstHost + 1;
-        _plannedDevices = Math.Max(1, prefixes.Count * hostsPerSubnet);
+        _plannedDevices = Math.Max(1, prefixes.Count * Ipv4.HostsPerSubnet);
         _totalPings = Math.Max(1L, (long)_plannedDevices * perIp);
 
         _dispatch(() =>
@@ -327,7 +327,9 @@ public sealed class MainViewModel : ObservableObject
 
         // Internet latency runs alongside the scan with the same ping count as
         // the table; a new scan (or Stop) cancels the previous loop via the CTS.
-        _ = PingInternetAsync(_cts!.Token, cfg.PingCount == 0 ? 1 : cfg.PingCount);
+        // Observe the task so a fault can't surface as an unhandled exception.
+        _ = PingInternetAsync(_cts!.Token, cfg.PingCount == 0 ? 1 : cfg.PingCount)
+                .ContinueWith(t => { _ = t.Exception; }, TaskContinuationOptions.OnlyOnFaulted);
 
         var engine = new ScanEngine(_pingFunc, _enrichers);
         engine.DeviceUpdated += OnDeviceUpdated;
@@ -532,14 +534,15 @@ public sealed class MainViewModel : ObservableObject
 
     private void OnDeviceUpdated(Device d)
     {
-        ApplySelfInfo(d);
-        ApplyPinnedName(d);
-        ApplyHostnameOverride(d);
-        ApplyColorOverride(d);
+        // Self values are re-forced every ping (enrichment must not win on the
+        // own row); lock(d) serializes with the engine's enrichment writers.
+        if (d.Ip == _selfIp) lock (d) ApplySelfInfo(d);
         if (!d.IsOnline && !d.Seen && !d.FromDb) return;
 
         // Known rows are only marked dirty (flushed by the throttled aggregate
         // pass) — dispatching per ping floods the UI thread and lags the table.
+        // Pinned/override metadata is stable per row, so it is applied once at
+        // row creation (and on explicit settings changes), not on every ping.
         bool tracked;
         lock (_byIpLock) tracked = _byIp.ContainsKey(d.Ip);
         if (tracked) { _dirty.TryAdd(d.Ip, 0); return; }
@@ -549,6 +552,12 @@ public sealed class MainViewModel : ObservableObject
             lock (_byIpLock)
             {
                 if (_byIp.ContainsKey(d.Ip)) return;
+                lock (d)
+                {
+                    ApplyPinnedName(d);
+                    ApplyHostnameOverride(d);
+                    ApplyColorOverride(d);
+                }
                 var vm = new DeviceViewModel(d, d.Ip == _selfIp, _pinned.Contains(d.Ip));
                 _byIp[d.Ip] = vm;
                 InsertSorted(vm);
@@ -624,7 +633,8 @@ public sealed class MainViewModel : ObservableObject
 
     private void UpdateProgress(ScanEngine engine, bool forceGroups = false)
     {
-        var all = engine.Devices.ToList();
+        // engine.Devices is already a fresh snapshot array — use it directly.
+        var all = (IList<Device>)engine.Devices;
         var p = engine.Progress;
 
         // Live grouping is O(n) — debounce it (≤ every 400 ms) so a fast ping
@@ -658,14 +668,36 @@ public sealed class MainViewModel : ObservableObject
         Progress.SetDevices(online, offline, Math.Max(_plannedDevices, 1));
         Progress.SetPings(p.SuccessPings, p.FailedPings, p.SkippedPings, _totalPings);
 
-        foreach (var net in Networks)
+        if (Networks.Count > 0)
         {
-            var prefix = Ipv4.SubnetPrefix(net.Cidr.Split('/')[0]);
-            var inNet = all.Where(d => d.Ip.StartsWith(prefix + ".")).ToList();
-            net.OnlineCount = inNet.Count(d => d.IsOnline);
-            net.OfflineCount = inNet.Count(d => !d.IsOnline);
-            var avgs = inNet.Where(d => d.IsOnline && d.AvgMs is not null).Select(d => d.AvgMs!.Value).ToList();
-            net.SetAvg(avgs.Count > 0 ? avgs.Average() : null);
+            // Single pass over all devices, bucketed by network prefix (computed
+            // once), instead of four LINQ passes per network.
+            int n = Networks.Count;
+            var prefixes = new string[n];
+            var onlineByNet = new int[n];
+            var offlineByNet = new int[n];
+            var avgSum = new double[n];
+            var avgCnt = new int[n];
+            for (int i = 0; i < n; i++)
+                prefixes[i] = Ipv4.SubnetPrefix(Networks[i].Cidr.Split('/')[0]) + ".";
+            foreach (var d in all)
+                for (int i = 0; i < n; i++)
+                {
+                    if (!d.Ip.StartsWith(prefixes[i], StringComparison.Ordinal)) continue;
+                    if (d.IsOnline)
+                    {
+                        onlineByNet[i]++;
+                        if (d.AvgMs is { } a) { avgSum[i] += a; avgCnt[i]++; }
+                    }
+                    else offlineByNet[i]++;
+                    break;   // an IP belongs to a single /24
+                }
+            for (int i = 0; i < n; i++)
+            {
+                Networks[i].OnlineCount = onlineByNet[i];
+                Networks[i].OfflineCount = offlineByNet[i];
+                Networks[i].SetAvg(avgCnt[i] > 0 ? avgSum[i] / avgCnt[i] : null);
+            }
         }
 
         List<DeviceViewModel> rows;
@@ -688,8 +720,9 @@ public sealed class MainViewModel : ObservableObject
     {
         static double? Avg(List<DeviceViewModel> l, Func<DeviceViewModel, double?> sel)
         {
-            var vals = l.Select(sel).Where(v => v is not null).Select(v => v!.Value).ToList();
-            return vals.Count == 0 ? null : vals.Average();
+            double sum = 0; int n = 0;
+            foreach (var vm in l) if (sel(vm) is { } v) { sum += v; n++; }
+            return n == 0 ? null : sum / n;
         }
         double? avg = Avg(rows, v => v.AvgRaw), min = Avg(rows, v => v.MinRaw),
                 max = Avg(rows, v => v.MaxRaw), last = Avg(rows, v => v.LastRaw);

@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace IpScanner.Core.Models;
 
 /// <summary>
@@ -9,15 +7,13 @@ namespace IpScanner.Core.Models;
 /// </summary>
 public sealed record NetEntry(string Target, string Name, string Color)
 {
-    private static readonly Regex HexColor = new("^#?[0-9A-Fa-f]{6}$", RegexOptions.Compiled);
-
     public static NetEntry Parse(string raw)
     {
         var parts = raw.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0) return new NetEntry("", "", "");
         string color = "";
         int end = parts.Length;
-        if (end > 1 && HexColor.IsMatch(parts[^1]))
+        if (end > 1 && Palette.IsHexColor(parts[^1]))
         {
             color = "#" + parts[^1].TrimStart('#').ToUpperInvariant();
             end--;
