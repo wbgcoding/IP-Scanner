@@ -46,6 +46,9 @@ public sealed class MainViewModel : ObservableObject
     }
 
     public ObservableCollection<DeviceViewModel> Devices { get; } = new();
+    /// <summary>Raised when the online/offline mix changed, so a device filter can refresh.</summary>
+    public event Action? DeviceVisibilityChanged;
+    private int _filterOnline = -1, _filterOffline = -1;
     public ObservableCollection<NetworkInfoViewModel> Networks { get; } = new();
     public ObservableCollection<InternetHostViewModel> InternetHosts { get; } = new();
     public ProgressViewModel Progress { get; } = new();
@@ -74,6 +77,24 @@ public sealed class MainViewModel : ObservableObject
 
     public IReadOnlyList<NetworkInfoViewModel> NetworksSnapshot()
     { lock (_graphListLock) return Networks.ToArray(); }
+
+    /// <summary>When enabled, open the latency graph of every pinned device row.</summary>
+    public void ApplyAutoGraph(bool on)
+    {
+        if (!on) return;
+        DeviceViewModel[] rows;
+        lock (_byIpLock) rows = _byIp.Values.ToArray();
+        foreach (var vm in rows) if (vm.IsPinned) vm.ShowGraph = true;
+    }
+
+    /// <summary>Feed one per-second latency sample to every device row's graph so
+    /// an expanded graph shows the full configured time window.</summary>
+    public void SampleRowGraphs(int capacity, int tickIntervalSeconds)
+    {
+        DeviceViewModel[] rows;
+        lock (_byIpLock) rows = _byIp.Values.ToArray();
+        foreach (var vm in rows) vm.AddRowSample(vm.LastRaw, capacity, tickIntervalSeconds);
+    }
 
     public void AddDeviceGraph()
     {
@@ -559,6 +580,7 @@ public sealed class MainViewModel : ObservableObject
                     ApplyColorOverride(d);
                 }
                 var vm = new DeviceViewModel(d, d.Ip == _selfIp, _pinned.Contains(d.Ip));
+                if (Config.AutoGraphForPinned && vm.IsPinned) vm.ShowGraph = true;
                 _byIp[d.Ip] = vm;
                 InsertSorted(vm);
             }
@@ -601,6 +623,7 @@ public sealed class MainViewModel : ObservableObject
                 if (!_byIp.ContainsKey(dev.Ip))
                 {
                     var vm = new DeviceViewModel(dev, dev.Ip == _selfIp, _pinned.Contains(dev.Ip));
+                    if (Config.AutoGraphForPinned && vm.IsPinned) vm.ShowGraph = true;
                     _byIp[dev.Ip] = vm;
                     InsertSorted(vm);
                 }
@@ -665,6 +688,12 @@ public sealed class MainViewModel : ObservableObject
         int discovered = all.Count;
         int online = all.Count(d => d.IsOnline);
         int offline = discovered - online;
+        // Online/offline composition changed → the offline filter may need a refresh.
+        if (online != _filterOnline || offline != _filterOffline)
+        {
+            _filterOnline = online; _filterOffline = offline;
+            DeviceVisibilityChanged?.Invoke();
+        }
         Progress.SetDevices(online, offline, Math.Max(_plannedDevices, 1));
         Progress.SetPings(p.SuccessPings, p.FailedPings, p.SkippedPings, _totalPings);
 

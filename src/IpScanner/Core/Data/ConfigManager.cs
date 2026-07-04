@@ -16,6 +16,7 @@ public static class ConfigManager
         "internet_timeout_ms", "internet_hosts", "known_devices_db", "database_path",
         "config_directory", "graphs_enabled", "network_graphs_enabled", "graph_max_seconds", "output_directory",
         "file_output", "export_csv", "scan_threads", "ui_scale", "language", "check_for_updates",
+        "auto_graph_pinned", "show_offline_db",
         "color_online", "color_offline", "color_success", "color_failed", "color_skipped",
     };
 
@@ -57,6 +58,8 @@ public static class ConfigManager
                 case "config_directory":            cfg.ConfigDirectory = value; break;
                 case "graphs_enabled":              cfg.GraphsEnabled = ParseBool(value); break;
                 case "network_graphs_enabled":      cfg.NetworkGraphsEnabled = ParseBool(value); break;
+                case "auto_graph_pinned":           cfg.AutoGraphForPinned = ParseBool(value); break;
+                case "show_offline_db":             cfg.ShowOfflineFromDb = ParseBool(value); break;
                 case "graph_max_seconds":           cfg.GraphMaxSeconds = ParseInt(value, 10, 300, 300); break;
                 case "check_for_updates":           cfg.CheckForUpdates = ParseBool(value); break;
                 case "output_directory":            cfg.OutputDirectory = value; break;
@@ -66,7 +69,7 @@ public static class ConfigManager
                 case "ui_scale":                    cfg.UiScalePercent = ParseInt(value, 50, 200, 100); break;
                 case "language":
                     var lang = value.Trim().ToLowerInvariant();
-                    cfg.Language = lang is "de" or "en" ? lang : "auto";
+                    cfg.Language = lang == "auto" || Core.Localization.Loc.IsSupported(lang) ? lang : "auto";
                     break;
                 case "pinned_ips":                  cfg.PinnedIps = ParseIpList(value); break;
                 case "color_online":                cfg.ColorOnline = ParseColor(value, cfg.ColorOnline); break;
@@ -140,6 +143,10 @@ public static class ConfigManager
         sb.AppendLine($"graphs_enabled = {B(c.GraphsEnabled)}");
         sb.AppendLine("# network_graphs_enabled  Show a latency history under each network. Default true.");
         sb.AppendLine($"network_graphs_enabled = {B(c.NetworkGraphsEnabled)}");
+        sb.AppendLine("# auto_graph_pinned  Open the latency graph automatically for pinned devices. Default false.");
+        sb.AppendLine($"auto_graph_pinned = {B(c.AutoGraphForPinned)}");
+        sb.AppendLine("# show_offline_db  Show known devices from the database that are currently offline. Default true.");
+        sb.AppendLine($"show_offline_db = {B(c.ShowOfflineFromDb)}");
         sb.AppendLine("# graph_max_seconds  Visible time span of the graphs (10-300 s). Default 300.");
         sb.AppendLine($"graph_max_seconds = {c.GraphMaxSeconds}");
         sb.AppendLine();
@@ -167,7 +174,7 @@ public static class ConfigManager
         sb.AppendLine($"scan_threads = {c.ScanThreads}");
         sb.AppendLine("# ui_scale  Text size in percent (50-200). Default 100.");
         sb.AppendLine($"ui_scale = {c.UiScalePercent}");
-        sb.AppendLine("# language  Language: auto, de, en. Default auto.");
+        sb.AppendLine("# language  UI language: auto or a code (en, de, es, fr, zh, hi, ar, pt, ru, ja). Default auto.");
         sb.AppendLine($"language = {c.Language}");
         sb.AppendLine("# check_for_updates  Check GitHub for a newer release on startup. Default true.");
         sb.AppendLine($"check_for_updates = {B(c.CheckForUpdates)}");

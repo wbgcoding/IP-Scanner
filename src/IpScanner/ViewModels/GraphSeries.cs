@@ -3,8 +3,8 @@ using System.Windows.Media;
 
 namespace IpScanner.ViewModels;
 
-/// <summary>Shared latency-graph math: maps a sample series (one per second)
-/// to polyline points, min/max labels and time tick markers.</summary>
+/// <summary>Shared latency-graph math: maps a sample series to polyline points,
+/// min/max labels and time tick markers.</summary>
 public static class GraphSeries
 {
     public sealed record Tick(string Label, double X);
@@ -13,8 +13,20 @@ public static class GraphSeries
     public const double PadTop = 13, PadBottom = 14;   // line stays clear of both labels
     private const double TickLabelHalfWidth = 14;
 
+    /// <summary>Pick a readable tick step (seconds) for a given visible time span.</summary>
+    public static int NiceTickStep(double spanSeconds) => spanSeconds switch
+    {
+        <= 12 => 2,
+        <= 30 => 5,
+        <= 90 => 15,
+        <= 240 => 30,
+        _ => 60,
+    };
+
+    /// <param name="secondsPerSample">Real time between two samples (1 for the
+    /// per-second graphs; the ping interval for the per-ping row graph).</param>
     public static Result Compute(IReadOnlyList<double?> samples, double width, double height,
-                                 int tickIntervalSeconds)
+                                 int tickIntervalSeconds, double secondsPerSample = 1.0)
     {
         var points = new PointCollection();
         var ticks = new List<Tick>();
@@ -44,12 +56,16 @@ public static class GraphSeries
             maxText = Core.NumberFormat.Ms(max);
             minText = Core.NumberFormat.Ms(min);
 
-            for (int secs = tickIntervalSeconds; secs < samples.Count; secs += tickIntervalSeconds)
-            {
-                double x = (samples.Count - 1 - secs) * stepX;
-                if (x < TickLabelHalfWidth) continue;
-                ticks.Add(new Tick(secs < 60 ? $"{secs}s" : $"{secs / 60}m", x - TickLabelHalfWidth));
-            }
+            // Time ticks counted back from "now" (the right edge).
+            if (tickIntervalSeconds > 0 && secondsPerSample > 0)
+                for (int secs = tickIntervalSeconds; ; secs += tickIntervalSeconds)
+                {
+                    double samplesAgo = secs / secondsPerSample;
+                    if (samplesAgo > samples.Count - 1) break;
+                    double x = (samples.Count - 1 - samplesAgo) * stepX;
+                    if (x < TickLabelHalfWidth) break;
+                    ticks.Add(new Tick(secs < 60 ? $"{secs}s" : $"{secs / 60}m", x - TickLabelHalfWidth));
+                }
         }
         points.Freeze();   // computed on a worker thread, consumed by UI bindings
         return new Result(points, maxText, minText, ticks);

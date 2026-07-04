@@ -2,6 +2,36 @@
 
 All notable changes, written for people who just use the app.
 
+## 2.8 — 2026-07-04
+
+Per-device graphs, ten languages, and a cleaner main window.
+
+### Added
+- Click a device's latency column (Ø / Min / Max / Last) to expand a live
+  graph of its ping history right under the row; click the row again to close
+  it. The graph spans the full width with time markers and follows the same
+  time window as the sidebar graphs.
+- New setting: automatically open that graph for pinned devices.
+- A quick "Offline (DB)" switch in the header hides or shows known devices
+  from the database that are currently offline — handy to declutter the table.
+- Eight more languages, for ten in total: English, German, Spanish, French,
+  Chinese, Hindi, Arabic, Portuguese, Russian and Japanese. Switch instantly
+  in the settings; the app also follows your Windows language automatically.
+
+### Changed
+- MAC addresses are now also found for devices in additional local subnets,
+  not just the main one.
+- The export buttons (TXT/CSV) moved to the top of the sidebar, above the
+  networks.
+- The device and ping progress bars now start at the same position and stay
+  aligned in every language.
+- The table no longer shifts sideways when the scrollbar appears.
+
+### Fixed
+- Device graphs open instantly with their full history instead of filling up
+  slowly.
+- The "max time span" field in the graph settings is no longer oversized.
+
 ## 2.7 — 2026-06-19
 
 Automatic updates and a thorough reliability pass.

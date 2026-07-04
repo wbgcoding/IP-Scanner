@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>IP-Scanner</AssemblyName>
-    <Version>2.7.0</Version>
+    <Version>2.8.0</Version>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ApplicationIcon>Resources\network.ico</ApplicationIcon>
   </PropertyGroup>
@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\oui.txt" />
+    <EmbeddedResource Include="Resources\lang\*.json" />
     <Resource Include="Resources\network.ico" />
     <Resource Include="Resources\logo.png" />
   </ItemGroup>

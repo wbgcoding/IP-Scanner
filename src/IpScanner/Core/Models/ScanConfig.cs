@@ -41,6 +41,10 @@ public sealed class ScanConfig
     public int GraphMaxSeconds { get; set; } = 300;
     /// <summary>Check GitHub for a newer release on startup.</summary>
     public bool CheckForUpdates { get; set; } = true;
+    /// <summary>Automatically open the latency graph for pinned devices.</summary>
+    public bool AutoGraphForPinned { get; set; }
+    /// <summary>Show known devices from the database that are currently offline.</summary>
+    public bool ShowOfflineFromDb { get; set; } = true;
 
     // Progress-bar colors (clickable legend squares; persisted, not shown in settings).
     public string ColorOnline { get; set; } = Palette.Green;
@@ -71,6 +75,7 @@ public sealed class ScanConfig
         Language = Language, ConfigDirectory = ConfigDirectory,
         GraphsEnabled = GraphsEnabled, GraphMaxSeconds = GraphMaxSeconds,
         NetworkGraphsEnabled = NetworkGraphsEnabled, CheckForUpdates = CheckForUpdates,
+        AutoGraphForPinned = AutoGraphForPinned, ShowOfflineFromDb = ShowOfflineFromDb,
         ColorOnline = ColorOnline, ColorOffline = ColorOffline,
         ColorSuccess = ColorSuccess, ColorFailed = ColorFailed, ColorSkipped = ColorSkipped,
     };

@@ -16,9 +16,12 @@ self-contained exe.
 - Devices that just dropped offline get a quick ping burst, so short dropouts
   recover within seconds; offline IPs keep being rechecked during the run
 - Hostname/MAC resolution over several techniques in parallel (ARP, reverse
-  DNS, mDNS, NetBIOS); the first result shows immediately, better ones replace it
+  DNS, mDNS, NetBIOS); the first result shows immediately, better ones replace
+  it — MAC addresses are found across additional local subnets too
 - Latency table with min/avg/max/last, heatmap colors, best/worst markers and
   a totals row; edit hostnames and group colors right in the table
+- Click a device's latency column to expand a live ping-history graph under
+  its row (full width, time markers, optional auto-open for pinned devices)
 - Up to ten latency history graphs (any device or the network average),
   per-network mini graphs, plus an internet latency panel with its own
   totals and graph — all with time markers and a configurable window
@@ -31,8 +34,11 @@ self-contained exe.
 - Device grouping by MAC vendor and hostname prefix, gateway highlighted
 - Known-devices database (SQLite), mergeable between instances, upgraded
   automatically after app updates
-- TXT/CSV reports, toggled right in the sidebar with file name and size shown
-- German/English UI — switches instantly, no restart; adjustable text size
+- TXT/CSV reports, toggled at the top of the sidebar with file name and size shown
+- A header switch to quickly hide or show known-but-offline devices from the database
+- Ten UI languages (English, German, Spanish, French, Chinese, Hindi, Arabic,
+  Portuguese, Russian, Japanese) — switch instantly, no restart, or follow the
+  Windows language automatically; adjustable text size
 - Settings save instantly, persist as a .conf you can relocate, export and
   import
 

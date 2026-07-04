@@ -38,6 +38,8 @@ public sealed class DeviceViewModel : ObservableObject
     public string Status => _device.IsOnline ? Loc.StatusOnline : Loc.StatusOffline;
     public string StatusColor => _device.IsOnline ? Core.Palette.Green : Core.Palette.Red;
     public bool IsOnline => _device.IsOnline;
+    /// <summary>True when this row originates from the known-devices database.</summary>
+    public bool IsFromDb => _device.FromDb;
     public string Hostname => _device.Hostname is null or Device.Unknown ? "—" : _device.Hostname;
     public string Mac => _device.Mac is null or Device.Unknown ? "—" : _device.Mac;
     public int GroupId => _device.GroupId;
@@ -104,6 +106,71 @@ public sealed class DeviceViewModel : ObservableObject
             ? $"{Core.NumberFormat.Short(_device.CurrentPings)}/∞"
             : $"{Core.NumberFormat.Short(_device.CurrentPings)}/{Core.NumberFormat.Short(_device.TargetPings)}";
 
+    // ── Expandable per-row latency graph (per-second history; follows the graph
+    //    settings exactly like the sidebar graphs) ──
+    public const double RowGraphHeight = 78;
+    private const double DefaultRowGraphWidth = 600;
+    private double _rowGraphWidth = DefaultRowGraphWidth;   // replaced by the canvas actual width on layout
+    private readonly List<double?> _rowSamples = new();
+    private readonly object _rowLock = new();
+    private int _rowTick = 30;
+
+    private bool _showGraph;
+    /// <summary>Latency graph shown under this row.</summary>
+    public bool ShowGraph
+    {
+        get => _showGraph;
+        set
+        {
+            if (_showGraph == value) return;
+            _showGraph = value;
+            if (value) BuildRowGraph();   // history already buffered → shows instantly
+            Raise(nameof(ShowGraph));
+        }
+    }
+
+    public System.Windows.Media.PointCollection RowGraphPoints { get; private set; } = new();
+    public string RowGraphMax { get; private set; } = "";
+    public string RowGraphMin { get; private set; } = "";
+    public IReadOnlyList<GraphSeries.Tick> RowGraphTicks { get; private set; } = Array.Empty<GraphSeries.Tick>();
+
+    /// <summary>Record one per-second latency sample (from the graph timer). Every
+    /// row buffers continuously so an opened graph shows the full window at once.</summary>
+    // ponytail: sample all rows, not just open ones — cheap append, and the user
+    // wants the graph populated instantly on open rather than filling over time.
+    public void AddRowSample(double? value, int capacity, int tickIntervalSeconds)
+    {
+        lock (_rowLock)
+        {
+            _rowSamples.Add(value);
+            while (_rowSamples.Count > capacity) _rowSamples.RemoveAt(0);
+            _rowTick = tickIntervalSeconds;
+        }
+        if (_showGraph) BuildRowGraph();
+    }
+
+    /// <summary>Let the row graph fill the table width (called from the canvas SizeChanged).</summary>
+    public void SetRowGraphWidth(double width)
+    {
+        if (width <= 1) return;
+        bool changed;
+        lock (_rowLock)
+        {
+            changed = Math.Abs(width - _rowGraphWidth) >= 1;
+            if (changed) _rowGraphWidth = width;
+        }
+        if (changed && _showGraph) BuildRowGraph();
+    }
+
+    private void BuildRowGraph()
+    {
+        GraphSeries.Result r;
+        lock (_rowLock) r = GraphSeries.Compute(_rowSamples, _rowGraphWidth, RowGraphHeight, _rowTick);
+        RowGraphPoints = r.Points; RowGraphMax = r.MaxText; RowGraphMin = r.MinText; RowGraphTicks = r.Ticks;
+        Raise(nameof(RowGraphPoints)); Raise(nameof(RowGraphMax));
+        Raise(nameof(RowGraphMin)); Raise(nameof(RowGraphTicks));
+    }
+
     /// <summary>Push the underlying device's latest values to the UI.</summary>
     public void Refresh()
     {
@@ -112,5 +179,6 @@ public sealed class DeviceViewModel : ObservableObject
         Raise(nameof(AvgDisplay)); Raise(nameof(MinDisplay)); Raise(nameof(MaxDisplay));
         Raise(nameof(LastDisplay)); Raise(nameof(ProgressDisplay));
         Raise(nameof(AvgColor)); Raise(nameof(MinColor)); Raise(nameof(MaxColor)); Raise(nameof(LastColor));
+        if (_showGraph) BuildRowGraph();   // keep the open graph live
     }
 }

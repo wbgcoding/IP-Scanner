@@ -63,6 +63,7 @@ public static class UpdateService
     /// failure, leaving the running app untouched.</summary>
     public static async Task<bool> DownloadAndApplyAsync(string downloadUrl, CancellationToken ct = default)
     {
+        if (!downloadUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) return false;
         var targetExe = Environment.ProcessPath;
         if (string.IsNullOrEmpty(targetExe)) return false;
         var targetDir = Path.GetDirectoryName(targetExe);

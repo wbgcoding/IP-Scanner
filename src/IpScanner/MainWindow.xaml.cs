@@ -14,6 +14,7 @@ public partial class MainWindow : Window
 {
     private readonly MainViewModel _vm;
     private ScanConfig _config;
+    private System.ComponentModel.ICollectionView _devicesView = null!;
 
     public MainWindow()
     {
@@ -32,6 +33,11 @@ public partial class MainWindow : Window
             enrichers: Enrichers)
         { Config = _config };
         DataContext = _vm;
+
+        // Hide/show offline known-devices via the grid's default view filter.
+        _devicesView = System.Windows.Data.CollectionViewSource.GetDefaultView(_vm.Devices);
+        _devicesView.Filter = DeviceVisible;
+        _vm.DeviceVisibilityChanged += () => { if (!_config.ShowOfflineFromDb) _devicesView.Refresh(); };
 
         // Prefill the subnet field with the currently detected network so the
         // value is visible immediately (user can edit it before scanning).
@@ -58,7 +64,7 @@ public partial class MainWindow : Window
         ApplyUiScale();          // persisted text-scale takes effect at startup
         ApplyBarColors();        // persisted bar colors
         ApplyDefaultPingCount(); // persisted default ping count into the dropdown
-        LanguageBox.ItemsSource = new[] { Loc.LangAuto, Loc.LangDe, Loc.LangEn };
+        SetLanguageItems();
         InitColorPicker();
         InitChipEditors();
         _vm.InitOverrides(OverridesPathFor(_config.DatabasePath));   // manual hostname/group edits
@@ -115,7 +121,6 @@ public partial class MainWindow : Window
         Logo.SetSpeed(scanning ? 360.0 / seconds : 0.0);
     }
 
-    /// <summary>Scale the whole UI (text included) by the configured percent.</summary>
     // ── Progress-bar colors (legend squares act as color pickers) ──
     private void ApplyBarColors()
     {
@@ -431,6 +436,32 @@ public partial class MainWindow : Window
     private static DeviceViewModel? RowVm(object sender) =>
         (sender as FrameworkElement)?.DataContext as DeviceViewModel;
 
+    // Latency columns (Avg, Min, Max, Last) — clicking one opens the graph.
+    private static readonly int[] PingValueColumns = { 4, 5, 6, 7 };
+
+    /// <summary>Open the row's latency graph only from a ping-value column; close
+    /// it again on a click anywhere in the row.</summary>
+    private void OnDeviceRowClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 1 || sender is not DataGridRow { Item: DeviceViewModel vm }) return;
+        // While open, a click anywhere just closes it (consume so it doesn't also
+        // pin/edit the clicked cell).
+        if (vm.ShowGraph) { vm.ShowGraph = false; e.Handled = true; return; }
+        var cell = FindParent<DataGridCell>(e.OriginalSource as DependencyObject);
+        if (cell?.Column is { } col && System.Array.IndexOf(PingValueColumns, col.DisplayIndex) >= 0)
+            vm.ShowGraph = true;
+    }
+
+    private static T? FindParent<T>(DependencyObject? o) where T : DependencyObject
+    {
+        while (o is not null and not T)
+        {
+            if (o is not System.Windows.Media.Visual) return null;   // GetParent only walks visuals
+            o = System.Windows.Media.VisualTreeHelper.GetParent(o);
+        }
+        return o as T;
+    }
+
     private void OnHostnameCellClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (e.ClickCount != 2 || RowVm(sender) is not { } vm) return;
@@ -583,6 +614,7 @@ public partial class MainWindow : Window
             if (_config.NetworkGraphsEnabled)
                 foreach (var net in _vm.NetworksSnapshot())
                     net.AddGraphSample(capacity, tick);
+            _vm.SampleRowGraphs(capacity, tick);   // per-row table graphs
 
             Dispatcher.BeginInvoke(() =>
             {
@@ -612,6 +644,13 @@ public partial class MainWindow : Window
 
     private void OnGraphSizeChanged(object sender, SizeChangedEventArgs e) => RenderInternetGraph();
 
+    /// <summary>Resize the per-row latency graph to the table width.</summary>
+    private void OnRowGraphSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is DeviceViewModel vm)
+            vm.SetRowGraphWidth(e.NewSize.Width);
+    }
+
     private void RenderInternetGraph()
         => RenderSeries(_inetSamples, InetGraphCanvas, InetGraphLine, InetGraphMaxText, InetGraphMinText);
 
@@ -628,6 +667,7 @@ public partial class MainWindow : Window
         for (int i = canvas.Children.Count - 1; i >= 0; i--)
             if (canvas.Children[i] is FrameworkElement fe && "tick".Equals(fe.Tag))
                 canvas.Children.RemoveAt(i);
+
         var brush = BrushFor(Core.Palette.MidGray);
         foreach (var tick in r.Ticks)
         {
@@ -968,6 +1008,7 @@ public partial class MainWindow : Window
         // resets the TextBox caret) unless PinnedIps actually changed.
         if (!_config.PinnedIps.SequenceEqual(prev))
             _vm.RefreshPinnedNames();
+        _vm.ApplyAutoGraph(_config.AutoGraphForPinned);
         ApplyDefaultPingCount();
         SyncExportToggles();
         ApplyGraphSettings();
@@ -1007,7 +1048,25 @@ public partial class MainWindow : Window
         ApplyInstant();
     }
 
-    private static readonly string[] LanguageModes = { "auto", "de", "en" };
+    // Offline known-devices (from the database) stay hidden unless online, pinned
+    // or the header toggle is on.
+    private bool DeviceVisible(object o)
+        => o is not DeviceViewModel vm
+           || _config.ShowOfflineFromDb || vm.IsOnline || vm.IsPinned || !vm.IsFromDb;
+
+    private void OnToggleOffline(object sender, RoutedEventArgs e)
+    {
+        ApplyInstant();   // persists ShowOfflineFromDb (read back in ReadSettings)
+        _devicesView.Refresh();
+    }
+
+    private static readonly string[] LanguageModes =
+        new[] { "auto" }.Concat(Loc.Languages.Select(l => l.Code)).ToArray();
+
+    /// <summary>"Automatic" + endonyms; rebuilt on switch so "Automatic" re-localizes.</summary>
+    private void SetLanguageItems()
+        => LanguageBox.ItemsSource = new[] { Loc.LangAuto }
+            .Concat(Loc.Languages.Select(l => l.Name)).ToArray();
 
     private void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -1027,7 +1086,8 @@ public partial class MainWindow : Window
         _loadingSettings = true;
         try
         {
-            LoadSettings(_config);   // language combo items, chip tooltips
+            SetLanguageItems();      // re-localize the "Automatic" entry
+            LoadSettings(_config);   // language combo selection, chip tooltips
         }
         finally { _loadingSettings = false; }
         UpdateScanButton();
@@ -1069,8 +1129,10 @@ public partial class MainWindow : Window
         {
         _subnetChips.Load(c.Subnets);
         _pinnedChips.Load(c.PinnedIps);
+        OfflineToggle.IsChecked = c.ShowOfflineFromDb;
         GraphsEnabledBox.IsChecked = c.GraphsEnabled;
         NetworkGraphsBox.IsChecked = c.NetworkGraphsEnabled;
+        AutoGraphPinnedBox.IsChecked = c.AutoGraphForPinned;
         GraphMaxBox.Text = c.GraphMaxSeconds.ToString();
         ScanThreadsBox.Text = c.ScanThreads.ToString();
         UiScaleBox.Text = c.UiScalePercent.ToString();
@@ -1154,6 +1216,8 @@ public partial class MainWindow : Window
             ConfigDirectory = MakeRelative(ConfDirFromInput(ConfDirBox.Text)),
             GraphsEnabled = GraphsEnabledBox.IsChecked == true,
             NetworkGraphsEnabled = NetworkGraphsBox.IsChecked == true,
+            AutoGraphForPinned = AutoGraphPinnedBox.IsChecked == true,
+            ShowOfflineFromDb = OfflineToggle.IsChecked == true,
             GraphMaxSeconds = Math.Clamp(I(GraphMaxBox.Text, 300), 10, 300),
             PingCount = defaultPings is ScanConfig.InfinitePingCount or > 0 ? defaultPings : 10,
             ScanThreads = I(ScanThreadsBox.Text, 50),

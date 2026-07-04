@@ -32,10 +32,12 @@
                 </StackPanel>
 
                 <!-- Center: progress bars -->
-                <StackPanel Grid.Column="1" Margin="18,0" MinWidth="220" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Margin="18,0" MinWidth="220" VerticalAlignment="Center"
+                            Grid.IsSharedSizeScope="True">
                     <Grid Margin="0,0,0,2">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="ProgLabel"/><ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{loc:L Devices}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
@@ -46,6 +48,11 @@
                             Fraction2="{Binding Progress.OfflineFraction}"/>
                         <TextBlock Grid.Column="2" Text="{Binding Progress.DeviceCountText}"
                                    Foreground="{StaticResource Text}" FontSize="10" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        <ToggleButton x:Name="OfflineToggle" Grid.Column="3" Content="{loc:L ShowOfflineDb}"
+                                      Style="{StaticResource PillToggle}" FontSize="11" Padding="12,4" Margin="8,0,0,0"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                      Click="OnToggleOffline" ToolTip="{loc:L TipShowOfflineDb}"/>
                     </Grid>
                     <!-- Devices legend (squares are clickable color pickers) -->
                     <StackPanel Orientation="Horizontal" Margin="56,0,0,4">
@@ -56,7 +63,7 @@
                     </StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="ProgLabel"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{loc:L Pings}" Foreground="{StaticResource Subtext}" FontSize="11"
                                    HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center"/>
@@ -132,7 +139,47 @@
                       Background="{StaticResource Bg}" Foreground="{StaticResource Text}"
                       RowBackground="{StaticResource Bg}" AlternatingRowBackground="{StaticResource BgAlt}"
                       BorderThickness="0" EnableRowVirtualization="True"
-                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                      RowDetailsVisibilityMode="Visible" CanUserReorderColumns="False"
+                      HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible">
+                <!-- Click a row to expand a latency graph of its last pings; click again to hide.
+                     Details mode stays Visible; the template collapses itself via ShowGraph
+                     (binding RowDetailsVisibilityMode per-row is overridden by the grid). -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="OnDeviceRowClick"/>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource BgDark}" Padding="16,8,16,12"
+                                Visibility="{Binding ShowGraph, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="{loc:L LatencyHistory}" Foreground="{StaticResource Subtext}"
+                                           FontSize="10" FontWeight="Bold"/>
+                                <Canvas Height="78" Margin="0,7,0,0" ClipToBounds="True"
+                                        HorizontalAlignment="Stretch" SizeChanged="OnRowGraphSizeChanged">
+                                    <Polyline Points="{Binding RowGraphPoints}" Stroke="{StaticResource Green}"
+                                              StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                                    <TextBlock Text="{Binding RowGraphMax}" Canvas.Left="4" Canvas.Top="1"
+                                               FontSize="9" Foreground="{StaticResource MidGray}"/>
+                                    <TextBlock Text="{Binding RowGraphMin}" Canvas.Left="4" Canvas.Bottom="0"
+                                               FontSize="9" Foreground="{StaticResource MidGray}"/>
+                                    <ItemsControl ItemsSource="{Binding RowGraphTicks}" Canvas.Left="0" Canvas.Top="64">
+                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemContainerStyle>
+                                            <Style TargetType="ContentPresenter"><Setter Property="Canvas.Left" Value="{Binding X}"/></Style>
+                                        </ItemsControl.ItemContainerStyle>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Label}" FontSize="8" Foreground="{StaticResource MidGray}" Width="28" TextAlignment="Center"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Canvas>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Header="{loc:L IpAddress}" Width="Auto" MinWidth="132">
                         <DataGridTemplateColumn.CellTemplate>
@@ -283,6 +330,28 @@
                     BorderThickness="1,0,0,0">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
+                        <!-- Export toggles + last written files -->
+                        <Border Padding="13,12" BorderBrush="{StaticResource Surface}" BorderThickness="0,0,0,1">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button x:Name="OpenScansButton" Style="{StaticResource IconButton}" Margin="0,0,10,0"
+                                            VerticalAlignment="Center" Click="OnOpenScansFolder"
+                                            ToolTip="{loc:L TipOpenScans}">
+                                        <Viewbox Width="15" Height="15">
+                                            <!-- Folder vector -->
+                                            <Path Fill="{StaticResource Text}" Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>
+                                        </Viewbox>
+                                    </Button>
+                                    <ToggleButton x:Name="TxtToggle" Content="{loc:L TxtExport}" Style="{StaticResource PillToggle}"
+                                                  Click="OnExportToggle" ToolTip="{loc:L TipWriteTxt}"/>
+                                    <ToggleButton x:Name="CsvToggle" Content="{loc:L CsvExport}" Style="{StaticResource PillToggle}"
+                                                  Click="OnExportToggle" Margin="10,0,0,0" ToolTip="{loc:L TipExportCsv}"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding ExportInfo}" Foreground="{StaticResource MidGray}" FontSize="10"
+                                           TextWrapping="Wrap" Margin="0,9,0,0" HorizontalAlignment="Center"
+                                           Visibility="{Binding HasExport, Converter={StaticResource BoolToVis}}"/>
+                            </StackPanel>
+                        </Border>
                         <ItemsControl ItemsSource="{Binding Networks}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -423,29 +492,6 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Export toggles + last written files -->
-                        <Border Padding="13,12">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button x:Name="OpenScansButton" Style="{StaticResource IconButton}" Margin="0,0,10,0"
-                                            VerticalAlignment="Center" Click="OnOpenScansFolder"
-                                            ToolTip="{loc:L TipOpenScans}">
-                                        <Viewbox Width="15" Height="15">
-                                            <!-- Folder vector -->
-                                            <Path Fill="{StaticResource Text}" Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>
-                                        </Viewbox>
-                                    </Button>
-                                    <ToggleButton x:Name="TxtToggle" Content="{loc:L TxtExport}" Style="{StaticResource PillToggle}"
-                                                  Click="OnExportToggle" ToolTip="{loc:L TipWriteTxt}"/>
-                                    <ToggleButton x:Name="CsvToggle" Content="{loc:L CsvExport}" Style="{StaticResource PillToggle}"
-                                                  Click="OnExportToggle" Margin="10,0,0,0" ToolTip="{loc:L TipExportCsv}"/>
-                                </StackPanel>
-                                <TextBlock Text="{Binding ExportInfo}" Foreground="{StaticResource MidGray}" FontSize="10"
-                                           TextWrapping="Wrap" Margin="0,9,0,0" HorizontalAlignment="Center"
-                                           Visibility="{Binding HasExport, Converter={StaticResource BoolToVis}}"/>
-                            </StackPanel>
-                        </Border>
-
                         <!-- Latency history graph (overall average or one device) -->
                         <Border x:Name="GraphSection" Padding="13,12" BorderBrush="{StaticResource Surface}" BorderThickness="0,1,0,0">
                             <StackPanel>
@@ -574,17 +620,23 @@
                                 <Border x:Name="SubnetColorBtn" DockPanel.Dock="Right" Width="28" Height="28" CornerRadius="6" Margin="6,0,0,0"
                                         Background="{StaticResource Surface}" BorderBrush="{StaticResource Surface2}" BorderThickness="1"
                                         Cursor="Hand" MouseLeftButtonDown="OnSubnetColorClick" ToolTip="{loc:L TipChipColor}"/>
-                                <Grid DockPanel.Dock="Right" Width="150" Margin="6,0,0,0">
-                                    <TextBox x:Name="SubnetNameBox" FontSize="13" KeyDown="OnSubnetInputKey"/>
-                                    <TextBlock Text="{loc:L NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                    </TextBlock>
-                                </Grid>
                                 <Grid>
-                                    <TextBox x:Name="SubnetNetBox" FontSize="13" KeyDown="OnSubnetInputKey"/>
-                                    <TextBlock Text="{loc:L ExampleSubnets}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetNetBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                    </TextBlock>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0">
+                                        <TextBox x:Name="SubnetNetBox" FontSize="13" KeyDown="OnSubnetInputKey"/>
+                                        <TextBlock Text="{loc:L ExampleSubnets}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetNetBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
+                                    <Grid Grid.Column="1" Margin="6,0,0,0">
+                                        <TextBox x:Name="SubnetNameBox" FontSize="13" KeyDown="OnSubnetInputKey"/>
+                                        <TextBlock Text="{loc:L NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=SubnetNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
                                 </Grid>
                             </DockPanel>
                             <TextBlock x:Name="SubnetsError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
@@ -601,17 +653,23 @@
                                 <Border x:Name="PinnedColorBtn" DockPanel.Dock="Right" Width="28" Height="28" CornerRadius="6" Margin="6,0,0,0"
                                         Background="{StaticResource Surface}" BorderBrush="{StaticResource Surface2}" BorderThickness="1"
                                         Cursor="Hand" MouseLeftButtonDown="OnPinnedColorClick" ToolTip="{loc:L TipChipColor}"/>
-                                <Grid DockPanel.Dock="Right" Width="150" Margin="6,0,0,0">
-                                    <TextBox x:Name="PinnedNameBox" FontSize="13" KeyDown="OnPinnedInputKey"/>
-                                    <TextBlock Text="{loc:L NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                    </TextBlock>
-                                </Grid>
                                 <Grid>
-                                    <TextBox x:Name="PinnedIpBox" FontSize="13" KeyDown="OnPinnedInputKey"/>
-                                    <TextBlock Text="{loc:L ExamplePinnedIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                    </TextBlock>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0">
+                                        <TextBox x:Name="PinnedIpBox" FontSize="13" KeyDown="OnPinnedInputKey"/>
+                                        <TextBlock Text="{loc:L ExamplePinnedIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
+                                    <Grid Grid.Column="1" Margin="6,0,0,0">
+                                        <TextBox x:Name="PinnedNameBox" FontSize="13" KeyDown="OnPinnedInputKey"/>
+                                        <TextBlock Text="{loc:L NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=PinnedNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
                                 </Grid>
                             </DockPanel>
                             <TextBlock x:Name="PinnedError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
@@ -682,17 +740,23 @@
                                         ToolTip="{loc:L TipRemoveChip}"/>
                                 <Button x:Name="HostAddBtn" DockPanel.Dock="Right" Content="+" FontSize="15" Padding="12,2" Margin="6,0,0,0"
                                         Style="{StaticResource AccentButton}" Click="OnHostAdd" ToolTip="{loc:L TipAddEntry}"/>
-                                <Grid DockPanel.Dock="Right" Width="150" Margin="6,0,0,0">
-                                    <TextBox x:Name="HostNameBox" FontSize="13" KeyDown="OnHostInputKey"/>
-                                    <TextBlock Text="{loc:L NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=HostNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                    </TextBlock>
-                                </Grid>
                                 <Grid>
-                                    <TextBox x:Name="HostIpBox" FontSize="13" KeyDown="OnHostInputKey"/>
-                                    <TextBlock Text="{loc:L ExampleHostIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=HostIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
-                                    </TextBlock>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0">
+                                        <TextBox x:Name="HostIpBox" FontSize="13" KeyDown="OnHostInputKey"/>
+                                        <TextBlock Text="{loc:L ExampleHostIp}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=HostIpBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
+                                    <Grid Grid.Column="1" Margin="6,0,0,0">
+                                        <TextBox x:Name="HostNameBox" FontSize="13" KeyDown="OnHostInputKey"/>
+                                        <TextBlock Text="{loc:L NamePlaceholder}" Foreground="{StaticResource MidGray}" FontSize="13" IsHitTestVisible="False" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Text, ElementName=HostNameBox}" Value=""><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
                                 </Grid>
                             </DockPanel>
                             <TextBlock x:Name="InternetHostsError" Foreground="{StaticResource Red}" FontSize="11" Visibility="Collapsed" Margin="2,3,0,0"/>
@@ -701,9 +765,9 @@
                             <!-- Graphs -->
                             <TextBlock Text="{loc:L TabGraphs}" Foreground="{StaticResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,22,0,8"/>
                             <DockPanel>
-                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" ToolTip="{loc:L TipGraphMaxTime}">
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Top" ToolTip="{loc:L TipGraphMaxTime}">
                                     <TextBlock Text="{loc:L GraphMaxTime}" Foreground="{StaticResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBox x:Name="GraphMaxBox" Width="70" FontSize="13" TextAlignment="Right" TextChanged="OnSettingChanged"/>
+                                    <TextBox x:Name="GraphMaxBox" Width="70" FontSize="13" TextAlignment="Right" VerticalAlignment="Center" TextChanged="OnSettingChanged"/>
                                     <TextBlock Text="s" FontSize="12" Foreground="{StaticResource Subtext}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel VerticalAlignment="Center">
@@ -711,6 +775,8 @@
                                               ToolTip="{loc:L TipEnableGraphs}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                                     <CheckBox x:Name="NetworkGraphsBox" Content="{loc:L EnableNetworkGraphs}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,8,0,0"
                                               ToolTip="{loc:L TipEnableNetworkGraphs}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
+                                    <CheckBox x:Name="AutoGraphPinnedBox" Content="{loc:L AutoGraphPinned}" Foreground="{StaticResource Text}" FontSize="13" Margin="0,8,0,0"
+                                              ToolTip="{loc:L TipAutoGraphPinned}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                                 </StackPanel>
                             </DockPanel>
 

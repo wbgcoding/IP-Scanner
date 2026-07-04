@@ -1,28 +1,78 @@
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 
 namespace IpScanner.Core.Localization;
 
 /// <summary>
-/// Tiny two-language (DE/EN) string table. Language is auto-detected from the
-/// system UI culture once at startup; English is the fallback for anything
-/// that isn't German. Exposed as static properties so XAML can bind via x:Static.
+/// UI string table. German and English are built in; further languages load from
+/// embedded per-language JSON maps (English text -> translation) with English as
+/// the fallback for any missing entry. Static properties so XAML binds via x:Static.
 /// </summary>
 public static class Loc
 {
-    public static bool German { get; private set; } = SystemIsGerman;
-
-    private static bool SystemIsGerman =>
-        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("de", StringComparison.OrdinalIgnoreCase);
-
-    /// <summary>"auto" | "de" | "en" — must run before any UI loads (x:Static caches).</summary>
-    public static void SetLanguage(string mode) => German = mode.ToLowerInvariant() switch
+    /// <summary>Supported languages (code + endonym) for the settings dropdown.</summary>
+    public static readonly (string Code, string Name)[] Languages =
     {
-        "de" => true,
-        "en" => false,
-        _ => SystemIsGerman,
+        ("en", "English"), ("de", "Deutsch"), ("es", "Español"), ("fr", "Français"),
+        ("zh", "中文"), ("hi", "हिन्दी"), ("ar", "العربية"), ("pt", "Português"),
+        ("ru", "Русский"), ("ja", "日本語"),
     };
 
-    private static string S(string de, string en) => German ? de : en;
+    public static bool IsSupported(string code) => Array.Exists(Languages, l => l.Code == code);
+
+    public static bool German { get; private set; } = SystemLang == "de";
+    // Immutable once built; swapped atomically. volatile for cross-thread visibility.
+    private static volatile Dictionary<string, string>? _active;   // English -> translation; null for en/de
+
+    private static string SystemLang
+    {
+        get
+        {
+            var two = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant();
+            return IsSupported(two) ? two : "en";
+        }
+    }
+
+    /// <summary>"auto" or a language code — must run before any UI loads (x:Static caches).</summary>
+    public static void SetLanguage(string mode)
+    {
+        var code = mode.ToLowerInvariant();
+        if (code == "auto" || !IsSupported(code)) code = SystemLang;
+        German = code == "de";
+        _active = code is "en" or "de" ? null : LoadLang(code);
+    }
+
+    private static readonly Dictionary<string, Dictionary<string, string>> _cache = new();
+    private static readonly object _cacheLock = new();
+
+    private static Dictionary<string, string>? LoadLang(string code)
+    {
+        lock (_cacheLock)
+        {
+            if (_cache.TryGetValue(code, out var cached)) return cached;
+            try
+            {
+                var asm = Assembly.GetExecutingAssembly();
+                var name = asm.GetManifestResourceNames()
+                    .FirstOrDefault(n => n.EndsWith($"lang.{code}.json", StringComparison.OrdinalIgnoreCase));
+                if (name is null) return null;
+                using var s = asm.GetManifestResourceStream(name);
+                var map = s is null ? null : JsonSerializer.Deserialize<Dictionary<string, string>>(s);
+                if (map is not null) _cache[code] = map;
+                return map;
+            }
+            catch { return null; }   // missing/corrupt file -> English fallback
+        }
+    }
+
+    private static string S(string de, string en)
+        => _active is not null && _active.TryGetValue(en, out var t) && t.Length > 0 ? t
+           : German ? de : en;
+
+    private static string SF(string de, string en, params object[] args) => string.Format(S(de, en), args);
 
     // ── App / shared ──
     public static string AppTitle => "IP-Scanner";
@@ -32,8 +82,6 @@ public static class Loc
     public static string StatusOffline => Offline.ToUpperInvariant();
     public static string TxtExport => S("TXT Export", "TXT Export");
     public static string CsvExport => S("CSV Export", "CSV Export");
-    public static string LangDe => "Deutsch";   // endonyms on purpose
-    public static string LangEn => "English";
     public static string DbFileFilter => S(
         "Datenbank (*.db)|*.db|Alle Dateien (*.*)|*.*",
         "Database (*.db)|*.db|All files (*.*)|*.*");
@@ -74,6 +122,12 @@ public static class Loc
     public static string EnableGraphs => S("Graphen anzeigen", "Show graphs");
     public static string GraphMaxTime => S("Max. Zeitspanne", "Max time span");
     public static string EnableNetworkGraphs => S("Netzwerk-Graphen anzeigen", "Show network graphs");
+    public static string AutoGraphPinned => S(
+        "Verlauf bei angehefteten Geräten automatisch öffnen",
+        "Open the history automatically for pinned devices");
+    public static string TipAutoGraphPinned => S(
+        "Öffnet den Latenz-Verlauf eines angehefteten Geräts automatisch unter seiner Zeile.",
+        "Automatically expands the latency history under each pinned device's row.");
     public static string TipEnableNetworkGraphs => S(
         "Kleiner Latenz-Verlauf unter der Übersicht jedes Netzwerks.",
         "Small latency history under each network overview.");
@@ -130,6 +184,10 @@ public static class Loc
     public static string InternetLatency => S("INTERNET-LATENZ", "INTERNET LATENCY");
 
     public static string TotalRow => S("Ø Gesamt", "Ø Total");
+    public static string ShowOfflineDb => S("Offline (DB)", "Offline (DB)");
+    public static string TipShowOfflineDb => S(
+        "Aus der Datenbank bekannte, aktuell offline Geräte ein- oder ausblenden.",
+        "Show or hide known devices from the database that are currently offline.");
 
     // ── Settings ──
     public static string Settings => S("Einstellungen", "Settings");
@@ -151,9 +209,8 @@ public static class Loc
     public static string ScanThreads => S("Threads pro Scan (0 = max)", "Threads per scan (0 = max)");
     public static string TextScale => S("Textgröße", "Text size");
     public static string OfflineRecheck => S("Offline-Recheck (0 = aus)", "Offline recheck (0 = off)");
-    public static string InvalidEntry(string entry) => German
-        ? $"Ungültiger Eintrag: {entry}"
-        : $"Invalid entry: {entry}";
+    public static string InvalidEntryFmt => S("Ungültiger Eintrag: {0}", "Invalid entry: {0}");
+    public static string InvalidEntry(string entry) => string.Format(InvalidEntryFmt, entry);
     public static string ExportConf => S("Einstellungen exportieren …", "Export settings …");
     public static string ImportConf => S("Einstellungen importieren …", "Import settings …");
     public static string TabConfig => S("Konfigurationsdatei", "Configuration file");
@@ -171,9 +228,8 @@ public static class Loc
     public static string ConfNote => S(
         "Die Einstellungen werden automatisch als ip_scanner.conf gespeichert und beim Start geladen.",
         "Settings are saved automatically as ip_scanner.conf and loaded at startup.");
-    public static string MergeDone(int n) => German
-        ? $"{n} Einträge zusammengeführt."
-        : $"{n} entries merged.";
+    public static string MergeDoneFmt => S("{0} Einträge zusammengeführt.", "{0} entries merged.");
+    public static string MergeDone(int n) => string.Format(MergeDoneFmt, n);
     public static string ResetDefaults => S("Auf Standard zurücksetzen", "Reset to defaults");
     public static string Threads => S("Threads", "Threads");
     public static string MaxLabel => S("max", "max");
@@ -256,16 +312,20 @@ public static class Loc
         "Deletes all stored devices from the database. Cannot be undone.");
     // ── Updates ──
     public static string UpdateTitle => S("Update verfügbar", "Update available");
-    public static string UpdatePrompt(string newVersion, string currentVersion) => German
-        ? $"Version {newVersion} ist verfügbar (installiert: {currentVersion}).\n\nJetzt herunterladen und aktualisieren? Das Programm startet danach neu."
-        : $"Version {newVersion} is available (installed: {currentVersion}).\n\nDownload and update now? The app will restart afterwards.";
+    public static string UpdatePromptFmt => S(
+        "Version {0} ist verfügbar (installiert: {1}).\n\nJetzt herunterladen und aktualisieren? Das Programm startet danach neu.",
+        "Version {0} is available (installed: {1}).\n\nDownload and update now? The app will restart afterwards.");
+    public static string UpdatePrompt(string newVersion, string currentVersion)
+        => string.Format(UpdatePromptFmt, newVersion, currentVersion);
     public static string UpdateFailed => S(
         "Das Update konnte nicht installiert werden. Bitte später erneut versuchen.",
         "The update could not be installed. Please try again later.");
 
     public static string ScanError => S("Scan-Fehler", "Scan error");
     public static string LargeRange => S("Großer Bereich", "Large range");
-    public static string LargeRangeMsg(int cidr, int subnets, long hosts) => German
-        ? $"/{cidr} umfasst {subnets} Subnetze (~{hosts:N0} Hosts). Das kann sehr lange dauern. Fortfahren?"
-        : $"/{cidr} spans {subnets} subnets (~{hosts:N0} hosts). This can take very long. Continue?";
+    public static string LargeRangeFmt => S(
+        "/{0} umfasst {1} Subnetze (~{2:N0} Hosts). Das kann sehr lange dauern. Fortfahren?",
+        "/{0} spans {1} subnets (~{2:N0} hosts). This can take very long. Continue?");
+    public static string LargeRangeMsg(int cidr, int subnets, long hosts)
+        => string.Format(LargeRangeFmt, cidr, subnets, hosts);
 }
