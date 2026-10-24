@@ -2487,4 +2487,7 @@ public static class Loc
     public static string Ipv6PrefixTooLarge => S(
         "Ein IPv6-Netz mit mehr als 65.536 Adressen (zum Beispiel /64) wird nicht Adresse für Adresse durchsucht. Gib einen kleineren Bereich an (/112 oder länger).",
         "An IPv6 network with more than 65,536 addresses (for example a /64) is not scanned address by address. Enter a smaller range (/112 or longer).");
+
+    // Tool pages (round 2026-10-24)
+    public static string PortCheckSplitterTip => S("Ziehen, um die Höhe der beiden Tabellen zu ändern.", "Drag to change the height of the two tables.");
 }

@@ -1211,5 +1211,6 @@
   "Confirms the question and carries on.": "Подтверждает вопрос и продолжает.",
   "Declines the question and closes the window without changing anything.": "Отклоняет вопрос и закрывает окно, ничего не меняя.",
   "Known devices": "Известные устройства",
-  "Save path": "Путь сохранения"
+  "Save path": "Путь сохранения",
+  "Drag to change the height of the two tables.": "Перетащите, чтобы изменить высоту двух таблиц."
 }

@@ -49,4 +49,25 @@ public class ToolPageLayoutTests
         Assert.DoesNotContain("StepTarget", text);
         Assert.DoesNotContain("ScanStepHeading", text);
     }
+
+    [Fact]
+    public void PortCheck_TablesSitInStarRowsWithASplitterBetween()
+    {
+        var doc = Load("PortCheckTool.xaml");
+        var grid = doc.Root!.Elements(Wpf + "Grid").Single();
+        var rows = grid.Element(Wpf + "Grid.RowDefinitions")!.Elements().ToList();
+        Assert.Equal("3*", (string?)rows[2].Attribute("Height"));
+        Assert.Equal("2*", (string?)rows[4].Attribute("Height"));
+        var splitter = grid.Element(Wpf + "GridSplitter")!;
+        Assert.Equal("3", (string?)splitter.Attribute("Grid.Row"));
+        Assert.Equal("6", (string?)splitter.Attribute("Height"));
+        Assert.Equal("Rows", (string?)splitter.Attribute("ResizeDirection"));
+        Assert.Equal("SizeNS", (string?)splitter.Attribute("Cursor"));
+        var results = grid.Elements(Wpf + "DataGrid").Single();
+        Assert.Equal("2", (string?)results.Attribute("Grid.Row"));
+        Assert.True(double.Parse((string)results.Attribute("MinHeight")!) >= 80);
+        var checks = grid.Elements(Wpf + "Grid").Single(g => (string?)g.Attribute("Grid.Row") == "4").Element(Wpf + "DataGrid")!;
+        Assert.True(double.Parse((string)checks.Attribute("MinHeight")!) >= 80);
+        Assert.Null(checks.Attribute("Height"));
+    }
 }
