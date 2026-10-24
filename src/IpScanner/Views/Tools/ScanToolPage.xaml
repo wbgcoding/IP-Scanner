@@ -3,13 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="clr-namespace:IpScanner.Core.Localization"
              xmlns:ctrl="clr-namespace:IpScanner.Views.Controls">
-    <UserControl.Resources>
-        <Style x:Key="ScanStepHeading" TargetType="TextBlock">
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
-        </Style>
-    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -20,12 +13,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-        <!-- The save-to-file tool is laid out in numbered steps (target, preset, report file, start); the
-             headings and the run button's own row only show there. The other scan tools stay one compact row. -->
-        <TextBlock x:Name="StepTarget" Style="{StaticResource ScanStepHeading}" Margin="0,0,0,6" Visibility="Collapsed">
-            <Run Text="1  "/><Run Text="{loc:L PortCheckTargetLabel}"/>
-        </TextBlock>
-        <TextBlock x:Name="TargetCaption" Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckTargetLabel}"/>
+        <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckTargetLabel}"/>
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -33,7 +21,7 @@
             </Grid.ColumnDefinitions>
             <TextBox x:Name="TargetBox" AutomationProperties.Name="{loc:L PortCheckTargetLabel}" MinWidth="160" Margin="0,0,8,0" ToolTip="{loc:L ScanToolTargetTip}"
                      Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}"/>
-            <Grid Grid.Column="1" x:Name="RunButtons">
+            <Grid Grid.Column="1">
                 <Button x:Name="StartButton" Content="{loc:L ScanToolStartButton}" Click="OnStartClick"
                         ToolTip="{loc:L ScanToolStartTip}">
                     <Button.Style>
@@ -81,12 +69,9 @@
         </TextBlock>
 
         <StackPanel Grid.Row="2" x:Name="OptionsPanel" Margin="0,10,0,0">
-            <TextBlock x:Name="StepPreset" Style="{StaticResource ScanStepHeading}" Margin="0,4,0,6" Visibility="Collapsed">
-                <Run Text="2  "/><Run Text="{loc:L ScanPresetLabel}"/>
-            </TextBlock>
             <WrapPanel>
                 <StackPanel x:Name="PresetBox" Margin="0,0,18,8">
-                    <TextBlock x:Name="PresetCaption" Style="{StaticResource ToolCaption}" Text="{loc:L ScanPresetLabel}"/>
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L ScanPresetLabel}"/>
                     <StackPanel Orientation="Horizontal">
                     <ComboBox x:Name="PresetCombo" AutomationProperties.Name="{loc:L ScanPresetLabel}" Width="200" ToolTip="{loc:L ScanToolPresetTip}"
                               ItemsSource="{Binding Presets}">
@@ -159,34 +144,28 @@
                 </StackPanel>
             </WrapPanel>
 
-            <TextBlock x:Name="StepSave" Style="{StaticResource ScanStepHeading}" Margin="0,10,0,6" Visibility="Collapsed">
-                <Run Text="3  "/><Run Text="{loc:L ScanToolSaveTitle}"/>
-            </TextBlock>
-            <StackPanel x:Name="SaveRow" Margin="0,0,0,4">
-                <TextBlock x:Name="SavePathCaption" Style="{StaticResource ToolCaption}" Text="{loc:L ScanToolSavePathLabel}"/>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="SavePathBox" AutomationProperties.Name="{loc:L ScanToolSavePathLabel}" Margin="0,0,8,0" ToolTip="{loc:L TipBrowseOutput}"
-                             TextChanged="OnSavePathChanged"/>
-                    <Button Grid.Column="1" Content="{loc:L Browse}" Style="{StaticResource ToolGhostButton}"
-                            Click="OnBrowseClick" ToolTip="{loc:L TipBrowseOutput}"/>
-                </Grid>
-                <!-- The report format belongs to the file it is written to, so it sits right under the path. -->
-                <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L ScanToolFormatLabel}" Margin="0,8,0,4"/>
-                <ComboBox x:Name="ExportFormatCombo" Width="140" HorizontalAlignment="Left"
+            <Grid x:Name="SaveRow" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L ScanToolSavePathLabel}"/>
+                <TextBox x:Name="SavePathBox" Grid.Row="1" AutomationProperties.Name="{loc:L ScanToolSavePathLabel}" Margin="0,0,8,0" ToolTip="{loc:L TipBrowseOutput}"
+                         TextChanged="OnSavePathChanged"/>
+                <TextBlock Grid.Column="1" Style="{StaticResource ToolCaption}" Text="{loc:L ScanToolFormatLabel}"/>
+                <ComboBox x:Name="ExportFormatCombo" Grid.Row="1" Grid.Column="1" Width="140" Margin="0,0,8,0"
                           ToolTip="{loc:L ScanToolFormatTip}" AutomationProperties.Name="{loc:L ScanToolFormatLabel}"
                           ItemsSource="{Binding FormatOptions}" SelectedValuePath="Format" SelectedValue="{Binding Format}">
                     <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}"/></DataTemplate></ComboBox.ItemTemplate>
                 </ComboBox>
-            </StackPanel>
-
-            <TextBlock x:Name="StepRun" Style="{StaticResource ScanStepHeading}" Margin="0,10,0,6" Visibility="Collapsed">
-                <Run Text="4  "/><Run Text="{loc:L ScanToolStartButton}"/>
-            </TextBlock>
-            <Border x:Name="RunHost" HorizontalAlignment="Left" Visibility="Collapsed"/>
+                <Button Grid.Row="1" Grid.Column="2" Content="{loc:L Browse}" Style="{StaticResource ToolGhostButton}"
+                        Click="OnBrowseClick" ToolTip="{loc:L TipBrowseOutput}"/>
+            </Grid>
 
             <TextBlock x:Name="NoteText" Foreground="{DynamicResource Subtext}" FontSize="11" TextWrapping="Wrap"
                        Margin="0,2,0,0" Visibility="Collapsed"/>
