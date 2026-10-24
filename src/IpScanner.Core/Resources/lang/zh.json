@@ -1211,5 +1211,6 @@
   "Confirms the question and carries on.": "确认该问题并继续。",
   "Declines the question and closes the window without changing anything.": "拒绝该问题并关闭窗口，不更改任何内容。",
   "Known devices": "已知设备",
-  "Save path": "保存路径"
+  "Save path": "保存路径",
+  "Drag to change the height of the two tables.": "拖动以调整两个表格的高度。"
 }

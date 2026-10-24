@@ -1211,5 +1211,6 @@
   "Confirms the question and carries on.": "質問を承諾して続行します。",
   "Declines the question and closes the window without changing anything.": "質問を断り、何も変更せずにウィンドウを閉じます。",
   "Known devices": "既知のデバイス",
-  "Save path": "保存先のパス"
+  "Save path": "保存先のパス",
+  "Drag to change the height of the two tables.": "ドラッグすると2つの表の高さを変更できます。"
 }

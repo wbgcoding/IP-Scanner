@@ -13,8 +13,9 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="3*" MinHeight="90"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*" MinHeight="125"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -173,7 +174,7 @@
                      Text="{Binding PortList, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
 
-        <DataGrid Grid.Row="2" Margin="0,10,0,0" MinHeight="96" ItemsSource="{Binding Results}"
+        <DataGrid Grid.Row="2" Margin="0,10,0,0" MinHeight="80" ItemsSource="{Binding Results}"
                   AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="OnResultDoubleClick">
             <DataGrid.Columns>
                 <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Port}" Binding="{Binding PortLabel}" Width="90"/>
@@ -183,7 +184,27 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <StackPanel Grid.Row="3" Margin="0,10,0,0">
+        <!-- Drag handle between the two tables; both keep their minimum height. -->
+        <GridSplitter Grid.Row="3" Height="6" Margin="0,2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                      ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" Cursor="SizeNS" Focusable="False"
+                      ToolTip="{loc:L PortCheckSplitterTip}" AutomationProperties.Name="{loc:L PortCheckSplitterTip}">
+            <GridSplitter.Style>
+                <Style TargetType="GridSplitter">
+                    <Setter Property="Background" Value="{DynamicResource Surface}"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource Surface2}"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </GridSplitter.Style>
+        </GridSplitter>
+
+        <Grid Grid.Row="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
             <WrapPanel Orientation="Horizontal">
                 <TextBlock Text="{loc:L PortCheckServiceChecksHeader}" Foreground="{DynamicResource Subtext}" FontSize="11"
                            VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -224,7 +245,7 @@
                 <TextBlock Text="{Binding ChecksStatus}" Foreground="{DynamicResource Text}" FontSize="12"
                            VerticalAlignment="Center" Margin="14,0,0,0"/>
             </WrapPanel>
-            <DataGrid Margin="0,8,0,0" Height="110" ItemsSource="{Binding CheckResults}"
+            <DataGrid Grid.Row="1" Margin="0,8,0,0" MinHeight="80" ItemsSource="{Binding CheckResults}"
                       AutoGenerateColumns="False" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Port}" Binding="{Binding Port}" Width="90"/>
@@ -232,9 +253,9 @@
                     <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L PortCheckColFinding}" Binding="{Binding Finding}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
-        </StackPanel>
+        </Grid>
 
-        <WrapPanel Grid.Row="4" Orientation="Horizontal" Margin="0,10,0,0">
+        <WrapPanel Grid.Row="5" Orientation="Horizontal" Margin="0,10,0,0">
             <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Text}" FontSize="12" VerticalAlignment="Center"/>
             <Button Content="{loc:L PortCheckCopyButton}" Style="{StaticResource ToolGhostButton}"
                     Margin="14,0,0,0" Click="OnCopyClick" ToolTip="{loc:L TipPortCopy}"/>
