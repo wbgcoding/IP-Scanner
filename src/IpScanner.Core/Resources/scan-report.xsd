@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Schema of the XML scan report written by IP-Scanner. Version 1. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified">
+
+  <xs:simpleType name="Status">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ONLINE"/>
+      <xs:enumeration value="OFFLINE"/>
+      <xs:enumeration value="LISTED"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="AddressFamily">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ipv4"/>
+      <xs:enumeration value="ipv6"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Protocol">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="tcp"/>
+      <xs:enumeration value="udp"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PortState">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="open"/>
+      <xs:enumeration value="closed"/>
+      <xs:enumeration value="filtered"/>
+      <xs:enumeration value="open|filtered"/>
+      <xs:enumeration value="unfiltered"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="OsFamily">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="windows"/>
+      <xs:enumeration value="unixLike"/>
+      <xs:enumeration value="networkGear"/>
+      <xs:enumeration value="printer"/>
+      <xs:enumeration value="media"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Confidence">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="confirmed"/>
+      <xs:enumeration value="probable"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Outcome">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Found"/>
+      <xs:enumeration value="NothingFound"/>
+      <xs:enumeration value="NoAnswer"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="FindingKind">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="macChanged"/>
+      <xs:enumeration value="macOnMultipleIps"/>
+      <xs:enumeration value="multipleMacsForOneIp"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="scanReport">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="meta">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="command" type="xs:string" minOccurs="0"/>
+              <xs:element name="targets" type="xs:string" minOccurs="0"/>
+              <xs:element name="network">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="dns" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                  </xs:sequence>
+                  <xs:attribute name="interface" type="xs:string" use="required"/>
+                  <xs:attribute name="ip" type="xs:string"/>
+                  <xs:attribute name="gateway" type="xs:string"/>
+                  <xs:attribute name="subnetMask" type="xs:string"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="tool" type="xs:string" use="required"/>
+            <xs:attribute name="version" type="xs:string" use="required"/>
+            <xs:attribute name="startedAt" type="xs:dateTime"/>
+            <xs:attribute name="partial" type="xs:boolean" use="required"/>
+            <xs:attribute name="technique" type="xs:string"/>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="hosts">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="host" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="note" type="xs:string" minOccurs="0"/>
+                    <xs:element name="os" minOccurs="0">
+                      <xs:complexType>
+                        <xs:attribute name="family" type="OsFamily" use="required"/>
+                        <xs:attribute name="percent" type="xs:int" use="required"/>
+                        <xs:attribute name="fromFingerprint" type="xs:boolean" use="required"/>
+                        <xs:attribute name="match" type="xs:string"/>
+                        <xs:attribute name="distance" type="xs:int"/>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="ports" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="port" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:attribute name="number" type="xs:int" use="required"/>
+                              <xs:attribute name="protocol" type="Protocol" use="required"/>
+                              <xs:attribute name="state" type="PortState" use="required"/>
+                              <xs:attribute name="reason" type="xs:string"/>
+                              <xs:attribute name="service" type="xs:string"/>
+                              <xs:attribute name="version" type="xs:string"/>
+                              <xs:attribute name="confidence" type="Confidence"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="checks" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="check" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="finding" minOccurs="0" maxOccurs="unbounded">
+                                  <xs:complexType>
+                                    <xs:attribute name="key" type="xs:string" use="required"/>
+                                    <xs:attribute name="value" type="xs:string" use="required"/>
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                              <xs:attribute name="id" type="xs:string" use="required"/>
+                              <xs:attribute name="category" type="xs:string" use="required"/>
+                              <xs:attribute name="service" type="xs:string"/>
+                              <xs:attribute name="outcome" type="Outcome" use="required"/>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="ip" type="xs:string" use="required"/>
+                  <xs:attribute name="addrtype" type="AddressFamily"/>
+                  <xs:attribute name="status" type="Status" use="required"/>
+                  <xs:attribute name="hostname" type="xs:string"/>
+                  <xs:attribute name="mac" type="xs:string"/>
+                  <xs:attribute name="vendor" type="xs:string"/>
+                  <xs:attribute name="group" type="xs:string" use="required"/>
+                  <xs:attribute name="discovery" type="xs:string"/>
+                  <xs:attribute name="avgMs" type="xs:double"/>
+                  <xs:attribute name="minMs" type="xs:double"/>
+                  <xs:attribute name="maxMs" type="xs:double"/>
+                  <xs:attribute name="lastMs" type="xs:double"/>
+                  <xs:attribute name="pingsDone" type="xs:int" use="required"/>
+                  <xs:attribute name="pingsTarget" type="xs:string" use="required"/>
+                  <xs:attribute name="fromDb" type="xs:boolean" use="required"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="findings" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="finding" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute name="ip" type="xs:string" use="required"/>
+                  <xs:attribute name="mac" type="xs:string"/>
+                  <xs:attribute name="kind" type="FindingKind" use="required"/>
+                  <xs:attribute name="detail" type="xs:string"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="schemaVersion" type="xs:int" use="required"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

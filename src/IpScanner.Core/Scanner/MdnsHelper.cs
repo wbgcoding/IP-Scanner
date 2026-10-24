@@ -1,0 +1,172 @@
+using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+
+namespace IpScanner.Core.Scanner;
+
+/// <summary>
+/// mDNS (multicast DNS) reverse lookup - resolves .local hostnames of devices
+/// that have no DNS PTR record and no NetBIOS (IoT, Android, Linux, Apple).
+/// Sends a PTR query for x.x.x.x.in-addr.arpa with the QU (unicast response)
+/// bit to the mDNS group and to the device itself.
+/// </summary>
+public static class MdnsHelper
+{
+    private static readonly IPAddress MdnsGroup = IPAddress.Parse("224.0.0.251");
+    private static readonly IPAddress MdnsGroupV6 = IPAddress.Parse("ff02::fb");
+    private const int MdnsPort = 5353;
+
+    public static string? Resolve(string ip, int timeoutMs = 1500)
+    {
+        if (!IPAddress.TryParse(ip, out var addr)) return null;
+        bool v6 = addr.AddressFamily == AddressFamily.InterNetworkV6;
+        try
+        {
+            var query = v6 ? BuildPtrQueryV6(ip) : BuildPtrQuery(ip);
+            using var udp = new UdpClient(v6 ? AddressFamily.InterNetworkV6 : AddressFamily.InterNetwork);
+            udp.Client.ReceiveTimeout = timeoutMs;
+            if (v6)
+            {
+                // The group is link scoped: it needs the interface of the target (its zone), else the OS picks one.
+                var group = new IPAddress(MdnsGroupV6.GetAddressBytes(), addr.ScopeId);
+                udp.Send(query, query.Length, new IPEndPoint(group, MdnsPort));
+            }
+            else udp.Send(query, query.Length, new IPEndPoint(MdnsGroup, MdnsPort));
+            udp.Send(query, query.Length, new IPEndPoint(addr, MdnsPort));
+
+            var sw = Stopwatch.StartNew();
+            var remote = new IPEndPoint(IPAddress.Any, 0);
+            while (sw.ElapsedMilliseconds < timeoutMs)
+            {
+                udp.Client.ReceiveTimeout = Math.Max(1, timeoutMs - (int)sw.ElapsedMilliseconds);
+                byte[] resp;
+                try { resp = udp.Receive(ref remote); }
+                catch (SocketException) { return null; }    // timed out
+                // The query was sent to the multicast group AND directly
+                // to the target, so this socket isn't Connect()-restricted to one
+                // peer - any other device on the LAN could otherwise spoof a PTR
+                // answer for someone else's address. Only a reply that actually
+                // came from the address being resolved counts.
+                if (!SameHost(remote.Address, addr)) continue;
+                var name = ParsePtrAnswer(resp);
+                if (name is not null) return name;
+            }
+        }
+        catch (Exception ex) { Log.Debug(LogArea.Dns, "mDNS query failed: " + ex.GetType().Name); /* best-effort */ }
+        return null;
+    }
+
+    /// <summary>The same host, ignoring the zone id (a reply may name another scope form of the same link address).</summary>
+    internal static bool SameHost(IPAddress a, IPAddress b)
+        => a.AddressFamily == b.AddressFamily && a.GetAddressBytes().AsSpan().SequenceEqual(b.GetAddressBytes());
+
+    /// <summary>DNS PTR query for "d.c.b.a.in-addr.arpa" with the QU bit set.</summary>
+    internal static byte[] BuildPtrQuery(string ip)
+    {
+        // Build the reverse name from the parsed bytes so abbreviated forms
+        // (e.g. "1.2.3") still yield four canonical octets.
+        var oct = IPAddress.Parse(ip).GetAddressBytes();
+        return BuildQuery($"{oct[3]}.{oct[2]}.{oct[1]}.{oct[0]}.in-addr.arpa");
+    }
+
+    /// <summary>DNS PTR query for the nibble-reversed ip6.arpa name of an IPv6 address (zone ignored).</summary>
+    internal static byte[] BuildPtrQueryV6(string ip)
+        => BuildQuery(Net.Ipv6Address.FromBytes(IPAddress.Parse(ip).GetAddressBytes()).ReverseName());
+
+    private static byte[] BuildQuery(string name)
+    {
+        using var ms = new MemoryStream();
+        void W16(int v) { ms.WriteByte((byte)(v >> 8)); ms.WriteByte((byte)v); }
+        W16(0); W16(0); W16(1); W16(0); W16(0); W16(0);     // header: 1 question
+        foreach (var label in name.Split('.'))
+        {
+            var b = Encoding.ASCII.GetBytes(label);
+            ms.WriteByte((byte)b.Length);
+            ms.Write(b, 0, b.Length);
+        }
+        ms.WriteByte(0);
+        W16(12);        // QTYPE = PTR
+        W16(0x8001);    // QCLASS = IN, QU bit (unicast response requested)
+        return ms.ToArray();
+    }
+
+    /// <summary>Extract the first PTR answer name; strips a ".local" suffix.</summary>
+    internal static string? ParsePtrAnswer(byte[] p)
+    {
+        try
+        {
+            if (p.Length < 12) return null;
+            int qd = (p[4] << 8) | p[5];
+            int an = (p[6] << 8) | p[7];
+            if (an == 0) return null;
+            int pos = 12;
+            for (int i = 0; i < qd; i++)
+            {
+                SkipName(p, ref pos);
+                if (pos + 4 > p.Length) return null;        // qtype + qclass
+                pos += 4;
+            }
+            for (int i = 0; i < an; i++)
+            {
+                if (pos >= p.Length) return null;
+                SkipName(p, ref pos);
+                if (pos + 10 > p.Length) return null;       // type+class+ttl+rdlen
+                int type = (p[pos] << 8) | p[pos + 1];
+                pos += 8;                                   // type + class + ttl
+                int rdlen = (p[pos] << 8) | p[pos + 1];
+                pos += 2;
+                if (type == 12)
+                {
+                    int rp = pos;
+                    var name = ReadName(p, ref rp);
+                    if (!string.IsNullOrEmpty(name))
+                        return name.EndsWith(".local", StringComparison.OrdinalIgnoreCase)
+                            ? name[..^".local".Length] : name;
+                }
+                pos += rdlen;
+            }
+        }
+        catch (Exception ex) { Log.Debug(LogArea.Dns, "mDNS reply could not be read: " + ex.GetType().Name); /* malformed packet */ }
+        return null;
+    }
+
+    private static void SkipName(byte[] p, ref int pos)
+    {
+        while (pos < p.Length)
+        {
+            int len = p[pos];
+            if (len == 0) { pos++; return; }
+            if ((len & 0xC0) == 0xC0) { pos += 2; return; }  // compression pointer
+            pos += len + 1;
+        }
+    }
+
+    private static string ReadName(byte[] p, ref int pos)
+    {
+        var sb = new StringBuilder();
+        int jumps = 0;
+        int cur = pos;
+        bool jumped = false;
+        while (cur < p.Length)
+        {
+            int len = p[cur];
+            if (len == 0) { if (!jumped) pos = cur + 1; break; }
+            if ((len & 0xC0) == 0xC0)
+            {
+                if (++jumps > 8 || cur + 1 >= p.Length) break;   // loop/bounds guard
+                int target = ((len & 0x3F) << 8) | p[cur + 1];
+                if (!jumped) pos = cur + 2;
+                cur = target;
+                jumped = true;
+                continue;
+            }
+            if (cur + 1 + len > p.Length) break;   // truncated packet - stop, don't throw
+            if (sb.Length > 0) sb.Append('.');
+            sb.Append(Encoding.ASCII.GetString(p, cur + 1, len));
+            cur += len + 1;
+        }
+        return sb.ToString();
+    }
+}

@@ -1,0 +1,215 @@
+<UserControl x:Class="IpScanner.Views.Tools.ScanToolPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+             xmlns:ctrl="clr-namespace:IpScanner.Views.Controls">
+    <UserControl.Resources>
+        <Style x:Key="ScanStepHeading" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+        <!-- The save-to-file tool is laid out in numbered steps (target, preset, report file, start); the
+             headings and the run button's own row only show there. The other scan tools stay one compact row. -->
+        <TextBlock x:Name="StepTarget" Style="{StaticResource ScanStepHeading}" Margin="0,0,0,6" Visibility="Collapsed">
+            <Run Text="1  "/><Run Text="{loc:L PortCheckTargetLabel}"/>
+        </TextBlock>
+        <TextBlock x:Name="TargetCaption" Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckTargetLabel}"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="TargetBox" AutomationProperties.Name="{loc:L PortCheckTargetLabel}" MinWidth="160" Margin="0,0,8,0" ToolTip="{loc:L ScanToolTargetTip}"
+                     Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}"/>
+            <Grid Grid.Column="1" x:Name="RunButtons">
+                <Button x:Name="StartButton" Content="{loc:L ScanToolStartButton}" Click="OnStartClick"
+                        ToolTip="{loc:L ScanToolStartTip}">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource ToolAccentButton}">
+                            <Setter Property="IsEnabled" Value="{Binding CanStart}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button Content="{loc:L PortCheckCancelButton}" Click="OnCancelClick"
+                        ToolTip="{loc:L TipStopRun}">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource ToolDangerButton}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </Grid>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="{Binding TargetMessage}" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Foreground" Value="{DynamicResource Peach}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShowTargetMessage}" Value="False">
+                            <Setter Property="Visibility" Value="Hidden"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding TargetOk}" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource Subtext}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <StackPanel Grid.Row="2" x:Name="OptionsPanel" Margin="0,10,0,0">
+            <TextBlock x:Name="StepPreset" Style="{StaticResource ScanStepHeading}" Margin="0,4,0,6" Visibility="Collapsed">
+                <Run Text="2  "/><Run Text="{loc:L ScanPresetLabel}"/>
+            </TextBlock>
+            <WrapPanel>
+                <StackPanel x:Name="PresetBox" Margin="0,0,18,8">
+                    <TextBlock x:Name="PresetCaption" Style="{StaticResource ToolCaption}" Text="{loc:L ScanPresetLabel}"/>
+                    <StackPanel Orientation="Horizontal">
+                    <ComboBox x:Name="PresetCombo" AutomationProperties.Name="{loc:L ScanPresetLabel}" Width="200" ToolTip="{loc:L ScanToolPresetTip}"
+                              ItemsSource="{Binding Presets}">
+                        <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate></ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <ctrl:WarningMark Margin="8,0,0,0" ToolTip="{loc:L WarnFastTiming}"
+                                      Visibility="{Binding WarnTiming, Converter={StaticResource BoolToVis}}"/>
+                    <ctrl:WarningMark Margin="6,0,0,0" ToolTip="{loc:L WarnFullRange}"
+                                      Visibility="{Binding WarnRange, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel x:Name="TimingBox" Margin="0,0,18,8">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L ScanToolTimingLabel}"/>
+                    <StackPanel Orientation="Horizontal">
+                    <ComboBox Width="150" ToolTip="{loc:L ScanToolTimingTip}" AutomationProperties.Name="{loc:L ScanToolTimingLabel}" ItemsSource="{Binding TimingOptions}"
+                              SelectedValuePath="Template" SelectedValue="{Binding Timing}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Label}"/>
+                    <ctrl:WarningMark Margin="8,0,0,0" ToolTip="{loc:L WarnFastTiming}">
+                        <ctrl:WarningMark.Style>
+                            <Style TargetType="ctrl:WarningMark">
+                                <Setter Property="Visibility" Value="{Binding IsAggressive, Converter={StaticResource BoolToVis}}"/>
+                                <Style.Triggers>
+                                    <!-- the selected-value box keeps its mark beside the combo, not inside -->
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ComboBoxItem}}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ctrl:WarningMark.Style>
+                    </ctrl:WarningMark>
+                </StackPanel>
+            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <ctrl:WarningMark Margin="8,0,0,0" ToolTip="{loc:L WarnFastTiming}"
+                                      Visibility="{Binding WarnTiming, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel x:Name="ScopeBox" Margin="0,0,18,8">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L ScanToolPortsLabel}"/>
+                    <StackPanel Orientation="Horizontal">
+                    <ComboBox Width="190" ToolTip="{loc:L ScanToolPortsTip}" AutomationProperties.Name="{loc:L ScanToolPortsLabel}" ItemsSource="{Binding ScopeOptions}"
+                              SelectedValuePath="Id" SelectedValue="{Binding Scope}">
+                        <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}"/></DataTemplate></ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <ctrl:WarningMark Margin="8,0,0,0" ToolTip="{loc:L WarnFullRange}"
+                                      Visibility="{Binding WarnRange, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+                </StackPanel>
+                <!-- A blank caption keeps the check boxes on the same line as the combo boxes beside them. -->
+                <StackPanel x:Name="SkipBox" Margin="0,0,18,8">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text=" "/>
+                    <CheckBox Content="{loc:L ScanToolSkipDiscovery}" ToolTip="{loc:L ScanToolSkipDiscoveryTip}"
+                              IsChecked="{Binding SkipDiscovery}" Height="32" VerticalContentAlignment="Center"/>
+                </StackPanel>
+                <StackPanel x:Name="ChecksBox" Margin="0,0,18,8">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckServiceChecksHeader}"/>
+                    <StackPanel Orientation="Horizontal" Height="32">
+                        <CheckBox Content="{loc:L PortCheckCheckSafe}" ToolTip="{loc:L TipCheckSafe}"
+                                  IsChecked="{Binding CheckSafe}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <CheckBox Content="{loc:L PortCheckCheckDiscovery}" ToolTip="{loc:L TipCheckDiscovery}"
+                                  IsChecked="{Binding CheckDiscovery}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <CheckBox Content="{loc:L PortCheckCheckIntrusive}" ToolTip="{loc:L TipCheckIntrusive}"
+                                  IsChecked="{Binding CheckIntrusive}" Click="OnIntrusiveClick" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ctrl:WarningMark ToolTip="{loc:L WarnIntrusiveChecks}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </WrapPanel>
+
+            <TextBlock x:Name="StepSave" Style="{StaticResource ScanStepHeading}" Margin="0,10,0,6" Visibility="Collapsed">
+                <Run Text="3  "/><Run Text="{loc:L ScanToolSaveTitle}"/>
+            </TextBlock>
+            <StackPanel x:Name="SaveRow" Margin="0,0,0,4">
+                <TextBlock x:Name="SavePathCaption" Style="{StaticResource ToolCaption}" Text="{loc:L ScanToolSavePathLabel}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="SavePathBox" AutomationProperties.Name="{loc:L ScanToolSavePathLabel}" Margin="0,0,8,0" ToolTip="{loc:L TipBrowseOutput}"
+                             TextChanged="OnSavePathChanged"/>
+                    <Button Grid.Column="1" Content="{loc:L Browse}" Style="{StaticResource ToolGhostButton}"
+                            Click="OnBrowseClick" ToolTip="{loc:L TipBrowseOutput}"/>
+                </Grid>
+                <!-- The report format belongs to the file it is written to, so it sits right under the path. -->
+                <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L ScanToolFormatLabel}" Margin="0,8,0,4"/>
+                <ComboBox x:Name="ExportFormatCombo" Width="140" HorizontalAlignment="Left"
+                          ToolTip="{loc:L ScanToolFormatTip}" AutomationProperties.Name="{loc:L ScanToolFormatLabel}"
+                          ItemsSource="{Binding FormatOptions}" SelectedValuePath="Format" SelectedValue="{Binding Format}">
+                    <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}"/></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <TextBlock x:Name="StepRun" Style="{StaticResource ScanStepHeading}" Margin="0,10,0,6" Visibility="Collapsed">
+                <Run Text="4  "/><Run Text="{loc:L ScanToolStartButton}"/>
+            </TextBlock>
+            <Border x:Name="RunHost" HorizontalAlignment="Left" Visibility="Collapsed"/>
+
+            <TextBlock x:Name="NoteText" Foreground="{DynamicResource Subtext}" FontSize="11" TextWrapping="Wrap"
+                       Margin="0,2,0,0" Visibility="Collapsed"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="3" x:Name="ResultGrid" Margin="0,8,0,0" ItemsSource="{Binding Rows}"
+                  AutoGenerateColumns="False" IsReadOnly="True" ToolTip="{loc:L ScanToolResultsTip}"/>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,10,0,0">
+            <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Text}" FontSize="12" VerticalAlignment="Center"/>
+            <Button Content="{loc:L ScanToolCopyButton}" Style="{StaticResource ToolGhostButton}"
+                    Margin="14,0,0,0" Click="OnCopyClick" ToolTip="{loc:L ScanToolCopyTip}"/>
+            <StackPanel x:Name="FooterFormat" Orientation="Horizontal">
+                <TextBlock Text="{loc:L ScanToolFormatLabel}" Foreground="{DynamicResource Subtext}" FontSize="11"
+                           VerticalAlignment="Center" Margin="14,0,6,0"/>
+                <ComboBox x:Name="FormatComboBottom" Width="110" ToolTip="{loc:L ScanToolFormatTip}" AutomationProperties.Name="{loc:L ScanToolFormatLabel}" ItemsSource="{Binding FormatOptions}"
+                          SelectedValuePath="Format" SelectedValue="{Binding Format}">
+                    <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}"/></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+            <Button Content="{loc:L ScanToolSaveButton}" Style="{StaticResource ToolGhostButton}"
+                    Margin="8,0,0,0" Click="OnSaveClick" ToolTip="{loc:L ScanToolSaveTip}"
+                    IsEnabled="{Binding CanSave}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,41 @@
+using System.Text;
+
+namespace IpScanner.Core.Scanner.Discovery;
+
+/// <summary>Minimal request bodies for the UDP ping ports, written from the protocol definitions.</summary>
+public static class DiscoveryPayloads
+{
+    /// <summary>Root name server query (type NS, class IN) with recursion requested.</summary>
+    public static readonly byte[] Dns =
+    {
+        0x4D, 0x31, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x02, 0x00, 0x01,
+    };
+
+    /// <summary>SNMP v1 GetRequest for sysDescr.0 with the public community.</summary>
+    public static readonly byte[] Snmp =
+    {
+        0x30, 0x29, 0x02, 0x01, 0x00, 0x04, 0x06, 0x70, 0x75, 0x62, 0x6C, 0x69, 0x63,
+        0xA0, 0x1C, 0x02, 0x04, 0x00, 0x00, 0x00, 0x01, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00,
+        0x30, 0x0E, 0x30, 0x0C, 0x06, 0x08, 0x2B, 0x06, 0x01, 0x02, 0x01, 0x01, 0x01, 0x00, 0x05, 0x00,
+    };
+
+    /// <summary>NetBIOS node status request for the wildcard name.</summary>
+    public static readonly byte[] NetBios = BuildNetBios();
+
+    public static byte[] For(int port) => port switch
+    {
+        53 => Dns,
+        161 => Snmp,
+        137 => NetBios,
+        _ => Array.Empty<byte>(),
+    };
+
+    private static byte[] BuildNetBios()
+    {
+        var b = new List<byte> { 0x4D, 0x32, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20 };
+        b.AddRange(Encoding.ASCII.GetBytes("CKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+        b.AddRange(new byte[] { 0x00, 0x00, 0x21, 0x00, 0x01 });
+        return b.ToArray();
+    }
+}

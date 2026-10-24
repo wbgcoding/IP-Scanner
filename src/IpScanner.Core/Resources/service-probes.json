@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "probes": [
+    {
+      "name": "NULL",
+      "protocol": "tcp",
+      "ports": [],
+      "rarity": 0,
+      "payload": "",
+      "matches": [
+        { "pattern": "^SSH-([\\d.]+)-OpenSSH[_-]([\\w.]+)", "service": "SSH", "product": "OpenSSH", "version": "$2", "info": "protocol $1" },
+        { "pattern": "^SSH-([\\d.]+)-dropbear_([\\w.]+)", "service": "SSH", "product": "Dropbear", "version": "$2", "info": "protocol $1" },
+        { "pattern": "^SSH-([\\d.]+)-([^\\r\\n -]+)", "service": "SSH", "product": "$2", "info": "protocol $1" },
+        { "pattern": "^220[ -][^\\r\\n]*ESMTP Postfix", "service": "SMTP", "product": "Postfix" },
+        { "pattern": "^220[ -][^\\r\\n]*Exim ([\\d.]+)", "service": "SMTP", "product": "Exim", "version": "$1" },
+        { "pattern": "^220[ -][^\\r\\n]*Microsoft ESMTP MAIL", "service": "SMTP", "product": "Microsoft Exchange" },
+        { "pattern": "^220[ -][^\\r\\n]*(?:E?SMTP|Sendmail)", "service": "SMTP" },
+        { "pattern": "^220[ -][^\\r\\n]*vsFTPd ([\\d.]+)", "service": "FTP", "product": "vsftpd", "version": "$1" },
+        { "pattern": "^220[ -][^\\r\\n]*ProFTPD ([\\d.]+)", "service": "FTP", "product": "ProFTPD", "version": "$1" },
+        { "pattern": "^220[ -][^\\r\\n]*(?:FTP|FileZilla)", "service": "FTP" },
+        { "pattern": "^\\+OK[^\\r\\n]*Dovecot", "service": "POP3", "product": "Dovecot" },
+        { "pattern": "^\\+OK[ \\r\\n]", "service": "POP3" },
+        { "pattern": "^\\* OK[^\\r\\n]*Dovecot", "service": "IMAP", "product": "Dovecot" },
+        { "pattern": "^\\* OK[^\\r\\n]*IMAP", "service": "IMAP" },
+        { "pattern": "^.{3}\\x00\\x0a5\\.5\\.5-([\\d.]+)-MariaDB", "service": "MySQL", "product": "MariaDB", "version": "$1" },
+        { "pattern": "^.{3}\\x00\\x0a([\\d.]+)-MariaDB", "service": "MySQL", "product": "MariaDB", "version": "$1" },
+        { "pattern": "^.{3}\\x00\\x0a(\\d+\\.\\d+\\.\\d+[\\w.+~-]*)\\x00", "service": "MySQL", "product": "MySQL", "version": "$1" },
+        { "pattern": "^.{3}\\x00\\xff.{2}[^\\r\\n]*is not allowed to connect to this (?:MySQL|MariaDB) server", "service": "MySQL" },
+        { "pattern": "^RFB (\\d{3})\\.(\\d{3})\\n", "service": "VNC", "info": "protocol $1.$2" },
+        { "pattern": "^\\xff[\\xfb-\\xfe][\\x00-\\x31]", "service": "Telnet" },
+        { "pattern": "^HTTP/1\\.[01] \\d{3}", "service": "HTTP" }
+      ],
+      "soft": [
+        { "pattern": "^SSH-", "service": "SSH" },
+        { "pattern": "^RTSP/1\\.0 \\d{3}", "service": "RTSP" },
+        { "pattern": "^\\x15\\x03[\\x00-\\x04]\\x00\\x02", "service": "TLS" },
+        { "pattern": "^\\x16\\x03[\\x00-\\x04]", "service": "TLS" },
+        { "pattern": "^\\* OK", "service": "IMAP" },
+        { "pattern": "^\\+OK", "service": "POP3" }
+      ]
+    },
+    {
+      "name": "GetRequest",
+      "protocol": "tcp",
+      "ports": [],
+      "rarity": 1,
+      "payload": "GET / HTTP/1.0\r\n\r\n",
+      "matches": [
+        { "pattern": "^HTTP/1\\.[01] \\d{3}[^\\r\\n]*\\r?\\n(?:[^\\r\\n]+\\r?\\n)*?Server: nginx(?:/([\\w.]+))?", "service": "HTTP", "product": "nginx", "version": "$1" },
+        { "pattern": "^HTTP/1\\.[01] \\d{3}[^\\r\\n]*\\r?\\n(?:[^\\r\\n]+\\r?\\n)*?Server: Apache(?:/([\\w.]+))?(?: \\(([^)\\r\\n]+)\\))?", "service": "HTTP", "product": "Apache httpd", "version": "$1", "info": "$2" },
+        { "pattern": "^HTTP/1\\.[01] \\d{3}[^\\r\\n]*\\r?\\n(?:[^\\r\\n]+\\r?\\n)*?Server: Microsoft-IIS/([\\d.]+)", "service": "HTTP", "product": "Microsoft IIS", "version": "$1" },
+        { "pattern": "^HTTP/1\\.[01] \\d{3}[^\\r\\n]*\\r?\\n(?:[^\\r\\n]+\\r?\\n)*?Server: lighttpd(?:/([\\w.]+))?", "service": "HTTP", "product": "lighttpd", "version": "$1" },
+        { "pattern": "^HTTP/1\\.[01] \\d{3}[^\\r\\n]*\\r?\\n(?:[^\\r\\n]+\\r?\\n)*?Server: ([^\\r\\n]+)", "service": "HTTP", "product": "$1" },
+        { "pattern": "^HTTP/1\\.[01] \\d{3}", "service": "HTTP" },
+        { "pattern": "^RTSP/1\\.0 \\d{3}[^\\r\\n]*\\r?\\n(?:[^\\r\\n]+\\r?\\n)*?Server: ([^\\r\\n]+)", "service": "RTSP", "product": "$1" }
+      ],
+      "soft": [
+        { "pattern": "^RTSP/1\\.0 \\d{3}", "service": "RTSP" },
+        { "pattern": "^\\x15\\x03[\\x00-\\x04]\\x00\\x02", "service": "TLS" }
+      ]
+    },
+    {
+      "name": "RDPNegotiate",
+      "protocol": "tcp",
+      "ports": [],
+      "rarity": 5,
+      "payloadHex": "030000130ee000000000000100080003000000",
+      "matches": [
+        { "pattern": "^\\x03\\x00\\x00[\\x0b-\\x2f][\\x06-\\x2f]\\xd0", "service": "RDP" }
+      ],
+      "soft": []
+    },
+    {
+      "name": "SMB2Negotiate",
+      "protocol": "tcp",
+      "ports": [],
+      "rarity": 6,
+      "payloadHex": "00000066fe534d424000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002400010001000000000000000000000000000000000000000000000000000000000000000202",
+      "matches": [
+        { "pattern": "^\\x00[\\x00-\\x01]..\\xfeSMB", "service": "SMB", "info": "dialect 2 or 3" },
+        { "pattern": "^\\x00[\\x00-\\x01]..\\xffSMB", "service": "SMB", "info": "dialect 1" }
+      ],
+      "soft": []
+    },
+    {
+      "name": "PostgresSslRequest",
+      "protocol": "tcp",
+      "ports": [5432, 5433],
+      "rarity": 3,
+      "payloadHex": "0000000804d2162f",
+      "matches": [],
+      "soft": [
+        { "pattern": "^[SN]$", "service": "PostgreSQL" }
+      ]
+    },
+    {
+      "name": "RedisPing",
+      "protocol": "tcp",
+      "ports": [6379, 6380],
+      "rarity": 3,
+      "payload": "PING\r\n",
+      "matches": [
+        { "pattern": "^\\+PONG\\r?\\n", "service": "Redis" },
+        { "pattern": "^-(?:NOAUTH|DENIED|ERR)[^\\r\\n]*", "service": "Redis" }
+      ],
+      "soft": []
+    },
+    {
+      "name": "MemcachedVersion",
+      "protocol": "tcp",
+      "ports": [11211],
+      "rarity": 3,
+      "payload": "version\r\n",
+      "matches": [
+        { "pattern": "^VERSION ([\\d.]+)", "service": "Memcached", "product": "Memcached", "version": "$1" }
+      ],
+      "soft": []
+    }
+  ]
+}

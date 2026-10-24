@@ -1,0 +1,135 @@
+<UserControl x:Class="IpScanner.Views.LogPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+             Background="{DynamicResource Bg}"
+             KeyboardNavigation.TabNavigation="Cycle"
+             AutomationProperties.Name="{loc:L LogTitle}">
+    <UserControl.Resources>
+        <!-- Rows carry no selection look; the whole header is the expand toggle. -->
+        <Style x:Key="LogRowItem" TargetType="ListBoxItem">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="ToolTip" Value="{loc:L TipLogRow}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <ContentPresenter/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="LogRowToggle" TargetType="ToggleButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="b" Background="Transparent" Padding="10,8">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="{DynamicResource Surface}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="{DynamicResource Surface}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="LogLevelText" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource Subtext}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Level}" Value="Error">
+                    <Setter Property="Foreground" Value="{DynamicResource Red}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Level}" Value="Warn">
+                    <Setter Property="Foreground" Value="{DynamicResource Peach}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <DataTemplate x:Key="LogRowTemplate">
+            <Border BorderBrush="{DynamicResource Surface}" BorderThickness="0,0,0,1">
+                <StackPanel>
+                    <ToggleButton x:Name="Header" Style="{StaticResource LogRowToggle}"
+                                  IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                  AutomationProperties.Name="{Binding Title}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="130"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="Arrow" Text="&#x25B8;" Foreground="{DynamicResource Subtext}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding LevelText}" Style="{StaticResource LogLevelText}"/>
+                            <TextBlock Grid.Column="2" Text="{Binding TimeText}" Foreground="{DynamicResource Subtext}"/>
+                            <TextBlock Grid.Column="3" Text="{Binding AreaText}" Foreground="{DynamicResource Subtext}"/>
+                            <TextBlock Grid.Column="4" Text="{Binding Title}" Foreground="{DynamicResource Text}"
+                                       TextWrapping="Wrap"/>
+                        </Grid>
+                    </ToggleButton>
+                    <StackPanel x:Name="Body" Visibility="Collapsed" Margin="28,0,10,10">
+                        <TextBox Text="{Binding FullText, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
+                                 FontFamily="Consolas" FontSize="12" MaxHeight="260"
+                                 VerticalScrollBarVisibility="Auto" Background="{DynamicResource BgAlt}"
+                                 Foreground="{DynamicResource Text}" BorderBrush="{DynamicResource Surface}"
+                                 AutomationProperties.Name="{Binding Title}"/>
+                        <Button Content="{Binding CopyLabel}" Click="OnCopyRow" Tag="{Binding}"
+                                Style="{StaticResource GhostButton}" Padding="12,5" Margin="0,8,0,0"
+                                HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                    <Setter TargetName="Body" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="Arrow" Property="Text" Value="&#x25BE;"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </UserControl.Resources>
+    <Grid Margin="20,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="{loc:L LogTitle}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource Mauve}"/>
+                <TextBlock x:Name="CountText" Foreground="{DynamicResource Subtext}" FontSize="12" Margin="0,4,0,0"
+                           AutomationProperties.LiveSetting="Polite"/>
+            </StackPanel>
+            <Button Grid.Column="1" Content="{loc:L LogOpenFile}" Style="{StaticResource GhostButton}"
+                    Padding="16,8" Margin="0,0,8,0" Click="OnOpenFile" ToolTip="{loc:L TipLogOpenFile}" AutomationProperties.Name="{loc:L LogOpenFile}"/>
+            <Button Grid.Column="2" Content="{loc:L Close}" Style="{StaticResource GhostButton}"
+                    Padding="16,8" Click="OnClose" IsCancel="True" ToolTip="{loc:L TipBackToTable}" AutomationProperties.Name="{loc:L Close}"/>
+        </Grid>
+        <WrapPanel Grid.Row="1" Margin="0,16,0,12" VerticalAlignment="Center">
+            <TextBlock Text="{loc:L LogFilterArea}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="AreaBox" ToolTip="{loc:L TipLogArea}" MinWidth="170" Margin="0,0,14,0" SelectionChanged="OnFilterChanged"
+                      AutomationProperties.Name="{loc:L LogFilterArea}"/>
+            <TextBlock Text="{loc:L LogFilterLevel}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox x:Name="LevelBox" ToolTip="{loc:L TipLogLevel}" MinWidth="150" Margin="0,0,14,0" SelectionChanged="OnFilterChanged"
+                      AutomationProperties.Name="{loc:L LogFilterLevel}"/>
+            <TextBox x:Name="SearchBox" MinWidth="240" Height="30" VerticalContentAlignment="Center"
+                     TextChanged="OnFilterChanged" AutomationProperties.Name="{loc:L LogSearchLabel}"
+                     ToolTip="{loc:L TipLogSearch}"/>
+        </WrapPanel>
+        <Grid Grid.Row="2">
+            <ListBox x:Name="RowsList" BorderThickness="0" Background="Transparent"
+                     ItemContainerStyle="{StaticResource LogRowItem}" ItemTemplate="{StaticResource LogRowTemplate}"
+                     HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.ScrollUnit="Pixel"
+                     AutomationProperties.Name="{loc:L LogTitle}"/>
+            <TextBlock x:Name="EmptyText" Foreground="{DynamicResource Subtext}" TextWrapping="Wrap" TextAlignment="Center"
+                       MaxWidth="520" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,40,0,0" Visibility="Collapsed"/>
+        </Grid>
+    </Grid>
+</UserControl>

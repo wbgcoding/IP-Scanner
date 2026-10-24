@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>   <!-- tray NotifyIcon -->
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>IP-Scanner</AssemblyName>
+    <!-- Own Main: arguments run the command line scanner before any WPF type is created. -->
+    <StartupObject>IpScanner.Program</StartupObject>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ApplicationIcon>Resources\network.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- WFAC010 fires because UseWindowsForms=true triggers the WinForms compat
+         analyzer on any manifest-based DPI declaration, and recommends
+         Application.SetHighDpiMode instead - a WinForms-only API. WinForms here
+         is only the tray NotifyIcon; the app's actual rendering is WPF, for
+         which the manifest dpiAwareness/dpiAware elements are Microsoft's own
+         documented Per-Monitor-V2 mechanism. Suppressed, not removed. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <!-- File-properties metadata (Details tab in Explorer) - NOT a code-signing
+         publisher: without a certificate, Windows SmartScreen/UAC still show
+         "Unknown publisher" regardless of these fields. -->
+    <Company>BGCoding</Company>
+    <Product>IP-Scanner</Product>
+    <Description>Windows network scanner: ping sweep, hostname/MAC resolution, live latency stats.</Description>
+    <Copyright>© 2026 BGCoding</Copyright>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <!-- Compress the self-contained single file (~50% smaller, no quality loss). -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <SatelliteResourceLanguages>en;de</SatelliteResourceLanguages>
+    <!-- Precompiled native images for a faster cold start. -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- WinForms is only for the tray NotifyIcon; keep WPF types unambiguous. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IpScanner.Core\IpScanner.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="IpScanner.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\network.ico" />
+    <Resource Include="Resources\logo.png" />
+  </ItemGroup>
+</Project>

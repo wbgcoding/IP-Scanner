@@ -1,0 +1,32 @@
+<Window x:Class="IpScanner.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+        Title="{loc:L AboutWindowTitle}"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize" ShowInTaskbar="False">
+    <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Surface}" BorderThickness="1"
+            CornerRadius="12" Padding="28" MaxWidth="380">
+        <StackPanel>
+            <Image Source="pack://application:,,,/Resources/logo.png" Width="56" Height="56" HorizontalAlignment="Center"/>
+            <TextBlock Text="IP-Scanner" Foreground="{DynamicResource Mauve}" FontSize="19" FontWeight="Bold"
+                       HorizontalAlignment="Center" Margin="0,12,0,0"/>
+            <TextBlock x:Name="VersionText" Foreground="{DynamicResource Subtext}" FontSize="12"
+                       HorizontalAlignment="Center" Margin="0,2,0,0"/>
+            <TextBlock x:Name="ManufacturerText" Foreground="{DynamicResource Text}" FontSize="13"
+                       HorizontalAlignment="Center" Margin="0,14,0,0"/>
+            <TextBlock x:Name="LicenseText" Foreground="{DynamicResource Text}" FontSize="13"
+                       HorizontalAlignment="Center" Margin="0,2,0,0"/>
+            <TextBlock x:Name="CopyrightText" Foreground="{DynamicResource Subtext}" FontSize="12"
+                       HorizontalAlignment="Center" Margin="0,2,0,0"/>
+            <TextBlock x:Name="AttributionText" Foreground="{DynamicResource Subtext}" FontSize="11"
+                       TextWrapping="Wrap" TextAlignment="Center" MaxWidth="320" Margin="0,14,0,0"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,22,0,0">
+                <Button x:Name="ProjectPageBtn" Style="{StaticResource GhostButton}" Padding="14,8" Click="OnOpenProjectPage" ToolTip="{loc:L TipAboutProject}"/>
+                <Button x:Name="OkBtn" Style="{StaticResource AccentButton}" Padding="20,8" Margin="8,0,0,0"
+                        IsDefault="True" IsCancel="True" Click="OnOk" ToolTip="{loc:L TipDialogOk}"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

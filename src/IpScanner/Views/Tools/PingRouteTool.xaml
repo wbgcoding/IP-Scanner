@@ -1,0 +1,209 @@
+<UserControl x:Class="IpScanner.Views.Tools.PingRouteTool"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:IpScanner.Core.Localization">
+    <!-- Two independent panes on one page, ping on top (fixed height,
+         includes its own sparkline) and route filling the rest. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" DataContext="{Binding Ping}">
+            <TextBlock Text="{loc:L PingRoutePingTab}" FontWeight="SemiBold" Margin="0,0,0,6"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckTargetLabel}"/>
+                    <TextBox MinWidth="140" Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}"
+                             AutomationProperties.Name="{loc:L PortCheckTargetLabel}" ToolTip="{loc:L TipToolPingTarget}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PingIntervalLabel}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <ComboBox MinWidth="60" ItemsSource="{Binding IntervalOptions}" SelectedItem="{Binding Interval}" Margin="0,0,4,0"
+                                  AutomationProperties.Name="{loc:L PingIntervalLabel}" ToolTip="{loc:L TipToolPingInterval}"/>
+                        <TextBlock Text="s" Foreground="{DynamicResource Subtext}" FontSize="11" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PingPayloadLabel}"/>
+                    <ComboBox MinWidth="70" ItemsSource="{Binding PayloadOptions}" SelectedItem="{Binding PayloadSize}"
+                              AutomationProperties.Name="{loc:L PingPayloadLabel}" ToolTip="{loc:L TipToolPingPayload}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="3" Margin="0,0,8,0">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PingTimeoutLabel}"/>
+                    <TextBox MinWidth="70" Text="{Binding TimeoutMs, UpdateSourceTrigger=PropertyChanged}"
+                             AutomationProperties.Name="{loc:L PingTimeoutLabel}" ToolTip="{loc:L TipToolPingTimeout}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text=" "/>
+                <Grid>
+                    <Button Content="{loc:L PingStartButton}" Click="OnPingStartClick" ToolTip="{loc:L TipToolPingStart}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ToolAccentButton}">
+                                <Setter Property="IsEnabled" Value="{Binding CanStart}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="{loc:L WakeStopButton}" Click="OnPingStopClick" ToolTip="{loc:L TipStopRun}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ToolDangerButton}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+                </StackPanel>
+            </Grid>
+
+            <Canvas x:Name="PingGraphCanvas" Height="60" Margin="0,8,0,0" ClipToBounds="True"
+                    SizeChanged="OnPingGraphSizeChanged" FlowDirection="LeftToRight">
+                <Polyline Points="{Binding GraphPoints}" Stroke="{DynamicResource Green}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                <TextBlock Text="{Binding GraphMax}" Canvas.Left="4" Canvas.Top="1" FontSize="9" Foreground="{DynamicResource MidGray}"/>
+                <TextBlock Text="{Binding GraphMin}" Canvas.Left="4" Canvas.Bottom="0" FontSize="9" Foreground="{DynamicResource MidGray}"/>
+            </Canvas>
+
+            <WrapPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <TextBlock Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,16,0">
+                    <Run Text="{loc:L PingSentLabel}"/><Run Text=": "/><Run Text="{Binding Sent, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,16,0">
+                    <Run Text="{loc:L PingReceivedLabel}"/><Run Text=": "/><Run Text="{Binding Received, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,16,0">
+                    <Run Text="{loc:L PingLossLabel}"/><Run Text=": "/><Run Text="{Binding LossText, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock Text="{Binding StatsText}" Foreground="{DynamicResource Text}" FontSize="11"/>
+            </WrapPanel>
+            <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Peach}" FontSize="11" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <Border Grid.Row="1" Height="1" Background="{DynamicResource Surface2}" Margin="0,14,0,10"/>
+
+        <Grid Grid.Row="2" DataContext="{Binding Route}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="{loc:L PingRouteRouteTab}" FontWeight="SemiBold" Margin="0,0,0,6"/>
+
+            <StackPanel Grid.Row="1">
+                <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckTargetLabel}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox AutomationProperties.Name="{loc:L PortCheckTargetLabel}" MinWidth="140" Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}" ToolTip="{loc:L TipToolRouteTarget}" Margin="0,0,8,0"/>
+                    <Grid Grid.Column="1">
+                        <Button Content="{loc:L PingStartButton}" Click="OnRouteStartClick" ToolTip="{loc:L TipToolRouteStart}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource ToolAccentButton}">
+                                    <Setter Property="IsEnabled" Value="{Binding CanStart}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Content="{loc:L WakeStopButton}" Click="OnRouteStopClick" ToolTip="{loc:L TipStopRun}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource ToolDangerButton}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </StackPanel>
+
+            <!-- Hops in fixed columns: hop, address, name, then the three probe times. The header and every row
+                 use the same column widths (name takes the rest), so the values line up under each other. -->
+            <ScrollViewer Grid.Row="2" Margin="0,8,0,0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="56"/>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="72"/>
+                            <ColumnDefinition Width="72"/>
+                            <ColumnDefinition Width="72"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{loc:L RouteHopLabel}" Foreground="{DynamicResource Subtext}" FontSize="11"/>
+                        <TextBlock Grid.Column="1" Text="{loc:L RouteAddressLabel}" Foreground="{DynamicResource Subtext}" FontSize="11"/>
+                        <TextBlock Grid.Column="2" Text="{loc:L RouteNameLabel}" Foreground="{DynamicResource Subtext}" FontSize="11"/>
+                        <TextBlock Grid.Column="3" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0">
+                            <Run Text="{loc:L RoutePingLabel}"/><Run Text=" 1"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="4" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0">
+                            <Run Text="{loc:L RoutePingLabel}"/><Run Text=" 2"/>
+                        </TextBlock>
+                        <TextBlock Grid.Column="5" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0">
+                            <Run Text="{loc:L RoutePingLabel}"/><Run Text=" 3"/>
+                        </TextBlock>
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding Hops}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="56"/>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="72"/>
+                                        <ColumnDefinition Width="72"/>
+                                        <ColumnDefinition Width="72"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Number}" FontFamily="Consolas" FontSize="12"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Address, TargetNullValue=*}" FontFamily="Consolas" FontSize="12"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Name}" FontFamily="Consolas" FontSize="12"
+                                               TextTrimming="CharacterEllipsis" Margin="0,0,8,0" ToolTip="{Binding Name}"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Time1}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding Time2}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Column="5" Text="{Binding Time3}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <WrapPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0">
+                <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Text}" FontSize="12" VerticalAlignment="Center"/>
+                <Button Content="{loc:L RouteCopyButton}" Style="{StaticResource ToolGhostButton}"
+                        Margin="14,0,0,0" Click="OnRouteCopyClick" ToolTip="{loc:L TipRouteCopy}"/>
+            </WrapPanel>
+        </Grid>
+    </Grid>
+</UserControl>
