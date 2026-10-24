@@ -446,7 +446,6 @@ public partial class MainWindow : Window
         OfflineToggle.IsChecked = c.ShowOfflineFromDb;
         MinimizeTrayBox.IsChecked = c.MinimizeToTray;
         CheckForUpdatesBox.IsChecked = c.CheckForUpdates;
-        VerboseLogBox.IsChecked = c.VerboseLog;
         GraphsEnabledBox.IsChecked = c.GraphsEnabled;
         NetworkGraphsBox.IsChecked = c.NetworkGraphsEnabled;
         AutoGraphPinnedBox.IsChecked = c.AutoGraphForPinned;
