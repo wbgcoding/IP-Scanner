@@ -2490,4 +2490,6 @@ public static class Loc
 
     // Tool pages (round 2026-10-24)
     public static string PortCheckSplitterTip => S("Ziehen, um die Höhe der beiden Tabellen zu ändern.", "Drag to change the height of the two tables.");
+    public static string PingRepliesLabel => S("Letzte Antworten", "Last replies");
+    public static string PingTimedOut => S("Zeitüberschreitung", "Timed out");
 }

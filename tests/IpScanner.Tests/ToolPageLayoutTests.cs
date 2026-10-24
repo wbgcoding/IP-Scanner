@@ -70,4 +70,18 @@ public class ToolPageLayoutTests
         Assert.True(double.Parse((string)checks.Attribute("MinHeight")!) >= 80);
         Assert.Null(checks.Attribute("Height"));
     }
+
+    [Fact]
+    public void PingGraph_HasTimeTicksUnderTheCanvasAndARepliesList()
+    {
+        var doc = Load("PingRouteTool.xaml");
+        var canvas = Named(doc, "PingGraphCanvas");
+        var ticks = Named(doc, "PingGraphTicks");
+        Assert.Same(canvas.Parent, ticks.Parent);
+        Assert.Contains(ticks, canvas.ElementsAfterSelf());
+        Assert.Equal("{Binding GraphTicks}", (string?)ticks.Attribute("ItemsSource"));
+        var list = Named(doc, "PingReplies");
+        Assert.Equal("{Binding Replies}", (string?)list.Attribute("ItemsSource"));
+        Assert.True(double.Parse((string)Named(doc, "PingRepliesScroll").Attribute("Height")!) <= 120);
+    }
 }
