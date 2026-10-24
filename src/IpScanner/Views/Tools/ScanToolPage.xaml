@@ -127,8 +127,10 @@
                 <!-- A blank caption keeps the check boxes on the same line as the combo boxes beside them. -->
                 <StackPanel x:Name="SkipBox" Margin="0,0,18,8">
                     <TextBlock Style="{StaticResource ToolCaption}" Text=" "/>
-                    <CheckBox Content="{loc:L ScanToolSkipDiscovery}" ToolTip="{loc:L ScanToolSkipDiscoveryTip}"
-                              IsChecked="{Binding SkipDiscovery}" Height="32" VerticalContentAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" Height="32">
+                        <CheckBox Content="{loc:L ScanToolSkipDiscovery}" ToolTip="{loc:L ScanToolSkipDiscoveryTip}"
+                                  IsChecked="{Binding SkipDiscovery}" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel x:Name="ChecksBox" Margin="0,0,18,8">
                     <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckServiceChecksHeader}"/>
