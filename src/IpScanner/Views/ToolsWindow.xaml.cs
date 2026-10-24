@@ -79,6 +79,7 @@ public partial class ToolsWindow : Window
         FlowDirection = Loc.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
         _vm.Calculator.RefreshLanguage();
         _vm.Mac.RefreshLanguage();
+        _vm.DnsLookup.RefreshLanguage();
         foreach (var page in _pages.Values)
             if (page is ScanToolPage scan) scan.RefreshLanguage();
         if (ToolsNavList.SelectedItem is ListBoxItem { Tag: string tag }) ToolDescription.Text = DescFor(tag);

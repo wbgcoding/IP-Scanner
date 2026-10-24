@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using IpScanner.ViewModels.Tools;
 using IpScanner.Views.Tools;
@@ -72,5 +73,33 @@ public class ScanToolSelectionTests
             Assert.Equal(IpScanner.Core.Export.ReportFormat.Json, format.SelectedValue);
             return Task.CompletedTask;
         });
+    }
+
+    [Fact]
+    public async Task DnsPage_FitsTheNarrowestContentAreaInEveryMode()
+    {
+        await WpfTestHost.RunAsync(() =>
+        {
+            var vm = new DnsLookupToolViewModel
+            {
+                SystemServerProvider = () => new[] { "10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.4", "10.0.0.5", "10.0.0.6" }
+                    .Select(System.Net.IPAddress.Parse).ToList(),
+            };
+            var page = new DnsLookupTool(vm);
+            vm.CompareMode = true;
+            Measure(page);
+
+            vm.CompareMode = false;
+            vm.Server = "not an address";
+            Measure(page);
+            return Task.CompletedTask;
+        });
+
+        static void Measure(DnsLookupTool page)
+        {
+            // Tools window minimum width (820) minus navigation and margins.
+            page.Measure(new System.Windows.Size(560, double.PositiveInfinity));
+            Assert.True(page.DesiredSize.Width <= 560.5, $"page needs {page.DesiredSize.Width} px");
+        }
     }
 }

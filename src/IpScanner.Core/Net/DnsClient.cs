@@ -178,6 +178,9 @@ public static class DnsClient
         return name;
     }
 
+    /// <summary>True when the name can be sent in a query (see <see cref="EncodableName"/>).</summary>
+    public static bool IsValidName(string name) => EncodableName(name) is not null;
+
     /// <summary>"d.c.b.a.in-addr.arpa" or the nibble-reversed ip6.arpa name for an IP address text; null when
     /// the text is no IP address.</summary>
     public static string? ReverseName(string text)
