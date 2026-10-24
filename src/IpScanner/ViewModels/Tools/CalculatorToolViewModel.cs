@@ -1,20 +1,13 @@
-using IpScanner.Core.Export;
+using System.Collections.ObjectModel;
 using IpScanner.Core.Localization;
 using IpScanner.Core.Net;
-using IpScanner.Core.Scanner;
 
 namespace IpScanner.ViewModels.Tools;
 
-/// <summary>Offline calculator and lookup tool page state: three
-/// independent, instant blocks - a subnet calculator, an OUI vendor lookup, and
-/// an ARP address-table lookup (the only block that touches the network).</summary>
+/// <summary>Offline calculator tool page state: an instant subnet calculator
+/// with a containment test and a split of the network into smaller subnets.</summary>
 public sealed class CalculatorToolViewModel : ObservableObject
 {
-    private readonly Func<string, string?> _arpResolver;
-
-    public CalculatorToolViewModel(Func<string, string?>? arpResolver = null)
-        => _arpResolver = arpResolver ?? (ip => Core.Scanner.Ipv6.Ipv6Pinger.IsIpv6(ip) ? Core.Scanner.Ipv6.Ipv6Pinger.MacOf(ip) : ArpHelper.Resolve(ip));
-
     // ── Subnet calculator ──
     private string _subnetAddress = "";
     public string SubnetAddress { get => _subnetAddress; set { if (_subnetAddress != value) { _subnetAddress = value; Raise(nameof(SubnetAddress)); Compute(); } } }
@@ -121,6 +114,12 @@ public sealed class CalculatorToolViewModel : ObservableObject
 
     private void Compute()
     {
+        ComputeSubnet();
+        ComputeSplit();
+    }
+
+    private void ComputeSubnet()
+    {
         if (SubnetAddress.Trim().Length == 0 && SubnetMask.Trim().Length == 0)
         {
             HasSubnetResult = false; SubnetError = "";
@@ -202,73 +201,84 @@ public sealed class CalculatorToolViewModel : ObservableObject
         Raise(nameof(ContainsResult)); Raise(nameof(HasContainsResult));
     }
 
+    // ── Split into subnets ──
+    /// <summary>Most subnet rows listed; a split into more shows the first ones and a hint.</summary>
+    internal const int SplitRowCap = 256;
 
-    // ── Vendor lookup ──
-    private string _vendorMac = "";
-    public string VendorMac { get => _vendorMac; set { if (_vendorMac != value) { _vendorMac = value; Raise(nameof(VendorMac)); ComputeVendor(); } } }
+    public readonly record struct SubnetRow(string Network, string FirstHost, string LastHost, string Broadcast, string Hosts);
 
-    public string VendorResult { get; private set; } = "";
-    public bool HasVendorResult { get; private set; }
-    // Computed live rather than cached, but the binding still needs telling to
-    // re-read it after a language switch (docs/DESIGN.md's "Loc value read once"
-    // rule) - see RefreshLanguage() below.
-    public string VendorFooter => MacVendorLookup.Instance.SourceDate is { } d
-        ? Loc.CalcVendorFooterMsg(MacVendorLookup.Instance.EntryCount, d)
-        : Loc.CalcVendorFooterNoDateMsg(MacVendorLookup.Instance.EntryCount);
+    /// <summary>Splits the IPv4 network given by address and mask into subnets of the new prefix length. Null when the
+    /// network does not parse or the new prefix is not longer than the network's own and at most 32. At most
+    /// <paramref name="cap"/> rows are built; <c>Total</c> is the full subnet count.</summary>
+    internal static (List<SubnetRow> Rows, long Total)? Split(string address, string mask, int newPrefix, int cap = SplitRowCap)
+    {
+        if (Calculate(address, mask) is not { } source || newPrefix <= source.Cidr || newPrefix > 32) return null;
+        if (!Ipv4.TryParseUInt(source.Network, out var network)) return null;
+        long total = 1L << (newPrefix - source.Cidr);
+        ulong step = 1UL << (32 - newPrefix);
+        var rows = new List<SubnetRow>((int)Math.Min(total, cap));
+        for (long i = 0; i < total && i < cap; i++)
+        {
+            var net = (uint)(network + (ulong)i * step);
+            if (Calculate(Ipv4.FromUInt(net), "/" + newPrefix) is not { } r) return null;
+            rows.Add(new SubnetRow(r.Network, r.FirstHost, r.LastHost, r.Broadcast, r.UsableHosts.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+        return (rows, total);
+    }
+
+    private static int? ParsePrefix(string text)
+    {
+        text = text.Trim().TrimStart('/').Trim();
+        return text.Length is >= 1 and <= 2 && text.All(char.IsAsciiDigit) && int.TryParse(text, out var n) ? n : null;
+    }
+
+    private string _splitPrefix = "";
+    public string SplitPrefix { get => _splitPrefix; set { if (_splitPrefix != value) { _splitPrefix = value; Raise(nameof(SplitPrefix)); ComputeSplit(); } } }
+
+    public ObservableCollection<SubnetRow> SplitRows { get; } = new();
+    public string SplitError { get; private set; } = "";
+    public string SplitSummary { get; private set; } = "";
+    public bool HasSplitRows => SplitRows.Count > 0;
+
+    /// <summary>The split section only applies to a valid IPv4 network.</summary>
+    public bool ShowSplit => HasSubnetResult && !IsIpv6Result;
+
+    private long _splitTotal;
+
+    private void ComputeSplit()
+    {
+        SplitRows.Clear();
+        SplitError = ""; SplitSummary = ""; _splitTotal = 0;
+        if (ShowSplit && SplitPrefix.Trim().Length > 0)
+        {
+            var prefix = ParsePrefix(SplitPrefix);
+            var result = prefix is { } p ? Split(SubnetAddress.Trim(), SubnetMask.Trim(), p) : null;
+            if (result is { } r)
+            {
+                foreach (var row in r.Rows) SplitRows.Add(row);
+                _splitTotal = r.Total;
+            }
+            else
+                SplitError = Loc.CalcSplitInvalid;
+        }
+        UpdateSplitSummary();
+        Raise(nameof(SplitError)); Raise(nameof(HasSplitRows)); Raise(nameof(ShowSplit));
+    }
 
     public void RefreshLanguage()
     {
-        Raise(nameof(VendorFooter)); Raise(nameof(BroadcastLabel)); Raise(nameof(UsableHostsLabel));
+        Raise(nameof(BroadcastLabel)); Raise(nameof(UsableHostsLabel));
         if (SubnetError.Length > 0) SubnetError = Loc.CalcInvalidSubnet;
         ComputeContains();
-        if (HasVendorResult) ComputeVendor();
-        if (HasArpResult) ShowArpResult(_arpMac);
+        if (SplitError.Length > 0) { SplitError = Loc.CalcSplitInvalid; Raise(nameof(SplitError)); }
+        UpdateSplitSummary();
     }
 
-    private void ComputeVendor()
+    private void UpdateSplitSummary()
     {
-        if (VendorMac.Trim().Length == 0) { HasVendorResult = false; Raise(nameof(HasVendorResult)); return; }
-        VendorResult = MacVendorLookup.Instance.Lookup(VendorMac) ?? Loc.CalcVendorNotFound;
-        HasVendorResult = true;
-        Raise(nameof(VendorResult)); Raise(nameof(HasVendorResult));
-    }
-
-    // ── Address table (ARP) ──
-    private string _arpIp = "";
-    public string ArpIp { get => _arpIp; set { if (_arpIp != value) { _arpIp = value; Raise(nameof(ArpIp)); Raise(nameof(CanLookupArp)); } } }
-    public bool CanLookupArp => !_arpLookupRunning && AddressSyntax.IsValidAddress(ArpIp.Trim());
-
-    private bool _arpLookupRunning;
-    private string? _arpMac;
-
-    public string ArpMac { get; private set; } = "";
-    public string ArpVendor { get; private set; } = "";
-    public bool HasArpResult { get; private set; }
-
-    public async Task LookupArpAsync()
-    {
-        if (!CanLookupArp) return;
-        var ip = ArpIp.Trim();
-        _arpLookupRunning = true;
-        Raise(nameof(CanLookupArp));
-        try
-        {
-            var mac = await Task.Run(() => _arpResolver(ip));
-            _arpMac = mac;
-            ShowArpResult(mac);
-        }
-        finally
-        {
-            _arpLookupRunning = false;
-            Raise(nameof(CanLookupArp));
-        }
-    }
-
-    private void ShowArpResult(string? mac)
-    {
-        ArpMac = mac ?? Loc.CalcArpNotFound;
-        ArpVendor = mac is { } m ? MacVendorLookup.Instance.Lookup(m) ?? Loc.CalcVendorNotFound : "";
-        HasArpResult = true;
-        Raise(nameof(ArpMac)); Raise(nameof(ArpVendor)); Raise(nameof(HasArpResult));
+        SplitSummary = _splitTotal == 0 ? ""
+            : _splitTotal > SplitRowCap ? Loc.CalcSplitCappedMsg(SplitRowCap, _splitTotal)
+            : Loc.CalcSplitCountMsg(_splitTotal);
+        Raise(nameof(SplitSummary));
     }
 }

@@ -1427,8 +1427,8 @@ public static class Loc
         "Pingt ein Ziel dauerhaft mit Live-Diagramm oder zeigt die Router auf dem Weg von diesem Rechner zum Ziel. Nutze es, um die Stabilität einer Verbindung zu beurteilen oder die Stelle zu finden, an der Pakete verloren gehen.",
         "Pings a target continuously with a live graph, or traces the routers between this computer and the target. Use it to judge how stable a connection is or to find where packets get lost.");
     public static string ToolCalculatorDesc => S(
-        "Berechnet Netz, Rundsendeadresse, Rechnerbereich und Maske für jede Adresse, sucht den Hersteller zu einer MAC-Adresse und die MAC zu einer IP in der Adresstabelle. Nutze es beim Planen von Netzen oder um ein Gerät zu identifizieren.",
-        "Works out network, broadcast, host range and mask for any address, looks up the vendor of a MAC address and finds the MAC for an IP in the address table. Use it when planning networks or identifying a device.");
+        "Berechnet Netz, Rundsendeadresse, Rechnerbereich und Maske für jede Adresse, prüft, ob eine Adresse zum Netz gehört, und teilt ein Netz in kleinere Teilnetze auf. Nutze es beim Planen von Netzen.",
+        "Works out network, broadcast, host range and mask for any address, checks whether an address belongs to the network and splits a network into smaller subnets. Use it when planning networks.");
     public static string ToolCertificateDesc => S(
         "Verbindet sich per TLS mit einem Server und zeigt dessen Zertifikat mit Inhaber, Aussteller, Gültigkeit, Fingerabdruck und Kette. Nutze es, um das Ablaufdatum zu prüfen oder ob ein Dienst das richtige Zertifikat vorlegt.",
         "Connects to a server over TLS and shows its certificate: owner, issuer, validity, fingerprint and chain. Use it to check when a certificate expires or whether a service presents the right one.");
@@ -2492,4 +2492,14 @@ public static class Loc
     public static string PortCheckSplitterTip => S("Ziehen, um die Höhe der beiden Tabellen zu ändern.", "Drag to change the height of the two tables.");
     public static string PingRepliesLabel => S("Letzte Antworten", "Last replies");
     public static string PingTimedOut => S("Zeitüberschreitung", "Timed out");
+    public static string ToolMacTool => S("MAC-Adresse", "MAC address");
+    public static string ToolMacToolDesc => S("Sucht den Hersteller zu einer MAC-Adresse und die MAC-Adresse zu einer IP in der Adresstabelle dieses Rechners. Nutze es, um ein unbekanntes Gerät im Netz zu identifizieren.", "Looks up the vendor of a MAC address and finds the MAC address for an IP in the address table of this computer. Use it to identify an unknown device on your network.");
+    public static string CalcSplitTitle => S("Teilnetze aufteilen", "Split subnet");
+    public static string CalcSplitPrefixLabel => S("Neues Präfix", "New prefix");
+    public static string CalcSplitInvalid => S("Das neue Präfix muss größer sein als das Präfix des Netzes und darf höchstens 32 sein.", "The new prefix must be larger than the network prefix and at most 32.");
+    public static string CalcSplitCountFmt => S("{0} Teilnetze", "{0} subnets");
+    public static string CalcSplitCappedFmt => S("Es werden nur die ersten {0} von {1} Teilnetzen angezeigt.", "Showing only the first {0} of {1} subnets.");
+    public static string CalcSplitCountMsg(long count) => string.Format(CalcSplitCountFmt, count);
+    public static string CalcSplitCappedMsg(int shown, long total) => string.Format(CalcSplitCappedFmt, shown, total);
+    public static string TipCalcSplitPrefix => S("Länge des Präfixes der neuen Teilnetze, zum Beispiel /26. Muss größer sein als das Präfix des Netzes.", "Prefix length of the new subnets, for example /26. Must be larger than the prefix of the network.");
 }

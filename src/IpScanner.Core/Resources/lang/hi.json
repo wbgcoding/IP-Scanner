@@ -805,7 +805,7 @@
   "Checks which TCP and UDP ports on a device accept connections and shows the service behind each open port. Use it to see what a device offers on the network or whether a service is reachable.": "जाँचता है कि किसी डिवाइस के कौन से TCP और UDP पोर्ट कनेक्शन स्वीकार करते हैं और हर खुले पोर्ट के पीछे की सेवा दिखाता है। इसका उपयोग यह जानने के लिए करें कि डिवाइस नेटवर्क पर क्या देता है या कोई सेवा पहुँच में है या नहीं।",
   "Looks up the IP addresses behind a name, or the name behind an IP address, using the DNS servers of this computer. Use it when a name does not resolve as expected or you want to identify an unknown address.": "इस कंप्यूटर के DNS सर्वरों से किसी नाम के IP पते, या किसी IP पते का नाम खोजता है। इसका उपयोग तब करें जब कोई नाम अपेक्षा के अनुसार हल न हो या आप किसी अज्ञात पते को पहचानना चाहें।",
   "Pings a target continuously with a live graph, or traces the routers between this computer and the target. Use it to judge how stable a connection is or to find where packets get lost.": "लाइव ग्राफ़ के साथ किसी लक्ष्य को लगातार पिंग करता है, या इस कंप्यूटर और लक्ष्य के बीच के राउटरों का मार्ग दिखाता है। कनेक्शन की स्थिरता परखने या यह पता लगाने में काम आता है कि पैकेट कहाँ खोते हैं।",
-  "Works out network, broadcast, host range and mask for any address, looks up the vendor of a MAC address and finds the MAC for an IP in the address table. Use it when planning networks or identifying a device.": "किसी भी पते के लिए नेटवर्क, ब्रॉडकास्ट, होस्ट रेंज और मास्क निकालता है, MAC पते का निर्माता खोजता है और पता तालिका में IP की MAC ढूँढता है। नेटवर्क की योजना बनाने या डिवाइस पहचानने में काम आता है।",
+  "Works out network, broadcast, host range and mask for any address, checks whether an address belongs to the network and splits a network into smaller subnets. Use it when planning networks.": "किसी भी पते के लिए नेटवर्क, ब्रॉडकास्ट, होस्ट रेंज और मास्क निकालता है, जाँचता है कि कोई पता नेटवर्क में आता है या नहीं, और नेटवर्क को छोटे सबनेट में बाँटता है। नेटवर्क की योजना बनाने में काम आता है।",
   "Connects to a server over TLS and shows its certificate: owner, issuer, validity, fingerprint and chain. Use it to check when a certificate expires or whether a service presents the right one.": "TLS के ज़रिए सर्वर से जुड़कर उसका प्रमाणपत्र दिखाता है: स्वामी, जारीकर्ता, वैधता, फ़िंगरप्रिंट और श्रृंखला। इसका उपयोग प्रमाणपत्र की समाप्ति देखने या यह जाँचने के लिए करें कि सेवा सही प्रमाणपत्र दे रही है या नहीं।",
   "Picks a device from the known-devices list and fills in its MAC address.": "ज्ञात डिवाइसों की सूची से एक डिवाइस चुनता है और उसका MAC पता भर देता है।",
   "Network card the magic packet is sent from. Pick the one on the same network as the device.": "वह नेटवर्क कार्ड जिससे मैजिक पैकेट भेजा जाता है। वही चुनें जो डिवाइस के नेटवर्क में है।",
@@ -1214,5 +1214,12 @@
   "Save path": "सहेजने का पथ",
   "Drag to change the height of the two tables.": "दोनों तालिकाओं की ऊँचाई बदलने के लिए खींचें।",
   "Last replies": "हाल के उत्तर",
-  "Timed out": "समय समाप्त"
+  "Timed out": "समय समाप्त",
+  "Looks up the vendor of a MAC address and finds the MAC address for an IP in the address table of this computer. Use it to identify an unknown device on your network.": "किसी MAC पते का निर्माता खोजता है और इस कंप्यूटर की पता तालिका में किसी IP का MAC पता ढूँढता है। नेटवर्क पर किसी अज्ञात डिवाइस को पहचानने में काम आता है।",
+  "Split subnet": "सबनेट बाँटें",
+  "New prefix": "नया प्रीफ़िक्स",
+  "The new prefix must be larger than the network prefix and at most 32.": "नया प्रीफ़िक्स नेटवर्क के प्रीफ़िक्स से बड़ा और अधिकतम 32 होना चाहिए।",
+  "{0} subnets": "{0} सबनेट",
+  "Showing only the first {0} of {1} subnets.": "{1} में से केवल पहले {0} सबनेट दिखाए गए हैं।",
+  "Prefix length of the new subnets, for example /26. Must be larger than the prefix of the network.": "नए सबनेट के प्रीफ़िक्स की लंबाई, जैसे /26। यह नेटवर्क के प्रीफ़िक्स से बड़ी होनी चाहिए।"
 }

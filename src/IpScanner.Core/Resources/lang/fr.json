@@ -805,7 +805,7 @@
   "Checks which TCP and UDP ports on a device accept connections and shows the service behind each open port. Use it to see what a device offers on the network or whether a service is reachable.": "Vérifie quels ports TCP et UDP d'un appareil acceptent des connexions et affiche le service derrière chaque port ouvert. Utile pour voir ce qu'un appareil propose sur le réseau ou si un service est joignable.",
   "Looks up the IP addresses behind a name, or the name behind an IP address, using the DNS servers of this computer. Use it when a name does not resolve as expected or you want to identify an unknown address.": "Recherche les adresses IP d'un nom, ou le nom d'une adresse IP, avec les serveurs DNS de cet ordinateur. Utile quand un nom ne se résout pas comme prévu ou pour identifier une adresse inconnue.",
   "Pings a target continuously with a live graph, or traces the routers between this computer and the target. Use it to judge how stable a connection is or to find where packets get lost.": "Envoie des pings continus vers une cible avec un graphique en direct, ou trace les routeurs entre cet ordinateur et la cible. Utile pour juger la stabilité d'une connexion ou trouver où les paquets sont perdus.",
-  "Works out network, broadcast, host range and mask for any address, looks up the vendor of a MAC address and finds the MAC for an IP in the address table. Use it when planning networks or identifying a device.": "Calcule réseau, diffusion, plage d'hôtes et masque pour n'importe quelle adresse, recherche le fabricant d'une adresse MAC et trouve la MAC d'une IP dans la table d'adresses. Utile pour planifier des réseaux ou identifier un appareil.",
+  "Works out network, broadcast, host range and mask for any address, checks whether an address belongs to the network and splits a network into smaller subnets. Use it when planning networks.": "Calcule réseau, diffusion, plage d'hôtes et masque pour n'importe quelle adresse, vérifie si une adresse appartient au réseau et découpe un réseau en sous-réseaux plus petits. Utile pour planifier des réseaux.",
   "Connects to a server over TLS and shows its certificate: owner, issuer, validity, fingerprint and chain. Use it to check when a certificate expires or whether a service presents the right one.": "Se connecte à un serveur en TLS et affiche son certificat : titulaire, émetteur, validité, empreinte et chaîne. Utile pour vérifier l'expiration d'un certificat ou si un service présente le bon.",
   "Picks a device from the known-devices list and fills in its MAC address.": "Choisit un appareil dans la liste des appareils connus et renseigne son adresse MAC.",
   "Network card the magic packet is sent from. Pick the one on the same network as the device.": "Carte réseau utilisée pour envoyer le paquet magique. Choisissez celle qui est sur le même réseau que l'appareil.",
@@ -1214,5 +1214,12 @@
   "Save path": "Chemin d'enregistrement",
   "Drag to change the height of the two tables.": "Faites glisser pour modifier la hauteur des deux tableaux.",
   "Last replies": "Dernières réponses",
-  "Timed out": "Délai dépassé"
+  "Timed out": "Délai dépassé",
+  "Looks up the vendor of a MAC address and finds the MAC address for an IP in the address table of this computer. Use it to identify an unknown device on your network.": "Recherche le fabricant d'une adresse MAC et trouve l'adresse MAC d'une IP dans la table d'adresses de cet ordinateur. Utile pour identifier un appareil inconnu sur le réseau.",
+  "Split subnet": "Diviser le sous-réseau",
+  "New prefix": "Nouveau préfixe",
+  "The new prefix must be larger than the network prefix and at most 32.": "Le nouveau préfixe doit être supérieur à celui du réseau et valoir 32 au plus.",
+  "{0} subnets": "{0} sous-réseaux",
+  "Showing only the first {0} of {1} subnets.": "Seuls les {0} premiers sous-réseaux sur {1} sont affichés.",
+  "Prefix length of the new subnets, for example /26. Must be larger than the prefix of the network.": "Longueur du préfixe des nouveaux sous-réseaux, par exemple /26. Doit être supérieure à celle du réseau."
 }
