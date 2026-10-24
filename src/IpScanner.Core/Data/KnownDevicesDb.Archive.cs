@@ -134,6 +134,7 @@ public sealed partial class KnownDevicesDb
             findings.Select(f => new ArchivedFinding(f.Ip, f.Kind.ToString(), f.Detail))
                 .Concat(ports is null ? [] : ScanCompare.PortFindings(ports)).ToArray()));
         tx.Commit();
+        Log.Info(LogArea.Db, $"Scan archive saved: {devices.Count} devices");
         return id;
     }
 
@@ -325,6 +326,7 @@ public sealed partial class KnownDevicesDb
         using var tx = conn.BeginTransaction();
         DeleteArchiveRows(conn, tx, new[] { id });
         tx.Commit();
+        Log.Info(LogArea.Db, "Scan archive run deleted");
         return true;
     }
 
@@ -344,6 +346,7 @@ public sealed partial class KnownDevicesDb
         using var tx = conn.BeginTransaction();
         DeleteArchiveRows(conn, tx, ids);
         tx.Commit();
+        Log.Info(LogArea.Db, $"Scan archive range deleted: {ids.Count} runs removed");
         return ids.Count;
     }
 
@@ -365,6 +368,7 @@ public sealed partial class KnownDevicesDb
         using var tx = conn.BeginTransaction();
         DeleteArchiveRows(conn, tx, ids);
         tx.Commit();
+        Log.Info(LogArea.Db, $"Scan archive purged: {ids.Count} runs removed");
         return ids.Count;
     }
 
@@ -404,6 +408,7 @@ public sealed partial class KnownDevicesDb
             tx.Commit();
             compacted += scans.Length - 1;
         }
+        Log.Info(LogArea.Db, $"Scan archive compacted: {compacted} runs thinned out");
         return compacted;
     }
 

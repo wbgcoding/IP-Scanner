@@ -640,6 +640,7 @@ public partial class MainWindow : Window
             {
                 await Task.Delay(1500, cts.Token);
                 LogNetworkTransition();
+                Core.Log.Info(Core.LogArea.Scan, "Network change detected");
                 await _vm.RefreshDetectedNetworkAsync();
             }
             catch (OperationCanceledException) { /* superseded by a newer change */ }
