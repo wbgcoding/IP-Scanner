@@ -1,6 +1,6 @@
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using IpScanner.Core.Localization;
 using IpScanner.ViewModels.Tools;
 
@@ -28,12 +28,23 @@ public partial class DnsLookupTool : UserControl
         if (sender is RadioButton { Tag: string mode }) _vm.Mode = mode;
     }
 
+    private void OnAddServerClick(object sender, RoutedEventArgs e) => _vm.AddCompareServer();
+
+    private void OnNewServerKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        _vm.AddCompareServer();
+        e.Handled = true;
+    }
+
+    private void OnRemoveServerClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string server }) _vm.RemoveCompareServer(server);
+    }
+
     private void OnCopyClick(object sender, RoutedEventArgs e)
     {
-        var lines = _vm.ShowReverseResults
-            ? new[] { _vm.CanonicalName ?? "" }.Concat(_vm.Aliases)
-            : _vm.Addresses.AsEnumerable();
-        var text = string.Join(System.Environment.NewLine, lines);
+        var text = _vm.CopyText();
         if (text.Length > 0) ClipboardHelper.TrySetText(text);
     }
 }

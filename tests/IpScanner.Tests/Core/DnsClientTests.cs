@@ -310,7 +310,7 @@ public class DnsClientTests
 
     // ── Over the network (loopback fake server) ──
 
-    private sealed class FakeServer : IDisposable
+    internal sealed class FakeServer : IDisposable
     {
         private readonly UdpClient _udp;
         private readonly TcpListener? _tcp;
@@ -318,11 +318,11 @@ public class DnsClientTests
         public int Port { get; }
         public List<(DnsRecordType Type, string Name)> Questions { get; } = new();
 
-        public FakeServer(Func<byte[], byte[]?> udpHandler, Func<byte[], byte[]?>? tcpHandler = null)
+        public FakeServer(Func<byte[], byte[]?> udpHandler, Func<byte[], byte[]?>? tcpHandler = null, IPAddress? address = null, int fixedPort = 0)
         {
             if (tcpHandler is null)
             {
-                _udp = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0));
+                _udp = new UdpClient(new IPEndPoint(address ?? IPAddress.Loopback, fixedPort));
                 Port = ((IPEndPoint)_udp.Client.LocalEndPoint!).Port;
             }
             else
