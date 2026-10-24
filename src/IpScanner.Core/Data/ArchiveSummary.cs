@@ -6,7 +6,10 @@ namespace IpScanner.Core.Data;
 /// <summary>One run in the summary's time series (oldest first). Cancelled runs are listed
 /// but are not meant to be charted.</summary>
 public sealed record ArchiveRunPoint(long RunId, DateTimeOffset StartedAt, int OnlineCount, int DeviceCount,
-    int FindingCount, bool Cancelled);
+    int FindingCount, bool Cancelled, double? AvgLatencyMs);
+
+/// <summary>The statistics and the headline summary of one date range, read in a single pass.</summary>
+public sealed record ArchiveOverview(ScanArchiveStatistics Statistics, ArchiveSummary Summary);
 
 /// <summary>Headline figures for a date range of the scan archive.</summary>
 public sealed record ArchiveSummary(
@@ -25,19 +28,31 @@ public sealed record ArchiveSummary(
 public sealed partial class KnownDevicesDb
 {
     /// <summary>Headline figures for the archive page: run counts, devices, availability, latency,
-    /// findings and a per-run series. <paramref name="statistics"/> may carry an already computed
-    /// statistics pass for the same range so it is not read twice. "New" devices are those first
-    /// seen inside the range: without a lower bound the oldest finished run in the range is the baseline.</summary>
-    public ArchiveSummary GetScanArchiveSummary(DateTimeOffset? from = null, DateTimeOffset? through = null,
-        ScanArchiveStatistics? statistics = null)
-    {
-        if (_crypto is null) return ArchiveSummary.Empty;
-        var runs = ListScanArchive(from, through);
-        if (runs.Count == 0) return ArchiveSummary.Empty;
+    /// findings and a per-run series. "New" devices are those first seen inside the range: without a
+    /// lower bound the oldest finished run in the range is the baseline.</summary>
+    public ArchiveSummary GetScanArchiveSummary(DateTimeOffset? from = null, DateTimeOffset? through = null) =>
+        GetScanArchiveOverview(from, through).Summary;
 
+    /// <summary>The device statistics and the headline summary of a range from one read of the archive.</summary>
+    public ArchiveOverview GetScanArchiveOverview(DateTimeOffset? from = null, DateTimeOffset? through = null)
+    {
+        if (_crypto is null)
+            return new ArchiveOverview(new ScanArchiveStatistics(0, 0, Array.Empty<ArchivedDeviceStatistics>()),
+                ArchiveSummary.Empty);
+        var runs = ListScanArchive(from, through);
         HashSet<string>? oldestKeys = null;
-        var stats = statistics ?? ReadArchiveStatistics(from, through, false, (_, rows) =>
-            oldestKeys = rows.Select(ArchiveDeviceKey).ToHashSet(StringComparer.OrdinalIgnoreCase));
+        var oldestId = runs.Where(x => !x.Cancelled).MinBy(x => x.StartedAt)?.Id;
+        var runLatency = new Dictionary<long, double?>();
+        var stats = ReadArchiveStatistics(from, through, false, (scan, rows) =>
+        {
+            if (scan.Id == oldestId)
+                oldestKeys = rows.Select(ArchiveDeviceKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            double sum = 0; long weight = 0;
+            foreach (var d in rows)
+                if (d.AvgMs is { } ms && d.Success > 0) { sum += ms * d.Success; weight += d.Success; }
+            runLatency[scan.Id] = weight == 0 ? null : sum / weight;
+        });
+        if (runs.Count == 0) return new ArchiveOverview(stats, ArchiveSummary.Empty);
         var keys = stats.Devices.Select(x => x.DeviceKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Devices seen before the range; with no earlier history the oldest finished run is the baseline.
@@ -48,19 +63,14 @@ public sealed partial class KnownDevicesDb
             if (earlier.RunCount > 0)
                 baseline = earlier.Devices.Select(x => x.DeviceKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
         }
-        if (baseline is null)
-        {
-            if (oldestKeys is null && runs.Where(x => !x.Cancelled).MinBy(x => x.StartedAt) is { } oldest)
-                oldestKeys = LoadScanArchive(oldest.Id)?.Devices.Select(ArchiveDeviceKey)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            baseline = oldestKeys ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        }
+        baseline ??= oldestKeys ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var newDevices = keys.Count(x => !baseline.Contains(x));
 
         var findingsByRun = ReadRunFindings(runs, out var openPorts);
         var chronological = runs.OrderBy(x => x.StartedAt).ThenBy(x => x.Id).ToArray();
         var points = chronological.Select(x => new ArchiveRunPoint(x.Id, x.StartedAt, x.OnlineCount,
-            x.DeviceCount, findingsByRun.GetValueOrDefault(x.Id), x.Cancelled)).ToArray();
+            x.DeviceCount, findingsByRun.GetValueOrDefault(x.Id), x.Cancelled,
+            runLatency.GetValueOrDefault(x.Id))).ToArray();
 
         var done = runs.Where(x => !x.Cancelled).ToArray();
         var latest = runs[0];
@@ -77,7 +87,7 @@ public sealed partial class KnownDevicesDb
             return weight == 0 ? null : sum / weight;
         }
 
-        return new ArchiveSummary(
+        return new ArchiveOverview(stats, new ArchiveSummary(
             runs.Count, runs.Count(x => x.Cancelled), chronological[0].StartedAt, chronological[^1].StartedAt,
             stats.Devices.Count, newDevices,
             done.Length == 0 ? 0 : done.Average(x => x.OnlineCount), latest.OnlineCount, latest.DeviceCount,
@@ -88,7 +98,7 @@ public sealed partial class KnownDevicesDb
             Weighted(x => x.JitterMs),
             points.Sum(x => x.FindingCount), openPorts,
             singles.Length == 0 ? 0 : singles.Average(x => (x.FinishedAt - x.StartedAt).TotalSeconds),
-            points);
+            points));
     }
 
     /// <summary>Counts, per run, the conflict findings plus the port changes against the previous

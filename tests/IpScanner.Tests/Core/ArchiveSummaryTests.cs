@@ -163,15 +163,31 @@ public class ArchiveSummaryTests
     }
 
     [Fact]
-    public void Summary_WithPassedStatistics_MatchesTheOwnPass()
+    public void Overview_CarriesTheSameStatisticsAndSummary()
     {
         var db = NewDb();
         Save(db, T0, [Dev(1, 10), Dev(2, 20)]);
         Save(db, T0.AddHours(1), [Dev(1, 12), Dev(3, 20)]);
+        var overview = db.GetScanArchiveOverview();
         var own = db.GetScanArchiveSummary();
-        var shared = db.GetScanArchiveSummary(statistics: db.GetScanArchiveStatistics());
-        Assert.Equal(own with { Runs = [] }, shared with { Runs = [] });
-        Assert.Equal(own.Runs, shared.Runs);
+        Assert.Equal(own with { Runs = [] }, overview.Summary with { Runs = [] });
+        Assert.Equal(own.Runs, overview.Summary.Runs);
+        var stats = db.GetScanArchiveStatistics();
+        Assert.Equal(stats.RunCount, overview.Statistics.RunCount);
+        Assert.Equal(stats.Devices.Count, overview.Statistics.Devices.Count);
+    }
+
+    [Fact]
+    public void Summary_RunsCarryTheirOwnAverageLatency()
+    {
+        var db = NewDb();
+        Save(db, T0, [Dev(1, 10), Dev(2, 30)]);
+        Save(db, T0.AddHours(1), [Dev(1, null, fails: 2)]);
+        Save(db, T0.AddHours(2), [Dev(1, 10)], cancelled: true);
+        var runs = db.GetScanArchiveSummary().Runs;
+        Assert.Equal(20, runs[0].AvgLatencyMs!.Value, 3);
+        Assert.Null(runs[1].AvgLatencyMs);
+        Assert.Null(runs[2].AvgLatencyMs);
     }
 
     [Fact]
