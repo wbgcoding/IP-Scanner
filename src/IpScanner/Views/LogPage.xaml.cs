@@ -62,6 +62,9 @@ public partial class LogPage : UserControl
 
     public event EventHandler? CloseRequested;
 
+    /// <summary>The user flipped the "Verbose" switch; the host saves the setting.</summary>
+    public event EventHandler<bool>? VerboseChanged;
+
     public LogPage()
     {
         InitializeComponent();
@@ -86,6 +89,21 @@ public partial class LogPage : UserControl
         Reload();
         SearchBox.Focus();
         if (await Task.Run(Log.LoadHistory) > 0) Reload();
+    }
+
+    /// <summary>Shows the saved setting without raising <see cref="VerboseChanged"/>.</summary>
+    public void SetVerbose(bool on)
+    {
+        var was = _loading;
+        _loading = true;
+        try { VerboseBox.IsChecked = on; }
+        finally { _loading = was; }
+    }
+
+    private void OnVerboseToggled(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        VerboseChanged?.Invoke(this, VerboseBox.IsChecked == true);
     }
 
     public void RefreshLanguage() { FillFilters(); Reload(); }

@@ -1951,7 +1951,6 @@ public static class Loc
 
     // ── Log ──
     public static string LogTitle => S("Protokoll", "Log");
-    public static string VerboseLogLabel => S("Ausführliches Protokoll", "Verbose logging");
     public static string TipVerboseLog => S(
         "Schreibt zusätzlich Info- und Debug-Zeilen ins Protokoll. Hilft bei der Fehlersuche, lässt die Datei aber schneller wachsen.",
         "Also writes information and debug rows to the log. Helps with troubleshooting but makes the file grow faster.");
@@ -1963,9 +1962,6 @@ public static class Loc
     public static string LogRowsFmt => S("{0} von {1} Zeilen", "{0} of {1} rows");
     public static string LogRowsText(int shown, int total) => string.Format(LogRowsFmt, shown, total);
     public static string LogNoMatch => S("Keine passenden Protokollzeilen.", "No log rows match.");
-    public static string LogEmpty => S(
-        "Noch keine Protokolleinträge. Warnungen und Fehler werden hier festgehalten; schalte in den Einstellungen das ausführliche Protokoll ein, um auch gewöhnliche Ereignisse zu sehen.",
-        "No log entries yet. Warnings and errors are recorded here; turn on verbose logging in the settings to also see routine events.");
     public static string LogOpenFile => S("Protokolldatei öffnen", "Open log file");
     public static string LogCopyRow => S("Zeile kopieren", "Copy row");
     public static string LogLevelError => S("Fehler", "Error");
@@ -1993,6 +1989,12 @@ public static class Loc
     public static string LogTitlePortCollection => S("Die offenen Ports ließen sich nicht sammeln", "Open ports could not be collected");
     public static string LogTitleUpdateSignature => S("Die Signaturprüfung des Updates ist fehlgeschlagen", "The update signature check failed");
     public static string LogTitleStartupScan => S("Der Scan beim Start ist fehlgeschlagen", "The startup scan failed");
+
+    // Log page (round 2026-10-24)
+    public static string LogVerboseLabel => S("Ausführlich (Details)", "Verbose (details)");
+    public static string LogEmpty => S(
+        "Noch keine Warnungen oder Fehler. Schalte oben „Ausführlich“ ein, um alle Ereignisse zu sehen.",
+        "No warnings or errors yet. Turn on \"Verbose\" above to see every event.");
 
     // Packet reader (driver) notice, help section and capability matrix.
     public static string DriverBarText => S(
