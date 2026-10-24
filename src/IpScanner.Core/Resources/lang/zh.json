@@ -805,7 +805,7 @@
   "Checks which TCP and UDP ports on a device accept connections and shows the service behind each open port. Use it to see what a device offers on the network or whether a service is reachable.": "检查设备上哪些 TCP 和 UDP 端口接受连接，并显示每个开放端口背后的服务。用于了解设备在网络上提供了什么，或某项服务是否可达。",
   "Looks up the IP addresses behind a name, or the name behind an IP address, using the DNS servers of this computer. Use it when a name does not resolve as expected or you want to identify an unknown address.": "通过本机的 DNS 服务器，查找名称对应的 IP 地址，或 IP 地址对应的名称。当名称解析结果不符合预期，或需要识别未知地址时使用。",
   "Pings a target continuously with a live graph, or traces the routers between this computer and the target. Use it to judge how stable a connection is or to find where packets get lost.": "持续 ping 目标并显示实时图表，或跟踪本机到目标之间的路由器。用于判断连接是否稳定，或找出数据包在哪里丢失。",
-  "Works out network, broadcast, host range and mask for any address, looks up the vendor of a MAC address and finds the MAC for an IP in the address table. Use it when planning networks or identifying a device.": "为任意地址计算网络、广播地址、主机范围和掩码，查询 MAC 地址的厂商，并在地址表中查找某个 IP 对应的 MAC。用于规划网络或识别设备。",
+  "Works out network, broadcast, host range and mask for any address, checks whether an address belongs to the network and splits a network into smaller subnets. Use it when planning networks.": "为任意地址计算网络、广播地址、主机范围和掩码，检查某个地址是否属于该网络，并把网络拆分为更小的子网。用于规划网络。",
   "Connects to a server over TLS and shows its certificate: owner, issuer, validity, fingerprint and chain. Use it to check when a certificate expires or whether a service presents the right one.": "通过 TLS 连接服务器并显示其证书：持有者、颁发者、有效期、指纹和证书链。用于检查证书何时到期，或服务是否出示了正确的证书。",
   "Picks a device from the known-devices list and fills in its MAC address.": "从已知设备列表中选择一台设备并填入其 MAC 地址。",
   "Network card the magic packet is sent from. Pick the one on the same network as the device.": "发送魔术包所用的网卡。请选择与目标设备处于同一网络的那一块。",
@@ -1214,5 +1214,12 @@
   "Save path": "保存路径",
   "Drag to change the height of the two tables.": "拖动以调整两个表格的高度。",
   "Last replies": "最近的回复",
-  "Timed out": "超时"
+  "Timed out": "超时",
+  "Looks up the vendor of a MAC address and finds the MAC address for an IP in the address table of this computer. Use it to identify an unknown device on your network.": "查询 MAC 地址对应的厂商，并在本机地址表中查找某个 IP 对应的 MAC 地址。用于识别网络中的未知设备。",
+  "Split subnet": "拆分子网",
+  "New prefix": "新前缀长度",
+  "The new prefix must be larger than the network prefix and at most 32.": "新前缀长度必须大于网络的前缀长度，且不超过 32。",
+  "{0} subnets": "{0} 个子网",
+  "Showing only the first {0} of {1} subnets.": "共 {1} 个子网，仅显示前 {0} 个。",
+  "Prefix length of the new subnets, for example /26. Must be larger than the prefix of the network.": "新子网的前缀长度，例如 /26。必须大于网络的前缀长度。"
 }

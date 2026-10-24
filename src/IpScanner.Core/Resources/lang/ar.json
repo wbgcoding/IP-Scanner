@@ -805,7 +805,7 @@
   "Checks which TCP and UDP ports on a device accept connections and shows the service behind each open port. Use it to see what a device offers on the network or whether a service is reachable.": "يفحص أي منافذ TCP وUDP في الجهاز تقبل الاتصالات ويعرض الخدمة خلف كل منفذ مفتوح. استخدمه لمعرفة ما يقدمه الجهاز على الشبكة أو لمعرفة ما إذا كانت خدمة ما متاحة.",
   "Looks up the IP addresses behind a name, or the name behind an IP address, using the DNS servers of this computer. Use it when a name does not resolve as expected or you want to identify an unknown address.": "يبحث عن عناوين IP الخاصة باسم ما أو عن الاسم الخاص بعنوان IP، باستخدام خوادم DNS لهذا الحاسوب. استخدمه عندما لا يُحلّ اسم كما هو متوقع أو عندما تريد التعرف على عنوان مجهول.",
   "Pings a target continuously with a live graph, or traces the routers between this computer and the target. Use it to judge how stable a connection is or to find where packets get lost.": "يرسل ping إلى هدف باستمرار مع رسم بياني مباشر، أو يتتبع أجهزة التوجيه بين هذا الحاسوب والهدف. استخدمه لتقييم استقرار الاتصال أو لمعرفة أين تضيع الحزم.",
-  "Works out network, broadcast, host range and mask for any address, looks up the vendor of a MAC address and finds the MAC for an IP in the address table. Use it when planning networks or identifying a device.": "يحسب الشبكة وعنوان البث ونطاق الأجهزة والقناع لأي عنوان، ويبحث عن الشركة المصنّعة لعنوان MAC ويجد عنوان MAC لعنوان IP في جدول العناوين. استخدمه عند تخطيط الشبكات أو للتعرف على جهاز.",
+  "Works out network, broadcast, host range and mask for any address, checks whether an address belongs to the network and splits a network into smaller subnets. Use it when planning networks.": "يحسب الشبكة وعنوان البث ونطاق الأجهزة والقناع لأي عنوان، ويتحقق مما إذا كان عنوان ما ينتمي إلى الشبكة، ويقسّم الشبكة إلى شبكات فرعية أصغر. استخدمه عند تخطيط الشبكات.",
   "Connects to a server over TLS and shows its certificate: owner, issuer, validity, fingerprint and chain. Use it to check when a certificate expires or whether a service presents the right one.": "يتصل بخادم عبر TLS ويعرض شهادته: المالك والجهة المصدرة والصلاحية والبصمة والسلسلة. استخدمه لمعرفة موعد انتهاء الشهادة أو ما إذا كانت الخدمة تقدّم الشهادة الصحيحة.",
   "Picks a device from the known-devices list and fills in its MAC address.": "يختار جهازًا من قائمة الأجهزة المعروفة ويدخل عنوان MAC الخاص به.",
   "Network card the magic packet is sent from. Pick the one on the same network as the device.": "بطاقة الشبكة التي تُرسل منها الحزمة السحرية. اختر البطاقة الموجودة في نفس شبكة الجهاز.",
@@ -1214,5 +1214,12 @@
   "Save path": "مسار الحفظ",
   "Drag to change the height of the two tables.": "اسحب لتغيير ارتفاع الجدولين.",
   "Last replies": "آخر الردود",
-  "Timed out": "انتهت المهلة"
+  "Timed out": "انتهت المهلة",
+  "Looks up the vendor of a MAC address and finds the MAC address for an IP in the address table of this computer. Use it to identify an unknown device on your network.": "يبحث عن الشركة المصنّعة لعنوان MAC ويجد عنوان MAC المقابل لعنوان IP في جدول العناوين في هذا الكمبيوتر. استخدمه للتعرف على جهاز غير معروف في شبكتك.",
+  "Split subnet": "تقسيم الشبكة الفرعية",
+  "New prefix": "البادئة الجديدة",
+  "The new prefix must be larger than the network prefix and at most 32.": "يجب أن تكون البادئة الجديدة أكبر من بادئة الشبكة وألا تزيد على 32.",
+  "{0} subnets": "{0} شبكة فرعية",
+  "Showing only the first {0} of {1} subnets.": "يتم عرض أول {0} فقط من أصل {1} شبكة فرعية.",
+  "Prefix length of the new subnets, for example /26. Must be larger than the prefix of the network.": "طول بادئة الشبكات الفرعية الجديدة، مثل /26. يجب أن يكون أكبر من بادئة الشبكة."
 }

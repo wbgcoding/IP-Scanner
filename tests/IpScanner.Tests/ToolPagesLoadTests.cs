@@ -16,8 +16,10 @@ public class ToolPagesLoadTests
         {
             var ping = new PingRouteTool(new PingRouteToolViewModel());
             var calculator = new CalculatorTool(new CalculatorToolViewModel());
+            var mac = new MacTool(new MacToolViewModel());
             Assert.NotNull(ping);
             Assert.NotNull(calculator);
+            Assert.NotNull(mac);
             return Task.CompletedTask;
         });
     }

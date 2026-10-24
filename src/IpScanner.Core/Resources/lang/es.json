@@ -805,7 +805,7 @@
   "Checks which TCP and UDP ports on a device accept connections and shows the service behind each open port. Use it to see what a device offers on the network or whether a service is reachable.": "Comprueba qué puertos TCP y UDP de un dispositivo aceptan conexiones y muestra el servicio de cada puerto abierto. Úsalo para ver qué ofrece un dispositivo en la red o si un servicio es accesible.",
   "Looks up the IP addresses behind a name, or the name behind an IP address, using the DNS servers of this computer. Use it when a name does not resolve as expected or you want to identify an unknown address.": "Busca las direcciones IP de un nombre, o el nombre de una dirección IP, con los servidores DNS de este equipo. Úsalo cuando un nombre no se resuelve como esperas o quieres identificar una dirección desconocida.",
   "Pings a target continuously with a live graph, or traces the routers between this computer and the target. Use it to judge how stable a connection is or to find where packets get lost.": "Hace ping continuo a un destino con un gráfico en directo, o traza los routers entre este equipo y el destino. Úsalo para valorar la estabilidad de una conexión o encontrar dónde se pierden paquetes.",
-  "Works out network, broadcast, host range and mask for any address, looks up the vendor of a MAC address and finds the MAC for an IP in the address table. Use it when planning networks or identifying a device.": "Calcula red, difusión, rango de equipos y máscara de cualquier dirección, busca el fabricante de una MAC y encuentra la MAC de una IP en la tabla de direcciones. Úsalo al planificar redes o identificar un dispositivo.",
+  "Works out network, broadcast, host range and mask for any address, checks whether an address belongs to the network and splits a network into smaller subnets. Use it when planning networks.": "Calcula red, difusión, rango de equipos y máscara de cualquier dirección, comprueba si una dirección pertenece a la red y divide una red en subredes más pequeñas. Úsalo al planificar redes.",
   "Connects to a server over TLS and shows its certificate: owner, issuer, validity, fingerprint and chain. Use it to check when a certificate expires or whether a service presents the right one.": "Se conecta a un servidor por TLS y muestra su certificado: titular, emisor, validez, huella y cadena. Úsalo para comprobar cuándo caduca un certificado o si un servicio presenta el correcto.",
   "Picks a device from the known-devices list and fills in its MAC address.": "Elige un dispositivo de la lista de conocidos y rellena su dirección MAC.",
   "Network card the magic packet is sent from. Pick the one on the same network as the device.": "Tarjeta de red desde la que se envía el paquete mágico. Elige la que está en la misma red que el dispositivo.",
@@ -1214,5 +1214,12 @@
   "Save path": "Ruta de guardado",
   "Drag to change the height of the two tables.": "Arrastra para cambiar la altura de las dos tablas.",
   "Last replies": "Últimas respuestas",
-  "Timed out": "Tiempo agotado"
+  "Timed out": "Tiempo agotado",
+  "Looks up the vendor of a MAC address and finds the MAC address for an IP in the address table of this computer. Use it to identify an unknown device on your network.": "Busca el fabricante de una dirección MAC y encuentra la dirección MAC de una IP en la tabla de direcciones de este equipo. Úsalo para identificar un dispositivo desconocido de tu red.",
+  "Split subnet": "Dividir la subred",
+  "New prefix": "Nuevo prefijo",
+  "The new prefix must be larger than the network prefix and at most 32.": "El nuevo prefijo debe ser mayor que el de la red y como máximo 32.",
+  "{0} subnets": "{0} subredes",
+  "Showing only the first {0} of {1} subnets.": "Se muestran solo las primeras {0} de {1} subredes.",
+  "Prefix length of the new subnets, for example /26. Must be larger than the prefix of the network.": "Longitud del prefijo de las nuevas subredes, por ejemplo /26. Debe ser mayor que el prefijo de la red."
 }

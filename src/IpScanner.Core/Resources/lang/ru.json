@@ -805,7 +805,7 @@
   "Checks which TCP and UDP ports on a device accept connections and shows the service behind each open port. Use it to see what a device offers on the network or whether a service is reachable.": "Проверяет, какие TCP- и UDP-порты устройства принимают соединения, и показывает службу за каждым открытым портом. Нужен, чтобы понять, что устройство предлагает в сети и доступна ли служба.",
   "Looks up the IP addresses behind a name, or the name behind an IP address, using the DNS servers of this computer. Use it when a name does not resolve as expected or you want to identify an unknown address.": "Ищет IP-адреса по имени или имя по IP-адресу через DNS-серверы этого компьютера. Нужен, когда имя разрешается не так, как ожидается, или нужно опознать незнакомый адрес.",
   "Pings a target continuously with a live graph, or traces the routers between this computer and the target. Use it to judge how stable a connection is or to find where packets get lost.": "Непрерывно пингует цель с живым графиком или трассирует маршрутизаторы между этим компьютером и целью. Нужен, чтобы оценить стабильность соединения или найти место потери пакетов.",
-  "Works out network, broadcast, host range and mask for any address, looks up the vendor of a MAC address and finds the MAC for an IP in the address table. Use it when planning networks or identifying a device.": "Вычисляет сеть, широковещательный адрес, диапазон хостов и маску для любого адреса, определяет производителя по MAC-адресу и находит MAC по IP в таблице адресов. Нужен при планировании сетей и для опознания устройства.",
+  "Works out network, broadcast, host range and mask for any address, checks whether an address belongs to the network and splits a network into smaller subnets. Use it when planning networks.": "Вычисляет сеть, широковещательный адрес, диапазон хостов и маску для любого адреса, проверяет, входит ли адрес в сеть, и делит сеть на более мелкие подсети. Нужен при планировании сетей.",
   "Connects to a server over TLS and shows its certificate: owner, issuer, validity, fingerprint and chain. Use it to check when a certificate expires or whether a service presents the right one.": "Подключается к серверу по TLS и показывает его сертификат: владельца, издателя, срок действия, отпечаток и цепочку. Нужен, чтобы проверить срок действия или убедиться, что служба предъявляет нужный сертификат.",
   "Picks a device from the known-devices list and fills in its MAC address.": "Выбирает устройство из списка известных и подставляет его MAC-адрес.",
   "Network card the magic packet is sent from. Pick the one on the same network as the device.": "Сетевая карта, через которую отправляется магический пакет. Выберите ту, что в одной сети с устройством.",
@@ -1214,5 +1214,12 @@
   "Save path": "Путь сохранения",
   "Drag to change the height of the two tables.": "Перетащите, чтобы изменить высоту двух таблиц.",
   "Last replies": "Последние ответы",
-  "Timed out": "Тайм-аут"
+  "Timed out": "Тайм-аут",
+  "Looks up the vendor of a MAC address and finds the MAC address for an IP in the address table of this computer. Use it to identify an unknown device on your network.": "Определяет производителя по MAC-адресу и находит MAC-адрес по IP в таблице адресов этого компьютера. Нужен, чтобы опознать неизвестное устройство в сети.",
+  "Split subnet": "Разделить подсеть",
+  "New prefix": "Новый префикс",
+  "The new prefix must be larger than the network prefix and at most 32.": "Новый префикс должен быть больше префикса сети и не больше 32.",
+  "{0} subnets": "Подсетей: {0}",
+  "Showing only the first {0} of {1} subnets.": "Показаны только первые {0} из {1} подсетей.",
+  "Prefix length of the new subnets, for example /26. Must be larger than the prefix of the network.": "Длина префикса новых подсетей, например /26. Должна быть больше префикса сети."
 }

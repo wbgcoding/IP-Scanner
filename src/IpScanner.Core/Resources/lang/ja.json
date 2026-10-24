@@ -805,7 +805,7 @@
   "Checks which TCP and UDP ports on a device accept connections and shows the service behind each open port. Use it to see what a device offers on the network or whether a service is reachable.": "機器のどの TCP / UDP ポートが接続を受け付けるかを調べ、開いているポートごとにサービスを表示します。機器がネットワーク上で何を提供しているか、サービスに到達できるかを確認するときに使います。",
   "Looks up the IP addresses behind a name, or the name behind an IP address, using the DNS servers of this computer. Use it when a name does not resolve as expected or you want to identify an unknown address.": "このパソコンの DNS サーバーで、名前に対応する IP アドレス、または IP アドレスに対応する名前を調べます。名前が想定どおり解決されないときや、不明なアドレスを特定したいときに使います。",
   "Pings a target continuously with a live graph, or traces the routers between this computer and the target. Use it to judge how stable a connection is or to find where packets get lost.": "ライブグラフを表示しながら対象へ継続的に ping を送るか、このパソコンから対象までのルーターを追跡します。接続の安定性の確認や、パケットが失われる場所の特定に使います。",
-  "Works out network, broadcast, host range and mask for any address, looks up the vendor of a MAC address and finds the MAC for an IP in the address table. Use it when planning networks or identifying a device.": "任意のアドレスについてネットワーク、ブロードキャスト、ホスト範囲、マスクを計算し、MAC アドレスのメーカーを調べ、アドレステーブルから IP に対応する MAC を探します。ネットワーク設計や機器の特定に使います。",
+  "Works out network, broadcast, host range and mask for any address, checks whether an address belongs to the network and splits a network into smaller subnets. Use it when planning networks.": "任意のアドレスについてネットワーク、ブロードキャスト、ホスト範囲、マスクを計算し、アドレスがネットワークに含まれるかを確認し、ネットワークを小さなサブネットに分割します。ネットワーク設計に使います。",
   "Connects to a server over TLS and shows its certificate: owner, issuer, validity, fingerprint and chain. Use it to check when a certificate expires or whether a service presents the right one.": "TLS でサーバーに接続し、証明書の所有者、発行者、有効期間、フィンガープリント、チェーンを表示します。証明書の有効期限や、サービスが正しい証明書を提示しているかの確認に使います。",
   "Picks a device from the known-devices list and fills in its MAC address.": "既知の機器の一覧から機器を選び、その MAC アドレスを入力します。",
   "Network card the magic packet is sent from. Pick the one on the same network as the device.": "マジックパケットを送信するネットワークカードです。機器と同じネットワークにあるものを選びます。",
@@ -1214,5 +1214,12 @@
   "Save path": "保存先のパス",
   "Drag to change the height of the two tables.": "ドラッグすると2つの表の高さを変更できます。",
   "Last replies": "最新の応答",
-  "Timed out": "タイムアウト"
+  "Timed out": "タイムアウト",
+  "Looks up the vendor of a MAC address and finds the MAC address for an IP in the address table of this computer. Use it to identify an unknown device on your network.": "MAC アドレスのメーカーを調べ、このコンピューターのアドレステーブルから IP に対応する MAC アドレスを探します。ネットワーク上の不明な機器の特定に使います。",
+  "Split subnet": "サブネットを分割",
+  "New prefix": "新しいプレフィックス",
+  "The new prefix must be larger than the network prefix and at most 32.": "新しいプレフィックスはネットワークのプレフィックスより大きく、32 以下にしてください。",
+  "{0} subnets": "{0} 個のサブネット",
+  "Showing only the first {0} of {1} subnets.": "{1} 個のうち最初の {0} 個のみ表示しています。",
+  "Prefix length of the new subnets, for example /26. Must be larger than the prefix of the network.": "新しいサブネットのプレフィックス長（例: /26）。ネットワークのプレフィックスより大きくする必要があります。"
 }
