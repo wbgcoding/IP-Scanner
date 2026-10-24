@@ -1212,5 +1212,7 @@
   "Declines the question and closes the window without changing anything.": "Recusa a pergunta e fecha a janela sem alterar nada.",
   "Known devices": "Dispositivos conhecidos",
   "Save path": "Caminho para salvar",
-  "Drag to change the height of the two tables.": "Arraste para alterar a altura das duas tabelas."
+  "Drag to change the height of the two tables.": "Arraste para alterar a altura das duas tabelas.",
+  "Last replies": "Últimas respostas",
+  "Timed out": "Tempo esgotado"
 }

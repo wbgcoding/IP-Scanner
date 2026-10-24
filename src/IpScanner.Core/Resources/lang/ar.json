@@ -1212,5 +1212,7 @@
   "Declines the question and closes the window without changing anything.": "يرفض السؤال ويغلق النافذة دون تغيير أي شيء.",
   "Known devices": "الأجهزة المعروفة",
   "Save path": "مسار الحفظ",
-  "Drag to change the height of the two tables.": "اسحب لتغيير ارتفاع الجدولين."
+  "Drag to change the height of the two tables.": "اسحب لتغيير ارتفاع الجدولين.",
+  "Last replies": "آخر الردود",
+  "Timed out": "انتهت المهلة"
 }

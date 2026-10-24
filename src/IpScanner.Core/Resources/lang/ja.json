@@ -1212,5 +1212,7 @@
   "Declines the question and closes the window without changing anything.": "質問を断り、何も変更せずにウィンドウを閉じます。",
   "Known devices": "既知のデバイス",
   "Save path": "保存先のパス",
-  "Drag to change the height of the two tables.": "ドラッグすると2つの表の高さを変更できます。"
+  "Drag to change the height of the two tables.": "ドラッグすると2つの表の高さを変更できます。",
+  "Last replies": "最新の応答",
+  "Timed out": "タイムアウト"
 }

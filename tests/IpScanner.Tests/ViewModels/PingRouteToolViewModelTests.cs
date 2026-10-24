@@ -48,6 +48,49 @@ public class PingRouteToolViewModelTests
     }
 
     [Fact]
+    public void AddSample_UpdatesCountersStatsAndReplyListLive()
+    {
+        IpScanner.Core.Localization.Loc.SetLanguage("en");
+        var vm = new PingToolViewModel();
+        var raised = new List<string>();
+        vm.PropertyChanged += (_, e) => raised.Add(e.PropertyName!);
+
+        vm.AddSample(12);
+        Assert.Equal(1, vm.Sent);
+        Assert.Equal(1, vm.Received);
+        Assert.NotEqual("", vm.StatsText);
+        Assert.Equal("0%", vm.LossText);
+        Assert.Contains(nameof(PingToolViewModel.StatsText), raised);
+        Assert.Contains(nameof(PingToolViewModel.Sent), raised);
+
+        vm.AddSample(null);
+        Assert.Equal(2, vm.Sent);
+        Assert.Equal(1, vm.Received);
+        Assert.Equal("50%", vm.LossText);
+        Assert.True(vm.Replies[0].TimedOut);
+        Assert.Equal("Timed out", vm.Replies[0].Result);
+        Assert.False(vm.Replies[1].TimedOut);
+    }
+
+    [Fact]
+    public void Replies_KeepTheLatest60WithNewestFirst()
+    {
+        var vm = new PingToolViewModel();
+        for (int i = 1; i <= 75; i++) vm.AddSample(i);
+        Assert.Equal(60, vm.Replies.Count);
+        Assert.Contains("75", vm.Replies[0].Result);
+        Assert.Contains("16", vm.Replies[59].Result);
+    }
+
+    [Fact]
+    public void Graph_ProducesTimeTicksOnceEnoughSamplesExist()
+    {
+        var vm = new PingToolViewModel { Interval = "1" };
+        for (int i = 0; i < 30; i++) vm.AddSample(10 + i % 5);
+        Assert.NotEmpty(vm.GraphTicks);
+    }
+
+    [Fact]
     public void CanStart_FalseWhenTargetEmptyOrBusy()
     {
         var vm = new PingToolViewModel();
