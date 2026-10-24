@@ -1,0 +1,28 @@
+<Window x:Class="IpScanner.Views.ArchiveConfirmDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+        Title="{loc:L ArchiveConfirmTitle}"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        KeyboardNavigation.TabNavigation="Cycle"
+        AutomationProperties.Name="{loc:L ArchiveConfirmTitle}">
+    <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Surface}"
+            BorderThickness="1" CornerRadius="12" MaxWidth="520" Padding="24">
+        <StackPanel>
+            <TextBlock x:Name="TitleText" Text="{loc:L ArchiveConfirmTitle}" Foreground="{DynamicResource Mauve}"
+                       FontSize="18" FontWeight="Bold"/>
+            <TextBlock x:Name="Body" Foreground="{DynamicResource Text}" FontSize="13"
+                       TextWrapping="Wrap" MaxWidth="460" Margin="0,14,0,20"/>
+            <CheckBox x:Name="Option" ToolTip="{loc:L TipConfirmOption}" Visibility="Collapsed" Foreground="{DynamicResource Text}" FontSize="13"
+                      Margin="0,-6,0,20"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="{loc:L Cancel}" Style="{StaticResource GhostButton}"
+                        Padding="18,8" IsCancel="True" Click="OnCancel" ToolTip="{loc:L TipDialogCancel}"/>
+                <Button Content="{loc:L Confirm}" Style="{StaticResource DangerButton}"
+                        Padding="18,8" Margin="8,0,0,0" IsDefault="True" Click="OnConfirm" ToolTip="{loc:L TipConfirmDo}"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

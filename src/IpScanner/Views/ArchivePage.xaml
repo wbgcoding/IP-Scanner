@@ -1,0 +1,550 @@
+<UserControl x:Class="IpScanner.Views.ArchivePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+             Background="{DynamicResource Bg}"
+             KeyboardNavigation.TabNavigation="Cycle"
+             AutomationProperties.Name="{loc:L ArchiveTitle}">
+    <UserControl.Resources>
+        <!-- Own template: the stock one draws a bitmap-like "15" calendar button that fits neither theme.
+             Same frame as the app's text boxes, with a line-drawn calendar glyph as the drop-down button. -->
+        <Style TargetType="DatePicker">
+            <!-- The picker binds its calendar's Style to this property, which hides any implicit Calendar style. -->
+            <Setter Property="CalendarStyle" Value="{DynamicResource ThemedCalendar}"/>
+            <Setter Property="Background" Value="{DynamicResource BgAlt}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Surface}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="IsTodayHighlighted" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DatePicker">
+                        <Border x:Name="b" CornerRadius="6" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid x:Name="PART_Root">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <DatePickerTextBox x:Name="PART_TextBox" Padding="7,5" Background="Transparent"
+                                                   Foreground="{TemplateBinding Foreground}"/>
+                                <Button x:Name="PART_Button" Grid.Column="1" Focusable="False" Cursor="Hand"
+                                        Margin="0,0,4,0" Padding="5,4" Background="Transparent">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bb" CornerRadius="5" Background="{TemplateBinding Background}"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <Path x:Name="glyph" Width="16" Height="16" Stretch="None" FlowDirection="LeftToRight"
+                                                      Stroke="{DynamicResource Subtext}" StrokeThickness="1.4"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                      Data="M 3.5,4 H 12.5 A 1.5,1.5 0 0 1 14,5.5 V 12.5 A 1.5,1.5 0 0 1 12.5,14 H 3.5 A 1.5,1.5 0 0 1 2,12.5 V 5.5 A 1.5,1.5 0 0 1 3.5,4 Z M 2,7.5 H 14 M 5.5,2 V 5 M 10.5,2 V 5 M 5,10.5 H 6 M 7.5,10.5 H 8.5 M 10,10.5 H 11"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bb" Property="Background" Value="{DynamicResource Surface}"/>
+                                                    <Setter TargetName="glyph" Property="Stroke" Value="{DynamicResource Mauve}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Popup x:Name="PART_Popup" AllowsTransparency="True" StaysOpen="False"
+                                       Placement="Bottom" PlacementTarget="{Binding ElementName=PART_TextBox}"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Mauve}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Surface2}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="b" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="DatePickerTextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="2,1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DatePickerTextBox">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                            <TextBlock x:Name="Hint" Text="{loc:L PickDate}" Foreground="{DynamicResource Subtext}"
+                                       Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                       IsHitTestVisible="False" Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="Hint" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- The stock calendar draws a white face with fixed dark glyphs, unreadable next to the themed picker. -->
+        <ControlTemplate x:Key="CalendarNavButton" TargetType="Button">
+            <Border x:Name="nb" CornerRadius="5" Background="Transparent" Padding="8,6">
+                <Path x:Name="arrow" Width="10" Height="10" Stretch="None" Data="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                      Stroke="{DynamicResource Subtext}" StrokeThickness="1.6"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="nb" Property="Background" Value="{DynamicResource Surface}"/>
+                    <Setter TargetName="arrow" Property="Stroke" Value="{DynamicResource Mauve}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="arrow" Property="Opacity" Value="0.35"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+        <Style x:Key="CalendarDayStyle" TargetType="CalendarDayButton">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CalendarDayButton">
+                        <Border x:Name="db" Width="32" Height="28" Margin="1" CornerRadius="5"
+                                Background="Transparent" BorderBrush="Transparent" BorderThickness="1">
+                            <TextBlock x:Name="tx" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
+                                       Foreground="{DynamicResource Text}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsInactive" Value="True">
+                                <Setter TargetName="tx" Property="Foreground" Value="{DynamicResource Subtext}"/>
+                                <Setter TargetName="db" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                            <Trigger Property="IsToday" Value="True">
+                                <Setter TargetName="tx" Property="Foreground" Value="{DynamicResource Mauve}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="db" Property="Background" Value="{DynamicResource Surface}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="db" Property="BorderBrush" Value="{DynamicResource Mauve}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="db" Property="Background" Value="{DynamicResource Mauve}"/>
+                                <Setter TargetName="tx" Property="Foreground" Value="{DynamicResource Bg}"/>
+                                <Setter TargetName="db" Property="Opacity" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsBlackedOut" Value="True">
+                                <Setter TargetName="db" Property="Opacity" Value="0.3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CalendarMonthStyle" TargetType="CalendarButton">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CalendarButton">
+                        <Border x:Name="mb" Width="54" Height="40" Margin="2" CornerRadius="5"
+                                Background="Transparent" BorderBrush="Transparent" BorderThickness="1">
+                            <TextBlock x:Name="tx" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
+                                       Foreground="{DynamicResource Text}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsInactive" Value="True">
+                                <Setter TargetName="tx" Property="Foreground" Value="{DynamicResource Subtext}"/>
+                                <Setter TargetName="mb" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="mb" Property="Background" Value="{DynamicResource Surface}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="mb" Property="BorderBrush" Value="{DynamicResource Mauve}"/>
+                            </Trigger>
+                            <!-- The year view flags the shown month this way; outline it like today. -->
+                            <Trigger Property="HasSelectedDays" Value="True">
+                                <Setter TargetName="mb" Property="BorderBrush" Value="{DynamicResource Mauve}"/>
+                                <Setter TargetName="tx" Property="Foreground" Value="{DynamicResource Mauve}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CalendarItemThemed" TargetType="CalendarItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CalendarItem">
+                        <ControlTemplate.Resources>
+                            <DataTemplate x:Key="{x:Static CalendarItem.DayTitleTemplateResourceKey}">
+                                <TextBlock Text="{Binding}" Margin="0,2,0,4" HorizontalAlignment="Center"
+                                           FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Subtext}"/>
+                            </DataTemplate>
+                        </ControlTemplate.Resources>
+                        <Grid x:Name="PART_Root" Margin="0,4,0,0">
+                            <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Surface2}"
+                                    BorderThickness="1" CornerRadius="8" Padding="8">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="PART_PreviousButton" Focusable="False" Cursor="Hand"
+                                            Template="{StaticResource CalendarNavButton}" Tag="M 6.5,1.5 L 3,5 L 6.5,8.5"/>
+                                    <Button x:Name="PART_HeaderButton" Grid.Column="1" Focusable="False" Cursor="Hand"
+                                            HorizontalAlignment="Center" FontWeight="SemiBold">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="hb" CornerRadius="5" Background="Transparent" Padding="10,4">
+                                                    <TextBlock x:Name="ht" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
+                                                               Foreground="{DynamicResource Text}"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="hb" Property="Background" Value="{DynamicResource Surface}"/>
+                                                        <Setter TargetName="ht" Property="Foreground" Value="{DynamicResource Mauve}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsEnabled" Value="False">
+                                                        <Setter TargetName="ht" Property="Opacity" Value="0.6"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                    <Button x:Name="PART_NextButton" Grid.Column="2" Focusable="False" Cursor="Hand"
+                                            Template="{StaticResource CalendarNavButton}" Tag="M 3.5,1.5 L 7,5 L 3.5,8.5"/>
+                                    <Grid x:Name="PART_MonthView" Grid.Row="1" Grid.ColumnSpan="3" Margin="0,6,0,0"
+                                          HorizontalAlignment="Center">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                    </Grid>
+                                    <Grid x:Name="PART_YearView" Grid.Row="1" Grid.ColumnSpan="3" Margin="0,6,0,0"
+                                          HorizontalAlignment="Center" Visibility="Hidden">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                            <Rectangle x:Name="PART_DisabledVisual" Fill="{DynamicResource Bg}" Opacity="0.6"
+                                       RadiusX="8" RadiusY="8" Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="PART_DisabledVisual" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding DisplayMode, RelativeSource={RelativeSource AncestorType=Calendar}}" Value="Year">
+                                <Setter TargetName="PART_MonthView" Property="Visibility" Value="Hidden"/>
+                                <Setter TargetName="PART_YearView" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding DisplayMode, RelativeSource={RelativeSource AncestorType=Calendar}}" Value="Decade">
+                                <Setter TargetName="PART_MonthView" Property="Visibility" Value="Hidden"/>
+                                <Setter TargetName="PART_YearView" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ThemedCalendar" TargetType="Calendar">
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="CalendarItemStyle" Value="{StaticResource CalendarItemThemed}"/>
+            <Setter Property="CalendarDayButtonStyle" Value="{StaticResource CalendarDayStyle}"/>
+            <Setter Property="CalendarButtonStyle" Value="{StaticResource CalendarMonthStyle}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Calendar">
+                        <StackPanel x:Name="PART_Root" HorizontalAlignment="Center">
+                            <CalendarItem x:Name="PART_CalendarItem" Style="{TemplateBinding CalendarItemStyle}"/>
+                        </StackPanel>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- One button look for the whole page: ghost, same padding and font size. -->
+        <Style x:Key="ArchiveButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ArchiveSmallButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ArchiveTab" TargetType="ToggleButton" BasedOn="{StaticResource PillToggle}">
+            <Setter Property="Padding" Value="14,5"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+        </Style>
+        <Style x:Key="ArchiveGrid" TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+        </Style>
+        <Style x:Key="ArchiveFrame" TargetType="Border">
+            <Setter Property="BorderBrush" Value="{DynamicResource Surface}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="{DynamicResource Bg}"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
+        <Style x:Key="ArchiveSectionTitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ArchiveHint" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource Subtext}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="16,40,16,16"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
+        <Style x:Key="ArchiveCenterCell" TargetType="TextBlock" BasedOn="{StaticResource TrimmedCell}">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        </Style>
+        <!-- A multi-subnet run shows its first network plus a count; the tooltip lists them all. -->
+        <Style x:Key="RunNetworkCell" TargetType="TextBlock" BasedOn="{StaticResource TrimmedCell}">
+            <Setter Property="ToolTip" Value="{Binding NetworkFull}"/>
+        </Style>
+        <Style x:Key="ChangeTypeCell" TargetType="TextBlock" BasedOn="{StaticResource TrimmedCell}">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Type}" Value="New"><Setter Property="Foreground" Value="{DynamicResource Green}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Type}" Value="Gone"><Setter Property="Foreground" Value="{DynamicResource Red}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Type}" Value="IpChanged"><Setter Property="Foreground" Value="{DynamicResource Blue}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Type}" Value="MacChanged"><Setter Property="Foreground" Value="{DynamicResource Mauve}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Type}" Value="PortsOpened"><Setter Property="Foreground" Value="{DynamicResource Peach}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Type}" Value="PortsClosed"><Setter Property="Foreground" Value="{DynamicResource Teal}"/></DataTrigger>
+                <DataTrigger Binding="{Binding Type}" Value="LatencyChanged"><Setter Property="Foreground" Value="{DynamicResource Yellow}"/></DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="20,16" SizeChanged="OnPageSizeChanged">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title row: the run summary or the last message sits under the title; page actions on the right. -->
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="{loc:L ArchiveTitle}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource Mauve}"/>
+                <TextBlock x:Name="StatusText" Foreground="{DynamicResource Subtext}" FontSize="12" Margin="0,4,12,0"
+                           TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+            </StackPanel>
+            <Button x:Name="CompareButton" Grid.Column="1" VerticalAlignment="Top" ToolTip="{loc:L TipCompareToggle}" Content="{loc:L CompareButton}"
+                    Style="{StaticResource ArchiveButton}" Click="OnToggleCompare"/>
+            <Button x:Name="StartScanButton" Grid.Column="2" VerticalAlignment="Top" ToolTip="{loc:L TipArchiveStartScan}" Content="{loc:L Scan}"
+                    Style="{StaticResource AccentButton}" Padding="14,6" FontSize="13" Margin="0,0,8,0" Visibility="Collapsed" Click="OnStartScan"/>
+            <Button Grid.Column="3" VerticalAlignment="Top" Content="{loc:L Close}" Style="{StaticResource ArchiveButton}" Margin="0"
+                    Click="OnClose" IsCancel="True" ToolTip="{loc:L TipBackToTable}" AutomationProperties.Name="{loc:L Close}"/>
+        </Grid>
+
+        <WrapPanel x:Name="FilterBar" Grid.Row="1" Margin="0,0,0,12" VerticalAlignment="Center">
+            <TextBlock Text="{loc:L ArchiveFrom}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <DatePicker x:Name="FromDate" ToolTip="{loc:L TipArchiveFrom}" MinWidth="140" Margin="0,0,12,0" AutomationProperties.Name="{loc:L ArchiveFrom}"/>
+            <TextBlock Text="{loc:L ArchiveTo}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <DatePicker x:Name="ToDate" ToolTip="{loc:L TipArchiveTo}" MinWidth="140" Margin="0,0,12,0" AutomationProperties.Name="{loc:L ArchiveTo}"/>
+            <Button Content="{loc:L ArchiveApplyRange}" Style="{StaticResource ArchiveButton}" Click="OnApplyRange" ToolTip="{loc:L TipArchiveApply}"/>
+            <Button Content="{loc:L ArchiveClearRange}" Style="{StaticResource ArchiveButton}" Click="OnClearRange" ToolTip="{loc:L TipArchiveClear}"/>
+        </WrapPanel>
+
+        <!-- Overview: runs on the left, the selected run's devices or the device history on the right. -->
+        <Grid x:Name="MainArea" Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*" MinWidth="260"/><ColumnDefinition Width="12"/><ColumnDefinition Width="5*" MinWidth="330"/>
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <Grid Margin="0,0,0,8" MinHeight="30">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:L ArchiveRuns}" Style="{StaticResource ArchiveSectionTitle}" TextTrimming="CharacterEllipsis"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button x:Name="DeleteRunButton" ToolTip="{loc:L TipArchiveDeleteRun}" Content="{loc:L ArchiveDeleteRun}" Style="{StaticResource ArchiveSmallButton}"
+                                IsEnabled="False" Click="OnDeleteRun"/>
+                        <Button x:Name="DeleteRangeButton" ToolTip="{loc:L TipArchiveDeleteRange}" Content="{loc:L ArchiveDeleteRange}" Style="{StaticResource ArchiveSmallButton}"
+                                IsEnabled="False" Click="OnDeleteRange"/>
+                    </StackPanel>
+                </Grid>
+                <Border Grid.Row="1" Style="{StaticResource ArchiveFrame}">
+                    <DataGrid x:Name="RunsGrid" Style="{StaticResource ArchiveGrid}" HorizontalScrollBarVisibility="Disabled" SelectionChanged="OnRunSelected"
+                              AutomationProperties.Name="{loc:L ArchiveRuns}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveDate}" Binding="{Binding DateText}" Width="Auto"/>
+                            <DataGridTextColumn ElementStyle="{StaticResource RunNetworkCell}" Header="{loc:L Network}" Binding="{Binding NetworkText}" Width="Auto" MaxWidth="170"/>
+                            <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L Devices}" Binding="{Binding DeviceCount}" Width="*" MinWidth="60"/>
+                            <DataGridTextColumn x:Name="RunDurationColumn" ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveDuration}" Binding="{Binding DurationText}" Width="Auto"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8" MinHeight="30">
+                    <ToggleButton x:Name="DevicesTab" Style="{StaticResource ArchiveTab}" Content="{loc:L Devices}" IsChecked="True"
+                                  Click="OnDetailTab" ToolTip="{loc:L ArchiveDevices}" AutomationProperties.Name="{loc:L ArchiveDevices}"/>
+                    <ToggleButton x:Name="HistoryTab" Style="{StaticResource ArchiveTab}" Content="{loc:L ArchiveTabHistory}"
+                                  Click="OnDetailTab" ToolTip="{loc:L ArchiveDeviceHistory}" AutomationProperties.Name="{loc:L ArchiveDeviceHistory}"/>
+                </StackPanel>
+
+                <Grid x:Name="DevicesView" Grid.Row="1">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <TextBlock x:Name="DetailText" Foreground="{DynamicResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"
+                               AutomationProperties.LiveSetting="Polite"/>
+                    <Border Grid.Row="1" Style="{StaticResource ArchiveFrame}">
+                        <Grid>
+                            <DataGrid x:Name="DevicesGrid" Style="{StaticResource ArchiveGrid}" SelectionChanged="OnDeviceSelected"
+                                      AutomationProperties.Name="{loc:L ArchiveDevices}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" Width="Auto"/>
+                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Hostname}" Binding="{Binding Hostname}" Width="*" MinWidth="70"/>
+                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L Status}" Binding="{Binding Status}" Width="Auto"/>
+                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" Width="Auto"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBlock x:Name="DevicesHint" Style="{StaticResource ArchiveHint}"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <Grid x:Name="HistoryView" Grid.Row="1" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="3*" MinHeight="90"/><RowDefinition Height="Auto"/><RowDefinition Height="2*" MinHeight="90"/>
+                    </Grid.RowDefinitions>
+                    <Border Style="{StaticResource ArchiveFrame}">
+                        <Grid>
+                            <DataGrid x:Name="HistoryGrid" Style="{StaticResource ArchiveGrid}" SelectionChanged="OnHistorySelected"
+                                      AutomationProperties.Name="{loc:L ArchiveDeviceHistory}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" Width="Auto"/>
+                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveAvailability}" Binding="{Binding Availability}" Width="Auto"/>
+                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" Width="Auto"/>
+                                    <DataGridTextColumn x:Name="HistoryFirstSeenColumn" ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveFirstSeen}" Binding="{Binding FirstSeen}" Width="Auto"/>
+                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveLastSeen}" Binding="{Binding LastSeen}" Width="Auto"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBlock x:Name="HistoryHint" Style="{StaticResource ArchiveHint}"/>
+                        </Grid>
+                    </Border>
+                    <TextBlock Grid.Row="1" Text="{loc:L ArchiveTrendTitle}" Style="{StaticResource ArchiveSectionTitle}" Margin="0,10,0,6"/>
+                    <Border Grid.Row="2" Style="{StaticResource ArchiveFrame}">
+                        <Grid>
+                            <DataGrid x:Name="TrendGrid" Style="{StaticResource ArchiveGrid}" AutomationProperties.Name="{loc:L ArchiveTrendTitle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveDate}" Binding="{Binding Date}" Width="Auto"/>
+                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveAvailability}" Binding="{Binding Availability}" Width="Auto"/>
+                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" Width="Auto"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBlock x:Name="TrendHint" Style="{StaticResource ArchiveHint}" Margin="16,24,16,16" Text="{loc:L ArchiveTrendHint}"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- Comparison of two runs; replaces the overview while it is open. -->
+        <Grid x:Name="CompareArea" Grid.Row="2" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="CompareEmptyText" Grid.RowSpan="4" Foreground="{DynamicResource Subtext}" TextWrapping="Wrap"
+                       Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"/>
+            <Grid x:Name="ComparePickers" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <TextBlock Text="{loc:L CompareRunA}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <ComboBox x:Name="CompareRunABox" ToolTip="{loc:L TipCompareRunA}" Grid.Column="1" DisplayMemberPath="Label" SelectionChanged="OnCompareInputChanged"
+                          AutomationProperties.Name="{loc:L CompareRunA}"/>
+                <TextBlock Grid.Row="1" Text="{loc:L CompareRunB}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,8,12,0"/>
+                <ComboBox x:Name="CompareRunBBox" ToolTip="{loc:L TipCompareRunB}" Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" DisplayMemberPath="Label"
+                          SelectionChanged="OnCompareInputChanged" AutomationProperties.Name="{loc:L CompareRunB}"/>
+                <WrapPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10,0,0">
+                    <TextBlock Text="{loc:L CompareLatencyPercent}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox x:Name="ComparePercentBox" ToolTip="{loc:L TipComparePercent}" Width="54" Text="50" VerticalContentAlignment="Center" TextChanged="OnCompareInputChanged"
+                             AutomationProperties.Name="{loc:L CompareLatencyPercent}"/>
+                    <TextBlock Text="{loc:L CompareLatencyMinMs}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="14,0,6,0"/>
+                    <TextBox x:Name="CompareMinMsBox" ToolTip="{loc:L TipCompareMinMs}" Width="54" Text="10" VerticalContentAlignment="Center" TextChanged="OnCompareInputChanged"
+                             AutomationProperties.Name="{loc:L CompareLatencyMinMs}"/>
+                </WrapPanel>
+            </Grid>
+            <DockPanel x:Name="CompareActions" Grid.Row="1" Margin="0,0,0,8">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button x:Name="CompareCopyButton" ToolTip="{loc:L TipCompareCopy}" Content="{loc:L CompareCopy}" Style="{StaticResource ArchiveSmallButton}" Click="OnCompareCopy"/>
+                    <Button x:Name="CompareJsonButton" ToolTip="{loc:L TipCompareJson}" Content="{loc:L CompareSaveJson}" Style="{StaticResource ArchiveSmallButton}" Click="OnCompareSaveJson"/>
+                    <Button x:Name="CompareTextButton" ToolTip="{loc:L TipCompareText}" Content="{loc:L CompareSaveText}" Style="{StaticResource ArchiveSmallButton}" Click="OnCompareSaveText"/>
+                </StackPanel>
+                <TextBlock x:Name="CompareSummaryText" Style="{StaticResource ArchiveSectionTitle}" TextWrapping="Wrap" Margin="0,0,8,0"
+                           AutomationProperties.LiveSetting="Polite"/>
+            </DockPanel>
+            <TextBlock x:Name="CompareHintText" Grid.Row="2" Foreground="{DynamicResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
+            <Border x:Name="CompareFrame" Grid.Row="3" Style="{StaticResource ArchiveFrame}">
+                <DataGrid x:Name="CompareGrid" Style="{StaticResource ArchiveGrid}" AutomationProperties.Name="{loc:L ArchiveDetails}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn ElementStyle="{StaticResource ChangeTypeCell}" Header="{loc:L CompareChange}" Binding="{Binding TypeLabel}" Width="Auto"/>
+                        <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" Width="Auto"/>
+                        <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Hostname}" Binding="{Binding Hostname}" Width="*" MinWidth="80"/>
+                        <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L CompareBefore}" Binding="{Binding Before}" Width="1.2*" MinWidth="90"/>
+                        <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L CompareAfter}" Binding="{Binding After}" Width="1.2*" MinWidth="90"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+
+        <!-- Housekeeping: age-based clean-up, then import and backup; the database size sits on the right. -->
+        <Grid x:Name="ManagementRow" Grid.Row="3" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <WrapPanel x:Name="ManagementPanel" IsEnabled="False" VerticalAlignment="Center">
+                <Border BorderBrush="{DynamicResource Surface}" BorderThickness="1" CornerRadius="8" Padding="8,3" Margin="0,2,10,2">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBox x:Name="DaysBox" ToolTip="{loc:L TipArchiveDays}" Width="54" Text="30" Margin="0,0,6,0" VerticalContentAlignment="Center"
+                                 AutomationProperties.Name="{loc:L ArchiveOlderThanDays}"/>
+                        <TextBlock Text="{loc:L ArchiveOlderThanDays}" Foreground="{DynamicResource Subtext}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <Button Content="{loc:L ArchiveCompact}" Style="{StaticResource ArchiveSmallButton}" Margin="0,0,6,0" Click="OnCompact" ToolTip="{loc:L TipArchiveCompact}"/>
+                        <Button Content="{loc:L ArchivePurge}" Style="{StaticResource ArchiveSmallButton}" Margin="0" Click="OnPurge" ToolTip="{loc:L TipArchivePurge}"/>
+                    </StackPanel>
+                </Border>
+                <Button Content="{loc:L ArchiveImport}" Style="{StaticResource ArchiveSmallButton}" Margin="0,2,6,2" Click="OnImport" ToolTip="{loc:L TipArchiveImport}"/>
+                <Button Content="{loc:L ArchiveBackup}" Style="{StaticResource ArchiveSmallButton}" Margin="0,2,0,2" Click="OnBackup" ToolTip="{loc:L TipArchiveBackup}"/>
+            </WrapPanel>
+            <TextBlock x:Name="SizeText" Grid.Column="1" Foreground="{DynamicResource Subtext}" FontSize="12" VerticalAlignment="Center" Margin="12,0,0,0"
+                       AutomationProperties.LiveSetting="Polite"/>
+        </Grid>
+    </Grid>
+</UserControl>

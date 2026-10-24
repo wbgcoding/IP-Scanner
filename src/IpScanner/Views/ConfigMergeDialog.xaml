@@ -1,0 +1,32 @@
+<Window x:Class="IpScanner.Views.ConfigMergeDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+        Title="{loc:L Settings}"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        KeyboardNavigation.TabNavigation="Cycle"
+        AutomationProperties.Name="{loc:L Settings}">
+    <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Surface}"
+            BorderThickness="1" CornerRadius="12" MaxWidth="520">
+        <StackPanel>
+            <Border Background="{DynamicResource Red}" CornerRadius="12,12,0,0" Padding="24,16">
+                <TextBlock Text="{loc:L Settings}" Foreground="{DynamicResource OnDangerText}"
+                           FontSize="18" FontWeight="Bold" TextAlignment="Center"/>
+            </Border>
+            <StackPanel Margin="24,20,24,24">
+                <TextBlock Text="{loc:L ConfigMergeWarning}" Foreground="{DynamicResource Text}"
+                           FontSize="13" TextWrapping="Wrap" MaxWidth="440" LineHeight="20"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">
+                    <Button x:Name="CancelBtn" Content="{loc:L PortCheckCancelButton}"
+                            Style="{StaticResource GhostButton}" Padding="18,8" IsCancel="True"
+                            AutomationProperties.Name="{loc:L PortCheckCancelButton}" Click="OnCancel" ToolTip="{loc:L TipDialogCancel}"/>
+                    <Button Content="{loc:L ConfigMergeOverwrite}" Style="{StaticResource DangerButton}"
+                            Padding="20,8" Margin="10,0,0,0"
+                            AutomationProperties.Name="{loc:L ConfigMergeOverwrite}" Click="OnOverwrite" ToolTip="{loc:L TipConfigOverwrite}"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

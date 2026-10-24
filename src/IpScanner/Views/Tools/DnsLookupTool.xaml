@@ -1,0 +1,101 @@
+<UserControl x:Class="IpScanner.Views.Tools.DnsLookupTool"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:IpScanner.Core.Localization">
+    <!-- Shared tool-page layout: input row + action button on top, results
+         filling the middle, status line at the bottom. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L DnsTargetLabel}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox ToolTip="{loc:L DnsTargetHint}" AutomationProperties.Name="{loc:L DnsTargetLabel}" MinWidth="160"
+                         Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+
+                <Button Grid.Column="1" Content="{loc:L DnsStartButton}" Click="OnStartClick" ToolTip="{loc:L TipDnsStart}"
+                        Style="{StaticResource ToolAccentButton}" IsEnabled="{Binding CanStart}"/>
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,10,0,0">
+            <RadioButton Content="{loc:L DnsModeAuto}" ToolTip="{loc:L TipDnsAuto}" GroupName="DnsMode" IsChecked="True"
+                         Checked="OnModeChanged" Margin="0,0,14,0" Tag="Auto"/>
+            <RadioButton Content="{loc:L DnsModeForward}" ToolTip="{loc:L TipDnsForward}" GroupName="DnsMode" Checked="OnModeChanged" Margin="0,0,14,0" Tag="Forward"/>
+            <RadioButton Content="{loc:L DnsModeReverse}" ToolTip="{loc:L TipDnsReverse}" GroupName="DnsMode" Checked="OnModeChanged" Tag="Reverse"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Margin="0,10,0,0">
+            <StackPanel>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ShowForwardResults}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L DnsAddressesLabel}"/>
+                <ItemsControl ItemsSource="{Binding Addresses}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontFamily="Consolas" Margin="0,0,0,2"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Margin="0,10,0,0">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ShowReverseResults}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L DnsCanonicalLabel}"/>
+                <TextBlock Text="{Binding CanonicalName}" FontFamily="Consolas" Margin="0,0,0,8"/>
+                <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L DnsAliasesLabel}"/>
+                <ItemsControl ItemsSource="{Binding Aliases}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontFamily="Consolas" Margin="0,0,0,2"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Margin="0,16,0,0">
+                <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L DnsServersLabel}"/>
+                <ItemsControl ItemsSource="{Binding DnsServers}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" FontFamily="Consolas" Margin="0,0,0,2"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,10,0,0">
+            <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Text}" FontSize="12" VerticalAlignment="Center"/>
+            <Button Content="{loc:L DnsCopyButton}" Style="{StaticResource ToolGhostButton}"
+                    Margin="14,0,0,0" Click="OnCopyClick" ToolTip="{loc:L TipDnsCopy}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,252 @@
+<UserControl x:Class="IpScanner.Views.Tools.PortCheckTool"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+             xmlns:tools="clr-namespace:IpScanner.Views.Tools"
+             xmlns:ctrl="clr-namespace:IpScanner.Views.Controls">
+    <UserControl.Resources>
+        <tools:PortTextConverter x:Key="PortText"/>
+    </UserControl.Resources>
+    <!-- Shared tool-page layout: input row + action button on top, results
+         filling the middle, status line at the bottom. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckTargetLabel}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox ToolTip="{loc:L PortCheckTargetHint}" AutomationProperties.Name="{loc:L PortCheckTargetLabel}" MinWidth="160"
+                         Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+
+                <Grid Grid.Column="1">
+                    <Button Content="{loc:L PortCheckStartButton}" Click="OnStartClick" ToolTip="{loc:L TipPortCheckStart}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ToolAccentButton}">
+                                <Setter Property="IsEnabled" Value="{Binding CanStart}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="{loc:L PortCheckCancelButton}"
+                            Click="OnCancelClick" ToolTip="{loc:L TipStopRun}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ToolDangerButton}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <TextBlock Text="{Binding ResolvedDisplay}" Foreground="{DynamicResource Subtext}" FontSize="11"
+                           VerticalAlignment="Center" Margin="0,0,10,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasResolvedIp}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Text="{loc:L PortCheckOutsideSubnet}" Foreground="{DynamicResource Peach}" FontSize="11"
+                           VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding OutsideSubnet}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Margin="0,10,0,0">
+            <WrapPanel Orientation="Horizontal">
+                <RadioButton Content="{loc:L PortCheckScopeCommon}" ToolTip="{loc:L TipScopeCommon}" GroupName="Scope"
+                             IsChecked="True" Checked="OnScopeChanged" Margin="0,0,14,0" Tag="Common"/>
+                <RadioButton Content="{loc:L PortCheckScopeTop1000}" ToolTip="{loc:L TipScopeTop1000}" GroupName="Scope"
+                             Checked="OnScopeChanged" Margin="0,0,14,0" Tag="Top1000"/>
+                <RadioButton Content="{loc:L PortCheckScopeRange}" ToolTip="{loc:L TipScopeRange}" GroupName="Scope"
+                             Checked="OnScopeChanged" Margin="0,0,14,0" Tag="Range"/>
+                <RadioButton Content="{loc:L PortCheckScopeList}" ToolTip="{loc:L TipScopeList}" GroupName="Scope"
+                             Checked="OnScopeChanged" Margin="0,0,14,0" Tag="List"/>
+
+                <CheckBox Content="TCP" ToolTip="{loc:L TipPortTcp}" IsChecked="{Binding Tcp}" Margin="20,0,10,0"/>
+                <CheckBox Content="UDP" ToolTip="{loc:L TipPortUdp}" IsChecked="{Binding Udp}"/>
+                <ctrl:WarningMark Margin="14,0,0,0" ToolTip="{loc:L WarnFullRange}"
+                                  Visibility="{Binding WarnRange, Converter={StaticResource BoolToVis}}"/>
+            </WrapPanel>
+
+            <WrapPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <StackPanel Margin="0,0,16,0">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckScanType}"/>
+                <ComboBox Width="120" ToolTip="{loc:L TipPortScanType}" AutomationProperties.Name="{loc:L PortCheckScanType}"
+                          ItemsSource="{Binding ScanTypeOptions}" SelectedItem="{Binding SelectedScanType}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Label}"/>
+                    <ctrl:WarningMark Margin="8,0,0,0" ToolTip="{loc:L WarnAggressiveScanType}">
+                        <ctrl:WarningMark.Style>
+                            <Style TargetType="ctrl:WarningMark">
+                                <Setter Property="Visibility" Value="{Binding IsAggressive, Converter={StaticResource BoolToVis}}"/>
+                                <Style.Triggers>
+                                    <!-- the selected-value box keeps its mark beside the combo, not inside -->
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=ComboBoxItem}}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ctrl:WarningMark.Style>
+                    </ctrl:WarningMark>
+                </StackPanel>
+            </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                            <Setter Property="IsEnabled" Value="{Binding IsAvailable}"/>
+                            <Setter Property="ToolTip" Value="{Binding Tooltip}"/>
+                            <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.45"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                </ComboBox>
+                </StackPanel>
+                <StackPanel Margin="0,0,14,0">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text=" "/>
+                    <ctrl:WarningMark Height="32" ToolTip="{loc:L WarnAggressiveScanType}"
+                                      Visibility="{Binding WarnScanType, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ToolCaption}" Text=" "/>
+                    <Grid Height="32">
+                        <CheckBox Content="{loc:L PortCheckShowAll}" ToolTip="{loc:L TipPortShowAll}" VerticalAlignment="Center"
+                                  IsChecked="{Binding ShowAllStates}"/>
+                    </Grid>
+                </StackPanel>
+            </WrapPanel>
+
+            <StackPanel Margin="0,8,0,0" x:Name="RangeRow" Orientation="Horizontal" Visibility="Collapsed">
+                <StackPanel Margin="0,0,14,0">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckRangeFromLabel}"/>
+                    <TextBox AutomationProperties.Name="{loc:L PortCheckRangeFromLabel}" Width="80" Text="{Binding RangeFrom, UpdateSourceTrigger=PropertyChanged}" ToolTip="{loc:L TipPortRangeFrom}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L PortCheckRangeToLabel}"/>
+                    <TextBox AutomationProperties.Name="{loc:L PortCheckRangeToLabel}" Width="80" Text="{Binding RangeTo, UpdateSourceTrigger=PropertyChanged}" ToolTip="{loc:L TipPortRangeTo}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <TextBox x:Name="PortListBox" AutomationProperties.Name="{loc:L ScanToolPortsLabel}" Margin="0,8,0,0" Visibility="Collapsed" ToolTip="{loc:L PortCheckListHint}"
+                     Text="{Binding PortList, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="2" Margin="0,10,0,0" MinHeight="96" ItemsSource="{Binding Results}"
+                  AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="OnResultDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Port}" Binding="{Binding PortLabel}" Width="90"/>
+                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L PortCheckColState}" Binding="{Binding ., Converter={StaticResource PortText}, ConverterParameter=state}" Width="150"/>
+                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Service}" Binding="{Binding ServiceName}" Width="*" MinWidth="80"/>
+                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L PortCheckColReason}" Binding="{Binding ., Converter={StaticResource PortText}, ConverterParameter=reason}" Width="170"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="3" Margin="0,10,0,0">
+            <WrapPanel Orientation="Horizontal">
+                <TextBlock Text="{loc:L PortCheckServiceChecksHeader}" Foreground="{DynamicResource Subtext}" FontSize="11"
+                           VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <CheckBox Content="{loc:L PortCheckCheckSafe}" ToolTip="{loc:L TipCheckSafe}"
+                          IsChecked="{Binding CheckSafe}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <CheckBox Content="{loc:L PortCheckCheckDiscovery}" ToolTip="{loc:L TipCheckDiscovery}"
+                          IsChecked="{Binding CheckDiscovery}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <CheckBox x:Name="IntrusiveBox" Content="{loc:L PortCheckCheckIntrusive}" ToolTip="{loc:L TipCheckIntrusive}"
+                          IsChecked="{Binding CheckIntrusive}" Click="OnIntrusiveClick" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ctrl:WarningMark Margin="0,0,16,0" ToolTip="{loc:L WarnIntrusiveChecks}"/>
+                <Grid>
+                    <Button Content="{loc:L PortCheckRunChecksButton}" Click="OnRunChecksClick" ToolTip="{loc:L TipRunChecks}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ToolAccentButton}">
+                                <Setter Property="IsEnabled" Value="{Binding CanRunChecks}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecksBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="{loc:L PortCheckStopChecksButton}"
+                            Click="OnStopChecksClick" ToolTip="{loc:L TipStopChecks}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ToolDangerButton}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecksBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+                <TextBlock Text="{Binding ChecksStatus}" Foreground="{DynamicResource Text}" FontSize="12"
+                           VerticalAlignment="Center" Margin="14,0,0,0"/>
+            </WrapPanel>
+            <DataGrid Margin="0,8,0,0" Height="110" ItemsSource="{Binding CheckResults}"
+                      AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Port}" Binding="{Binding Port}" Width="90"/>
+                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L PortCheckColCheck}" Binding="{Binding Check}" Width="190"/>
+                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L PortCheckColFinding}" Binding="{Binding Finding}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+
+        <WrapPanel Grid.Row="4" Orientation="Horizontal" Margin="0,10,0,0">
+            <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Text}" FontSize="12" VerticalAlignment="Center"/>
+            <Button Content="{loc:L PortCheckCopyButton}" Style="{StaticResource ToolGhostButton}"
+                    Margin="14,0,0,0" Click="OnCopyClick" ToolTip="{loc:L TipPortCopy}"/>
+            <TextBlock Text="{loc:L ScanToolFormatLabel}" Foreground="{DynamicResource Subtext}" FontSize="11"
+                       VerticalAlignment="Center" Margin="14,0,6,0"/>
+            <ComboBox Width="110" ToolTip="{loc:L ScanToolFormatTip}" AutomationProperties.Name="{loc:L ScanToolFormatLabel}" ItemsSource="{Binding FormatOptions}"
+                      SelectedValuePath="Format" SelectedValue="{Binding Format}">
+                <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}"/></DataTemplate></ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Content="{loc:L ScanToolSaveButton}" Style="{StaticResource ToolGhostButton}"
+                    Margin="8,0,0,0" Click="OnSaveClick" ToolTip="{loc:L ScanToolSaveTip}"
+                    IsEnabled="{Binding CanSave}"/>
+        </WrapPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,106 @@
+<UserControl x:Class="IpScanner.Views.Tools.WakeOnLanTool"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:IpScanner.Core.Localization">
+    <!-- Tool-page layout: input row + action button on top, the status line directly under them. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <!-- MAC box and button on the first row, the two pickers below: in one row the MAC box got squeezed
+                 to a sliver at the narrowest window. -->
+            <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L WakeMacLabel}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="MacBox" AutomationProperties.Name="{loc:L WakeMacLabel}" ToolTip="{loc:L WakeMacHint}" MinWidth="200"
+                         Text="{Binding Mac, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0"/>
+
+                <Grid Grid.Column="1">
+                    <Button x:Name="SendButton" Content="{loc:L WakeSendButton}" Click="OnSendClick" ToolTip="{loc:L TipWakeSend}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ToolAccentButton}">
+                                <Setter Property="IsEnabled" Value="{Binding CanSend}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button x:Name="StopButton" Content="{loc:L WakeStopButton}"
+                            Click="OnStopClick" ToolTip="{loc:L TipWakeStop}">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ToolDangerButton}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+            </Grid>
+
+            <Grid Margin="0,10,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Margin="0,0,4,0">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L WakeKnownDevices}"/>
+                    <ComboBox x:Name="KnownDevicesBox" AutomationProperties.Name="{loc:L WakeKnownDevices}"
+                              ToolTip="{loc:L TipWakeKnown}"
+                              ItemsSource="{Binding KnownDevices}"
+                              SelectionChanged="OnKnownDeviceSelected"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                    <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L WakeNetworkCard}"/>
+                    <ComboBox x:Name="NetworkCardBox" AutomationProperties.Name="{loc:L WakeNetworkCard}" FlowDirection="LeftToRight"
+                              ToolTip="{loc:L TipWakeCard}"
+                              ItemsSource="{Binding NetworkCards}"
+                              SelectedItem="{Binding SelectedCard}"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Result of Send sits right under the button row it belongs to. -->
+            <TextBlock x:Name="StatusLine" Text="{Binding Status}" Foreground="{DynamicResource Text}" FontSize="12" Margin="0,8,0,0"/>
+
+            <StackPanel Margin="0,12,0,0">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasRecentTargets}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Style="{StaticResource ToolCaption}" Text="{loc:L WakeRecentLabel}"/>
+                <ItemsControl ItemsSource="{Binding RecentTargets}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding Display}" Style="{StaticResource ToolGhostButton}"
+                                    Margin="0,0,6,6"
+                                    Click="OnRecentTargetClick" ToolTip="{loc:L TipWakeRecent}" Tag="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+
+    </Grid>
+</UserControl>

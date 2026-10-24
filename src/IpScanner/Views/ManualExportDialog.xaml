@@ -1,0 +1,41 @@
+<Window x:Class="IpScanner.Views.ManualExportDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+        Title="{loc:L ManualExportTitle}"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        AutomationProperties.Name="{loc:L ManualExportTitle}"
+        KeyboardNavigation.TabNavigation="Cycle">
+    <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Surface}"
+            BorderThickness="1" CornerRadius="9" Padding="22" MinWidth="320">
+        <StackPanel>
+            <TextBlock Text="{loc:L ManualExportTitle}" Foreground="{DynamicResource Text}"
+                       FontSize="15" FontWeight="Bold"/>
+            <TextBlock Text="{loc:L ManualExportScope}" Foreground="{DynamicResource Text}" Margin="0,16,0,4"/>
+            <ComboBox x:Name="ScopeBox" ToolTip="{loc:L TipExportScope}" AutomationProperties.Name="{loc:L ManualExportScope}">
+                <ComboBoxItem Content="{loc:L AllDevices}"/>
+                <ComboBoxItem Content="{loc:L CurrentView}"/>
+                <ComboBoxItem Content="{loc:L SelectedDevices}"/>
+            </ComboBox>
+            <TextBlock Text="{loc:L ManualExportFormat}" Foreground="{DynamicResource Text}" Margin="0,12,0,4"/>
+            <ComboBox x:Name="FormatBox" ToolTip="{loc:L TipExportFormat}" AutomationProperties.Name="{loc:L ManualExportFormat}">
+                <ComboBoxItem Content="TXT"/>
+                <ComboBoxItem Content="CSV"/>
+                <ComboBoxItem Content="HTML"/>
+                <ComboBoxItem Content="JSON"/>
+                <ComboBoxItem Content="XML"/>
+                <ComboBoxItem Content="Grepable"/>
+            </ComboBox>
+            <CheckBox x:Name="ProbePortsBox" ToolTip="{loc:L TipExportProbePorts}" Visibility="Collapsed" Margin="0,14,0,0" Foreground="{DynamicResource Text}"
+                      Content="{loc:L ManualExportCheckPorts}"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">
+                <Button Content="{loc:L PortCheckCancelButton}" Style="{StaticResource GhostButton}"
+                        IsCancel="True" Click="OnCancel" ToolTip="{loc:L TipDialogCancel}"/>
+                <Button Content="{loc:L ManualExportAction}" Style="{StaticResource AccentButton}"
+                        IsDefault="True" Click="OnExport" ToolTip="{loc:L TipExportAction}" Margin="8,0,0,0"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

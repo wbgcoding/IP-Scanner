@@ -1,0 +1,21 @@
+<Window x:Class="IpScanner.Views.BusyDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:IpScanner.Core.Localization"
+        Title="{loc:L AppTitle}"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize" ShowInTaskbar="False">
+    <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Surface}"
+            BorderThickness="1" CornerRadius="9" Padding="22" MinWidth="320" MaxWidth="520">
+        <StackPanel>
+            <TextBlock x:Name="MessageText" Foreground="{DynamicResource Text}"
+                       FontSize="15" FontWeight="Bold" TextWrapping="Wrap"/>
+            <ProgressBar x:Name="Bar" Height="10" Margin="0,18,0,0" IsIndeterminate="True"/>
+            <Button x:Name="CancelButton" Content="{loc:L PortCheckCancelButton}" Visibility="Collapsed"
+                    Style="{StaticResource GhostButton}"
+                    HorizontalAlignment="Right" Margin="0,18,0,0" Padding="18,8"
+                    AutomationProperties.Name="{loc:L PortCheckCancelButton}" Click="OnCancel" ToolTip="{loc:L TipStopRun}"/>
+        </StackPanel>
+    </Border>
+</Window>

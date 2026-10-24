@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/IpScanner.Core/IpScanner.Core.csproj" />
+    <Project Path="src/IpScanner/IpScanner.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/IpScanner.Tests/IpScanner.Tests.csproj" />
+  </Folder>
+</Solution>

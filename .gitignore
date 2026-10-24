@@ -1,0 +1,63 @@
+dist/
+build/
+
+# Scanner output / local scan data (never publish captured network data)
+Scans/
+network_scan_*
+*.csv
+scan-archive*.json*
+ArchiveBackups/
+
+# Scanner database (local, contains your network's devices)
+*.db
+scanner.db
+
+# Config with local network info. The .template is tracked; the live .conf is not.
+network_scanner.conf
+ip_scanner.conf
+overrides.conf
+config.ini
+*.conf.bak
+*.conf.tmp
+profiles.json*
+settings.dat*
+overrides.dat*
+
+# Per-installation database key and files set aside as unreadable
+scanner.key
+*.unreadable-*
+
+# Crash log written next to the exe (may contain local paths)
+error.log
+*.log
+
+# Generic text dumps (scan reports etc.); docs use .md so they stay tracked.
+*.txt
+# ...but the embedded vendor DB must stay tracked.
+!src/IpScanner.Core/Resources/oui.txt
+
+# Brainstorm companion scratch files
+.superpowers/
+docs/superpowers/
+
+# Local dev tooling (icon/screenshot generators, build pipeline) - anchored to the
+# repo root so it does not also swallow src/IpScanner/Views/Tools.
+/tools/
+
+# .NET build artifacts
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# IDE
+.vscode/
+.idea/
+
+# Stray Obsidian canvas files
+*.canvas
+# SQLite WAL sidecars
+*.db-wal
+*.db-shm
+build+install on phone.bat

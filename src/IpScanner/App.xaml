@@ -1,0 +1,10 @@
+<Application x:Class="IpScanner.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <!-- Resources are merged in App.OnStartup: the theme dictionary first, then
+         Styles.xaml - so the chosen theme's colors resolve for every StaticResource. -->
+    <Application.Resources>
+        <ResourceDictionary/>
+    </Application.Resources>
+</Application>
