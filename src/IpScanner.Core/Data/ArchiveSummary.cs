@@ -8,8 +8,9 @@ namespace IpScanner.Core.Data;
 public sealed record ArchiveRunPoint(long RunId, DateTimeOffset StartedAt, int OnlineCount, int DeviceCount,
     int FindingCount, bool Cancelled, double? AvgLatencyMs);
 
-/// <summary>The statistics and the headline summary of one date range, read in a single pass.</summary>
-public sealed record ArchiveOverview(ScanArchiveStatistics Statistics, ArchiveSummary Summary);
+/// <summary>The statistics, the headline summary and the run list (newest first) of one date range, read in a single pass.</summary>
+public sealed record ArchiveOverview(ScanArchiveStatistics Statistics, ArchiveSummary Summary,
+    IReadOnlyList<ArchivedScan> Scans);
 
 /// <summary>Headline figures for a date range of the scan archive.</summary>
 public sealed record ArchiveSummary(
@@ -38,7 +39,7 @@ public sealed partial class KnownDevicesDb
     {
         if (_crypto is null)
             return new ArchiveOverview(new ScanArchiveStatistics(0, 0, Array.Empty<ArchivedDeviceStatistics>()),
-                ArchiveSummary.Empty);
+                ArchiveSummary.Empty, Array.Empty<ArchivedScan>());
         var runs = ListScanArchive(from, through);
         HashSet<string>? oldestKeys = null;
         var oldestId = runs.Where(x => !x.Cancelled).MinBy(x => x.StartedAt)?.Id;
@@ -52,7 +53,7 @@ public sealed partial class KnownDevicesDb
                 if (d.AvgMs is { } ms && d.Success > 0) { sum += ms * d.Success; weight += d.Success; }
             runLatency[scan.Id] = weight == 0 ? null : sum / weight;
         });
-        if (runs.Count == 0) return new ArchiveOverview(stats, ArchiveSummary.Empty);
+        if (runs.Count == 0) return new ArchiveOverview(stats, ArchiveSummary.Empty, runs);
         var keys = stats.Devices.Select(x => x.DeviceKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         // Devices seen before the range; with no earlier history the oldest finished run is the baseline.
@@ -98,7 +99,7 @@ public sealed partial class KnownDevicesDb
             Weighted(x => x.JitterMs),
             points.Sum(x => x.FindingCount), openPorts,
             singles.Length == 0 ? 0 : singles.Average(x => (x.FinishedAt - x.StartedAt).TotalSeconds),
-            points));
+            points), runs);
     }
 
     /// <summary>Counts, per run, the conflict findings plus the port changes against the previous
