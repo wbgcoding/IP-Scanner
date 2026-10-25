@@ -115,7 +115,7 @@ public partial class MainWindow : Window
         ScanStopButton.Content = scanning ? Loc.Stop : Loc.Scan;
         ScanStopButton.Style = (Style)FindResource(scanning ? "DangerButton" : "AccentButton");
 
-        // Spin while scanning — faster with more threads, eased in/out.
+        // Spin while scanning, faster with more threads, eased in/out.
         int threads = _config.ScanThreads <= 0 ? Core.Net.Ipv4.HostsPerSubnet : _config.ScanThreads;
         double seconds = Math.Clamp(120.0 / threads, 0.6, 6.0);
         Logo.SetSpeed(scanning ? 360.0 / seconds : 0.0);
@@ -185,7 +185,7 @@ public partial class MainWindow : Window
 
     private void OnSwatchPick(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        // Select only (hex field + preview update) — applied when OK is pressed.
+        // Select only (hex field + preview update), applied when OK is pressed.
         if (sender is System.Windows.Controls.Border { Tag: string hex })
             HexBox.Text = hex;
     }
@@ -415,7 +415,7 @@ public partial class MainWindow : Window
                     Padding = new Thickness(9, 4, 9, 4),
                     Margin = new Thickness(0, 0, 6, 6),
                     Cursor = System.Windows.Input.Cursors.Hand,
-                    ToolTip = $"{e.Target} — {Loc.TipEditChip}",
+                    ToolTip = $"{e.Target}, {Loc.TipEditChip}",
                     Child = new TextBlock
                     {
                         Text = e.Name.Length > 0 ? e.Name : e.Target,
@@ -436,7 +436,7 @@ public partial class MainWindow : Window
     private static DeviceViewModel? RowVm(object sender) =>
         (sender as FrameworkElement)?.DataContext as DeviceViewModel;
 
-    // Latency columns (Avg, Min, Max, Last) — clicking one opens the graph.
+    // Latency columns (Avg, Min, Max, Last), clicking one opens the graph.
     private static readonly int[] PingValueColumns = { 4, 5, 6, 7 };
 
     /// <summary>Open the row's latency graph only from a ping-value column; close
@@ -728,7 +728,7 @@ public partial class MainWindow : Window
         catch { /* persisting is best-effort */ }
     }
 
-    /// <summary>The field shows the full file path; only its folder is stored —
+    /// <summary>The field shows the full file path; only its folder is stored,
     /// the file name is always ip_scanner.conf.</summary>
     private static string ConfDirFromInput(string text)
     {
@@ -1017,13 +1017,13 @@ public partial class MainWindow : Window
 
     private void OnSettingChanged(object sender, RoutedEventArgs e) => ApplyInstant();
 
-    // Text scale only commits when the field loses focus — applying it on every
+    // Text scale only commits when the field loses focus, applying it on every
     // keystroke would zoom wildly while typing.
     private void OnUiScaleCommit(object sender, RoutedEventArgs e) => ApplyUiScale();
 
     /// <summary>Preset the ping dropdown from the configured default.</summary>
     // Sentinel so the header ping dropdown is only synced when the configured
-    // default actually changes — not on unrelated settings like export toggles.
+    // default actually changes, not on unrelated settings like export toggles.
     private int _lastSyncedDefaultPingCount = int.MinValue;
 
     private void ApplyDefaultPingCount()
@@ -1162,7 +1162,7 @@ public partial class MainWindow : Window
 
     // ── Live syntax validation for the path fields ──
     // Path fields: validate on every keystroke but only persist on LostFocus
-    // or overlay close — otherwise Directory.CreateDirectory fires per character.
+    // or overlay close, otherwise Directory.CreateDirectory fires per character.
     private void OnOutputDirValidate(object sender, TextChangedEventArgs e)
         => ValidatePath(OutputDirBox, OutputDirError);
 
@@ -1237,7 +1237,7 @@ public partial class MainWindow : Window
             ExportCsv = ExportCsvBox.IsChecked == true,
             KnownDevicesDb = KnownDbBox.IsChecked == true,
             Language = LanguageModes[Math.Max(0, LanguageBox.SelectedIndex)],
-            // Colors have no settings UI — carry them over from the live config.
+            // Colors have no settings UI, carry them over from the live config.
             ColorOnline = _config.ColorOnline, ColorOffline = _config.ColorOffline,
             ColorSuccess = _config.ColorSuccess,
             ColorFailed = _config.ColorFailed, ColorSkipped = _config.ColorSkipped,

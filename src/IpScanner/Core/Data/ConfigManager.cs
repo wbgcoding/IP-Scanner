@@ -180,7 +180,7 @@ public static class ConfigManager
         sb.AppendLine($"check_for_updates = {B(c.CheckForUpdates)}");
         sb.AppendLine();
 
-        // Hex without '#' — the parser treats '#' as a comment marker.
+        // Hex without '#', the parser treats '#' as a comment marker.
         string H(string color) => color.TrimStart('#');
         sb.AppendLine("# -- Colors (progress bars, click the legend squares to change; RRGGBB) --");
         sb.AppendLine($"color_online = {H(c.ColorOnline)}");

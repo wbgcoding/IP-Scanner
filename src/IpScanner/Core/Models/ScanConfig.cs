@@ -37,7 +37,7 @@ public sealed class ScanConfig
     public bool GraphsEnabled { get; set; } = true;
     /// <summary>Show the small average-latency graph under each network.</summary>
     public bool NetworkGraphsEnabled { get; set; } = true;
-    /// <summary>Visible time span of the graphs in seconds (10–300).</summary>
+    /// <summary>Visible time span of the graphs in seconds (10-300).</summary>
     public int GraphMaxSeconds { get; set; } = 300;
     /// <summary>Check GitHub for a newer release on startup.</summary>
     public bool CheckForUpdates { get; set; } = true;

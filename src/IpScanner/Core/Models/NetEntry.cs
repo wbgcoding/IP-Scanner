@@ -2,7 +2,7 @@ namespace IpScanner.Core.Models;
 
 /// <summary>
 /// One subnet or pinned-IP entry: target (IP or CIDR) plus optional display
-/// name and color. Serialized as "target [name ...] [RRGGBB]" — the color is
+/// name and color. Serialized as "target [name ...] [RRGGBB]", the color is
 /// stored without '#' because the config parser treats '#' as a comment.
 /// </summary>
 public sealed record NetEntry(string Target, string Name, string Color)

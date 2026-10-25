@@ -7,7 +7,7 @@ using System.Text;
 namespace IpScanner.Core.Scanner;
 
 /// <summary>
-/// mDNS (multicast DNS) reverse lookup — resolves .local hostnames of devices
+/// mDNS (multicast DNS) reverse lookup, resolves .local hostnames of devices
 /// that have no DNS PTR record and no NetBIOS (IoT, Android, Linux, Apple).
 /// Sends a PTR query for x.x.x.x.in-addr.arpa with the QU (unicast response)
 /// bit to the mDNS group and to the device itself.

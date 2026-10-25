@@ -40,8 +40,8 @@ public sealed class DeviceViewModel : ObservableObject
     public bool IsOnline => _device.IsOnline;
     /// <summary>True when this row originates from the known-devices database.</summary>
     public bool IsFromDb => _device.FromDb;
-    public string Hostname => _device.Hostname is null or Device.Unknown ? "—" : _device.Hostname;
-    public string Mac => _device.Mac is null or Device.Unknown ? "—" : _device.Mac;
+    public string Hostname => _device.Hostname is null or Device.Unknown ? "–" : _device.Hostname;
+    public string Mac => _device.Mac is null or Device.Unknown ? "–" : _device.Mac;
     public int GroupId => _device.GroupId;
 
     // 0/1 = none/unknown -> gray, 2 = gateway group -> fixed brand color,
@@ -136,7 +136,7 @@ public sealed class DeviceViewModel : ObservableObject
 
     /// <summary>Record one per-second latency sample (from the graph timer). Every
     /// row buffers continuously so an opened graph shows the full window at once.</summary>
-    // ponytail: sample all rows, not just open ones — cheap append, and the user
+    // ponytail: sample all rows, not just open ones, cheap append, and the user
     // wants the graph populated instantly on open rather than filling over time.
     public void AddRowSample(double? value, int capacity, int tickIntervalSeconds)
     {

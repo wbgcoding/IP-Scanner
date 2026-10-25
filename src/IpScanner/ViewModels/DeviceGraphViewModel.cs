@@ -41,7 +41,7 @@ public sealed class DeviceGraphViewModel : ObservableObject
     public string GraphMaxText { get; private set; } = "";
     public string GraphMinText { get; private set; } = "";
     public IReadOnlyList<GraphSeries.Tick> GraphTicks { get; private set; } = Array.Empty<GraphSeries.Tick>();
-    public string ValueText { get; private set; } = "—";
+    public string ValueText { get; private set; } = "–";
     public string ValueColor { get; private set; } = Core.Palette.MidGray;
 
     public void AddSample(double? value, int capacity, int tickIntervalSeconds)

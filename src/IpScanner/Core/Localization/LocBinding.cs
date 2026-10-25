@@ -19,7 +19,7 @@ public sealed class LocSource : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
 }
 
-/// <summary>{loc:L Key} — live-updating replacement for {x:Static loc:Loc.Key}.</summary>
+/// <summary>{loc:L Key}, live-updating replacement for {x:Static loc:Loc.Key}.</summary>
 public sealed class LExtension : MarkupExtension
 {
     public string Key { get; set; }

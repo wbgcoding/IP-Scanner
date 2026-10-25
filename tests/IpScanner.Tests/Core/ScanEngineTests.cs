@@ -23,7 +23,7 @@ public class ScanEngineTests
         Assert.Equal("nas", d.Hostname);
         Assert.Equal("AA:BB:CC:00:00:05", d.Mac);
         Assert.True(d.FromDb);
-        // DB rank is the weakest — any live resolver (rank 0..n) replaces it.
+        // DB rank is the weakest, any live resolver (rank 0..n) replaces it.
         Assert.True(d.HostnameRank > 1000);
         Assert.True(d.MacRank > 1000);
     }

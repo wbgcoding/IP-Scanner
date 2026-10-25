@@ -9,12 +9,12 @@ public sealed class NetworkInfoViewModel : ObservableObject
     {
         Index = index; BadgeColor = badgeColor; _name = name;
         BadgeForeground = Core.Palette.ContrastOn(badgeColor);
-        Cidr       = info.Cidr       ?? "—";
-        Ip         = info.Ip         ?? "—";
-        Mac        = info.Mac        ?? "—";
-        Gateway    = info.Gateway    ?? "—";
-        SubnetMask = info.SubnetMask ?? "—";
-        Dns        = info.DnsServers.Count > 0 ? string.Join(", ", info.DnsServers) : "—";
+        Cidr       = info.Cidr       ?? "–";
+        Ip         = info.Ip         ?? "–";
+        Mac        = info.Mac        ?? "–";
+        Gateway    = info.Gateway    ?? "–";
+        SubnetMask = info.SubnetMask ?? "–";
+        Dns        = info.DnsServers.Count > 0 ? string.Join(", ", info.DnsServers) : "–";
         Interface  = info.Interface;
 
         // Rows with no detected value are hidden in the sidebar. "Own IP" only

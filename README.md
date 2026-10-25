@@ -10,24 +10,24 @@ self-contained exe.
 ## Features
 
 - Two-phase scan: fast discovery sweep, then a configurable number of analysis
-  pings per device — devices join the run the moment they answer
+  pings per device, devices join the run the moment they answer
 - Known devices appear instantly at scan start with their stored hostname and
   MAC; live results replace the stored values during the run
 - Devices that just dropped offline get a quick ping burst, so short dropouts
   recover within seconds; offline IPs keep being rechecked during the run
 - Hostname/MAC resolution over several techniques in parallel (ARP, reverse
   DNS, mDNS, NetBIOS); the first result shows immediately, better ones replace
-  it — MAC addresses are found across additional local subnets too
+  it, MAC addresses are found across additional local subnets too
 - Latency table with min/avg/max/last, heatmap colors, best/worst markers and
   a totals row; edit hostnames and group colors right in the table
 - Click a device's latency column to expand a live ping-history graph under
   its row (full width, time markers, optional auto-open for pinned devices)
 - Up to ten latency history graphs (any device or the network average),
   per-network mini graphs, plus an internet latency panel with its own
-  totals and graph — all with time markers and a configurable window
+  totals and graph, all with time markers and a configurable window
 - Smooth under load: the logo animation has its own render thread and the
   graph math runs on a worker thread
-- Pin IPs from the table or the settings — pinned entries carry an optional
+- Pin IPs from the table or the settings, pinned entries carry an optional
   name and color that show up everywhere
 - Subnets, pinned IPs and internet hosts managed as colored bubbles in the
   settings
@@ -37,7 +37,7 @@ self-contained exe.
 - TXT/CSV reports, toggled at the top of the sidebar with file name and size shown
 - A header switch to quickly hide or show known-but-offline devices from the database
 - Ten UI languages (English, German, Spanish, French, Chinese, Hindi, Arabic,
-  Portuguese, Russian, Japanese) — switch instantly, no restart, or follow the
+  Portuguese, Russian, Japanese), switch instantly, no restart, or follow the
   Windows language automatically; adjustable text size
 - Settings save instantly, persist as a .conf you can relocate, export and
   import

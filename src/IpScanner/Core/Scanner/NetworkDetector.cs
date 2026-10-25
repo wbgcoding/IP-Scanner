@@ -11,7 +11,7 @@ namespace IpScanner.Core.Scanner;
 /// </summary>
 public static class NetworkDetector
 {
-    // Any public IP works for the UDP-connect trick — no packet is sent.
+    // Any public IP works for the UDP-connect trick, no packet is sent.
     private const string RouteProbeIp = "8.8.8.8";
     private const int RouteProbePort = 80;
 
@@ -25,7 +25,7 @@ public static class NetworkDetector
             var ip = ((IPEndPoint)s.LocalEndPoint!).Address.ToString();
             if (ip != "0.0.0.0" && !ip.StartsWith("169.254.")) return ip;
         }
-        catch { /* no route / offline — fall back to NIC scan */ }
+        catch { /* no route / offline, fall back to NIC scan */ }
 
         // 2. Fallback: first up, non-loopback NIC with a usable IPv4 (prefer one
         //    that has a default gateway). Works offline / without an 8.8.8.8 route.

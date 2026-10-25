@@ -48,7 +48,7 @@ public sealed class OverrideStore
     {
         var next = change(Get(mac, ip) ?? new Entry(null, null));
         // The device may have an older entry under its IP from before its MAC
-        // was known — drop both representations, then store the current one.
+        // was known, drop both representations, then store the current one.
         _entries.Remove(ip);
         if (mac is not null) _entries.Remove(Key(mac));
         if (next.Hostname is not null || next.Color is not null)

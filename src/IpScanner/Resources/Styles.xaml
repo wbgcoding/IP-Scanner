@@ -92,7 +92,7 @@
         <Setter Property="Padding" Value="11,6"/>
     </Style>
 
-    <!-- Button for non-text content (vector icons) — uses a ContentPresenter
+    <!-- Button for non-text content (vector icons), uses a ContentPresenter
          because the default template renders Content as plain text. -->
     <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Padding" Value="11,6"/>

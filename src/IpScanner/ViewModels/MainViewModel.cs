@@ -125,7 +125,7 @@ public sealed class MainViewModel : ObservableObject
             int target = 1;   // walks the sorted Devices order
             foreach (var vm in Devices)
             {
-                var label = vm.Hostname != "—" ? vm.Hostname : vm.Ip;
+                var label = vm.Hostname != "–" ? vm.Hostname : vm.Ip;
                 if (byIp.TryGetValue(vm.Ip, out var src))
                 {
                     src.Label = label;
@@ -155,7 +155,7 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>"name (size)" per written report file, one line each.</summary>
     public string ExportInfo { get; private set; } = "";
     public bool HasExport => ExportInfo.Length > 0;
-    /// <summary>"Threads: 12" — live count of in-flight pings for the footer.</summary>
+    /// <summary>"Threads: 12", live count of in-flight pings for the footer.</summary>
     public string ThreadsText { get; private set; } = "";
     /// <summary>User-entered subnet (e.g. "192.168.1.0/24"); overrides auto-detect.</summary>
     public string? ManualSubnet { get; set; }
@@ -328,7 +328,7 @@ public sealed class MainViewModel : ObservableObject
         _dispatch(() =>
         {
             lock (_byIpLock) { Devices.Clear(); _byIp.Clear(); }
-            // Device sources from the previous run are gone — keep only "all".
+            // Device sources from the previous run are gone, keep only "all".
             while (GraphSources.Count > 1) GraphSources.RemoveAt(GraphSources.Count - 1);
             foreach (var g in DeviceGraphs)
                 if (g.SelectedSource?.Ip is not null) g.SelectedSource = GraphSources.FirstOrDefault();
@@ -444,13 +444,13 @@ public sealed class MainViewModel : ObservableObject
     }
 
     /// <summary>Ping the configured internet hosts in parallel, pingCount times
-    /// each (-1 = endless), tracking min/max/avg live — mirrors the table run.</summary>
+    /// each (-1 = endless), tracking min/max/avg live, mirrors the table run.</summary>
     public async Task PingInternetAsync(CancellationToken ct = default, int pingCount = 1)
     {
         if (!Config.EnableInternetPing) return;
 
         // Build the list synchronously (don't snapshot the ObservableCollection
-        // after an async dispatch — it would still be empty and ping nothing).
+        // after an async dispatch, it would still be empty and ping nothing).
         var hosts = Config.InternetHosts
             .Select(e => { var (ip, name) = ParseHostEntry(e); return new InternetHostViewModel(name, ip); })
             .ToList();
@@ -534,7 +534,7 @@ public sealed class MainViewModel : ObservableObject
         return big;
     }
 
-    // Devices that answered at least once stay in the list — when they flip to
+    // Devices that answered at least once stay in the list, when they flip to
     // offline mid-scan the row remains (status turns red). Never-seen IPs are
     // never shown.
     /// <summary>Configured pinned-IP name acts as the default hostname; the
@@ -561,7 +561,7 @@ public sealed class MainViewModel : ObservableObject
         if (!d.IsOnline && !d.Seen && !d.FromDb) return;
 
         // Known rows are only marked dirty (flushed by the throttled aggregate
-        // pass) — dispatching per ping floods the UI thread and lags the table.
+        // pass), dispatching per ping floods the UI thread and lags the table.
         // Pinned/override metadata is stable per row, so it is applied once at
         // row creation (and on explicit settings changes), not on every ping.
         bool tracked;
@@ -656,11 +656,11 @@ public sealed class MainViewModel : ObservableObject
 
     private void UpdateProgress(ScanEngine engine, bool forceGroups = false)
     {
-        // engine.Devices is already a fresh snapshot array — use it directly.
+        // engine.Devices is already a fresh snapshot array, use it directly.
         var all = (IList<Device>)engine.Devices;
         var p = engine.Progress;
 
-        // Live grouping is O(n) — debounce it (≤ every 400 ms) so a fast ping
+        // Live grouping is O(n), debounce it (≤ every 400 ms) so a fast ping
         // stream doesn't pin the UI thread; force a final pass at scan end.
         long now = Environment.TickCount64;
         if (forceGroups || now - _lastGroupTick >= GroupDebounceMs)
@@ -736,10 +736,10 @@ public sealed class MainViewModel : ObservableObject
     }
 
     // ── Totals row (average of each ping column across all rows, heat-colored) ──
-    public string TotalAvg { get; private set; } = "—";
-    public string TotalMin { get; private set; } = "—";
-    public string TotalMax { get; private set; } = "—";
-    public string TotalLast { get; private set; } = "—";
+    public string TotalAvg { get; private set; } = "–";
+    public string TotalMin { get; private set; } = "–";
+    public string TotalMax { get; private set; } = "–";
+    public string TotalLast { get; private set; } = "–";
     public string TotalAvgColor { get; private set; } = Core.Palette.MidGray;
     public string TotalMinColor { get; private set; } = Core.Palette.MidGray;
     public string TotalMaxColor { get; private set; } = Core.Palette.MidGray;
@@ -799,10 +799,10 @@ public sealed class MainViewModel : ObservableObject
 
     // ── Internet totals row (after the last host): Ø/Letzter = averages,
     //    Min/Max = the extreme values across all hosts ──
-    public string InternetTotalAvg { get; private set; } = "—";
-    public string InternetTotalMin { get; private set; } = "—";
-    public string InternetTotalMax { get; private set; } = "—";
-    public string InternetTotalLast { get; private set; } = "—";
+    public string InternetTotalAvg { get; private set; } = "–";
+    public string InternetTotalMin { get; private set; } = "–";
+    public string InternetTotalMax { get; private set; } = "–";
+    public string InternetTotalLast { get; private set; } = "–";
     public string InternetTotalAvgColor { get; private set; } = Core.Palette.MidGray;
     public string InternetTotalMinColor { get; private set; } = Core.Palette.MidGray;
     public string InternetTotalMaxColor { get; private set; } = Core.Palette.MidGray;
@@ -838,8 +838,8 @@ public sealed class MainViewModel : ObservableObject
         return vals.Count > 0 ? vals.Average() : null;
     }
 
-    /// <summary>Current graph sample: a device's last ping (by IP) or — with
-    /// null — the average of the last pings of all online devices.</summary>
+    /// <summary>Current graph sample: a device's last ping (by IP) or, with
+    /// null, the average of the last pings of all online devices.</summary>
     public double? GraphValue(string? ip)
     {
         lock (_byIpLock)

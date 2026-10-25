@@ -12,8 +12,8 @@ public sealed class KnownDevicesDb
     // Add new columns here when the schema evolves; migration runs automatically.
     private static readonly (string Name, string Type, string Default)[] Schema =
     {
-        ("network_mac", "TEXT NOT NULL", ""),   // primary key — always present
-        ("mac",         "TEXT NOT NULL", ""),   // primary key — always present
+        ("network_mac", "TEXT NOT NULL", ""),   // primary key, always present
+        ("mac",         "TEXT NOT NULL", ""),   // primary key, always present
         ("ip",          "TEXT",          "NULL"),
         ("hostname",    "TEXT",          "NULL"),
         ("last_seen",   "TEXT",          "NULL"),

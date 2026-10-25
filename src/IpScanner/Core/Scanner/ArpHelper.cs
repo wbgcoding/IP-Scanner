@@ -42,11 +42,11 @@ public static class ArpHelper
         // SendARP forces L2 resolution for same-subnet hosts (fails for routed ones).
         var viaApi = SendArp(ip);
         if (viaApi is not null) return viaApi;
-        // Fallback: the whole system ARP table — also lists L2-reachable hosts in
+        // Fallback: the whole system ARP table, also lists L2-reachable hosts in
         // other local ranges (multihomed / flat networks) that the per-IP query
         // misses. Truly routed hosts aren't here; their MAC lives on the router,
         // and only NetBIOS can still reach it.
-        // ponytail: per-router MAC would need SNMP to the gateway — out of scope.
+        // ponytail: per-router MAC would need SNMP to the gateway, out of scope.
         return ArpTable().GetValueOrDefault(ip);
     }
 

@@ -10,7 +10,7 @@ public sealed class Device
     public string Ip { get; }
     public string? Mac { get; set; }
     public string? Hostname { get; set; }
-    /// <summary>Rank (technique index) that produced Hostname/Mac — lower is
+    /// <summary>Rank (technique index) that produced Hostname/Mac, lower is
     /// better; a later, better-ranked result replaces a worse one.</summary>
     public int HostnameRank { get; set; } = int.MaxValue;
     public int MacRank { get; set; } = int.MaxValue;

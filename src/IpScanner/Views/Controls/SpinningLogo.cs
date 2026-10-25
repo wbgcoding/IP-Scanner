@@ -9,14 +9,14 @@ namespace IpScanner.Views.Controls;
 /// Renders the spinning logo on its own composition thread (HostVisual +
 /// VisualTarget), so the animation stays smooth no matter how busy the main
 /// UI thread is during a scan. The worker is a background STA thread and is
-/// shut down via its dispatcher — it can never keep the process alive.
+/// shut down via its dispatcher, it can never keep the process alive.
 /// </summary>
 public sealed class SpinningLogo : FrameworkElement
 {
     private const double Size = 42, Center = 21;
     private const double GlowRadius = 5;
     private const double SpinRamp = 2.0;            // approach factor per second
-    private const double StopThreshold = 3;         // deg/s — snap to rest below this
+    private const double StopThreshold = 3;         // deg/s, snap to rest below this
 
     private readonly HostVisual _host = new();
     private Thread? _thread;

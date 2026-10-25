@@ -10,7 +10,7 @@ public partial class App : Application
         base.OnStartup(e);
 
         // Never let a stray exception close the app silently (e.g. a race
-        // while stopping a scan) — surface it and keep running.
+        // while stopping a scan), surface it and keep running.
         DispatcherUnhandledException += (_, args) =>
         {
             args.Handled = true;

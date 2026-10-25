@@ -36,7 +36,7 @@ public static class Loc
         }
     }
 
-    /// <summary>"auto" or a language code — must run before any UI loads (x:Static caches).</summary>
+    /// <summary>"auto" or a language code, must run before any UI loads (x:Static caches).</summary>
     public static void SetLanguage(string mode)
     {
         var code = mode.ToLowerInvariant();
@@ -100,8 +100,8 @@ public static class Loc
         "Quelle des Graphen: Gesamtdurchschnitt oder ein einzelnes Gerät.",
         "Graph source: overall average or a single device.");
     public static string TipEditCell => S(
-        "Doppelklick zum Bearbeiten — Änderungen werden dauerhaft gespeichert.",
-        "Double-click to edit — changes are stored permanently.");
+        "Doppelklick zum Bearbeiten. Änderungen werden dauerhaft gespeichert.",
+        "Double-click to edit. Changes are stored permanently.");
     public static string TipPinIp => S(
         "Klick heftet diese IP an (immer oben in der Tabelle).",
         "Click to pin this IP (always at the top of the table).");
@@ -135,8 +135,8 @@ public static class Loc
         "Blendet die Latenz-Graphen in der Seitenleiste ein oder aus.",
         "Shows or hides the latency graphs in the sidebar.");
     public static string TipGraphMaxTime => S(
-        "Sichtbare Zeitspanne der Graphen in Sekunden (10–300).",
-        "Visible time span of the graphs in seconds (10–300).");
+        "Sichtbare Zeitspanne der Graphen in Sekunden (10-300).",
+        "Visible time span of the graphs in seconds (10-300).");
     public static string ExampleSubnets => "192.168.2.0/24";
     public static string ExamplePinnedIp => "192.168.2.10";
     public static string ExampleHostIp => "8.8.8.8";
@@ -239,8 +239,8 @@ public static class Loc
 
     // ── Settings tooltips ──
     public static string TipSubnets => S(
-        "Diese Netze werden bei jedem Scan zusätzlich zum oben eingegebenen Netz gepingt. Format: 192.168.2.0/24 — mehrere per Zeile oder Komma.",
-        "These networks are pinged on every scan in addition to the one entered at the top. Format: 192.168.2.0/24 — multiple per line or comma.");
+        "Diese Netze werden bei jedem Scan zusätzlich zum oben eingegebenen Netz gepingt. Format: 192.168.2.0/24 (mehrere per Zeile oder Komma).",
+        "These networks are pinged on every scan in addition to the one entered at the top. Format: 192.168.2.0/24 (multiple per line or comma).");
     public static string TipPinnedIps => S(
         "Diese IPs werden immer mitgepingt (auch außerhalb der Subnetze) und stehen ganz oben in der Tabelle.",
         "These IPs are always pinged (even outside the subnets) and stay at the top of the table.");
@@ -263,8 +263,8 @@ public static class Loc
         "Such-Versuche pro IP in der Discovery-Phase (stoppt bei der ersten Antwort). Höher = zuverlässiger bei trägen Geräten, langsamer.",
         "Discovery attempts per IP (stops at the first reply). Higher = more reliable for slow devices, but slower.");
     public static string TipEnableInternet => S(
-        "Misst nebenbei die Latenz zu öffentlichen Hosts (Sidebar) — zeigt, ob die Internetverbindung steht.",
-        "Also measures latency to public hosts (sidebar) — shows whether the internet connection is up.");
+        "Misst nebenbei die Latenz zu öffentlichen Hosts (Sidebar). Zeigt, ob die Internetverbindung steht.",
+        "Also measures latency to public hosts (sidebar). Shows whether the internet connection is up.");
     public static string TipInternetHosts => S(
         "Öffentliche IPs für die Internet-Latenzmessung. Format: IP Leerzeichen Name, z.B. \"8.8.8.8 Google\". Ohne Name wird die IP angezeigt.",
         "Public IPs for the internet latency check. Format: IP space name, e.g. \"8.8.8.8 Google\". Without a name the IP is shown.");
@@ -275,8 +275,8 @@ public static class Loc
         "Ping-Anzahl je Gerät für den automatischen Scan direkt nach dem Programmstart. 0 = nur Geräte suchen.",
         "Ping count per device for the automatic scan right after startup. 0 = discovery only.");
     public static string TipOfflineRecheck => S(
-        "Prüft während eines Durchlaufs alle N Sekunden, ob Offline-IPs online gekommen sind — neue Geräte steigen sofort in den Durchlauf ein. 0 schaltet die Prüfung ab.",
-        "While a run is active, rechecks offline IPs every N seconds — devices that come online join the run immediately. 0 disables the recheck.");
+        "Prüft während eines Durchlaufs alle N Sekunden, ob Offline-IPs online gekommen sind. Neue Geräte steigen sofort in den Durchlauf ein. 0 schaltet die Prüfung ab.",
+        "While a run is active, rechecks offline IPs every N seconds. Devices that come online join the run immediately. 0 disables the recheck.");
     public static string TipTextScale => S(
         "Skaliert die gesamte Oberfläche inklusive aller Texte. 100 = Standardgröße.",
         "Scales the whole interface including all text. 100 = default size.");
@@ -287,8 +287,8 @@ public static class Loc
         "Schreibt nach jedem Scan einen lesbaren Textbericht mit allen Tabellenwerten.",
         "Writes a readable text report with all table values after each scan.");
     public static string TipExportCsv => S(
-        "Exportiert die Ergebnisse zusätzlich als CSV — praktisch für Excel oder Skripte.",
-        "Additionally exports the results as CSV — handy for Excel or scripts.");
+        "Exportiert die Ergebnisse zusätzlich als CSV, praktisch für Excel oder Skripte.",
+        "Additionally exports the results as CSV, handy for Excel or scripts.");
     public static string TipKnownDb => S(
         "Merkt sich gefundene Geräte je Netzwerk in scanner.db, damit bekannte Geräte beim nächsten Scan wiedererkannt werden.",
         "Remembers discovered devices per network in scanner.db so known devices are recognized on the next scan.");

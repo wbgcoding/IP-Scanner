@@ -97,7 +97,7 @@ public sealed class ScanEngine
     {
         var ips = subnetPrefixes.SelectMany(Ipv4.HostsInSubnet).ToList();
         // Pinned IPs are always scanned, even outside the chosen subnet(s).
-        // Entries may carry "name color" metadata — only the target counts here.
+        // Entries may carry "name color" metadata, only the target counts here.
         var seen = new HashSet<string>(ips);
         foreach (var pin in cfg.PinnedIps)
         {
@@ -107,12 +107,12 @@ public sealed class ScanEngine
         bool infinite = cfg.PingCount == ScanConfig.InfinitePingCount;
         int analysisPerIp = infinite ? 0 : Math.Max(0, cfg.PingCount - 1);
 
-        // Analysis runs per device as soon as its discovery ping answers —
+        // Analysis runs per device as soon as its discovery ping answers,
         // no barrier between the two phases. ScanThreads caps both phases;
         // 0 = one worker per device (max parallelism).
         int workers = cfg.ScanThreads <= 0 ? ips.Count : cfg.ScanThreads;
 
-        // ICMP waits block pool threads and the pool grows only ~1 thread/s —
+        // ICMP waits block pool threads and the pool grows only ~1 thread/s,
         // raise the minimum so all workers run from the start.
         ThreadPool.GetMinThreads(out int minWorker, out int minIo);
         int wanted = Math.Min(workers * 2 + ThreadPoolHeadroom, MaxPoolMinimum);
@@ -122,7 +122,7 @@ public sealed class ScanEngine
         var analysisTasks = new ConcurrentBag<Task>();
         // IPs whose analysis loop is running (prevents double-starts from rechecks).
         var analyzing = new ConcurrentDictionary<string, byte>();
-        // IPs whose analysis pings were skipped at discovery — only those are
+        // IPs whose analysis pings were skipped at discovery, only those are
         // un-skipped when a recheck brings them into the run.
         var skippedAtDiscovery = new ConcurrentDictionary<string, byte>();
 
@@ -183,7 +183,7 @@ public sealed class ScanEngine
             ? EnrichMissingLoopAsync(recheckCts.Token)
             : Task.CompletedTask;
 
-        // Wait until no analysis task is left — rechecks may add new ones mid-wait.
+        // Wait until no analysis task is left, rechecks may add new ones mid-wait.
         while (true)
         {
             var snapshot = analysisTasks.ToArray();
@@ -218,7 +218,7 @@ public sealed class ScanEngine
 
     /// <summary>Ping still-offline IPs periodically; devices that answer start
     /// their analysis loop right away. Devices that just dropped offline get a
-    /// fast burst (every second for a short window — they often reappear right
+    /// fast burst (every second for a short window, they often reappear right
     /// away), afterwards the regular OfflineRecheckSeconds cadence applies.</summary>
     private async Task RecheckOfflineLoopAsync(ScanConfig cfg, bool infinite, int analysisPerIp,
         int workers, SemaphoreSlim sem, ConcurrentBag<Task> tasks,
@@ -253,7 +253,7 @@ public sealed class ScanEngine
                 if (loopCt.IsCancellationRequested) return;
                 using var worker = new WorkerScope(this);
                 // The entry may have been evicted (MAC moved to a new IP) since
-                // the due-list was built — skip it rather than throwing.
+                // the due-list was built, skip it rather than throwing.
                 if (!_devices.TryGetValue(ip, out var device)) return;
                 var r = Ping(ip);
                 device.RecordPing(r);
@@ -364,7 +364,7 @@ public sealed class ScanEngine
         catch (OperationCanceledException) { }
     }
 
-    // At most N devices enrich at once — hundreds in parallel exhaust sockets
+    // At most N devices enrich at once, hundreds in parallel exhaust sockets
     // and nbtstat processes, and every lookup then dies in its timeout.
     private static readonly SemaphoreSlim EnrichGate = new(EnrichGateSize);
     private readonly ConcurrentDictionary<string, byte> _enriching = new();

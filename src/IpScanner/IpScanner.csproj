@@ -30,7 +30,7 @@
     <Resource Include="Resources\logo.png" />
   </ItemGroup>
   <!-- The desktop runtime always bundles WinForms, XPS printing and the Ribbon
-       alongside WPF. None of them are used here — dropping them shrinks the
+       alongside WPF. None of them are used here, dropping them shrinks the
        single-file exe considerably. -->
   <Target Name="StripUnusedDesktopAssemblies" AfterTargets="ComputeResolvedFilesToPublishList"
           Condition="'$(PublishSingleFile)' == 'true'">

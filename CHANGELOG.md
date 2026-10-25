@@ -2,7 +2,7 @@
 
 All notable changes, written for people who just use the app.
 
-## 2.8 — 2026-07-04
+## 2.8 - 2026-07-04
 
 Per-device graphs, ten languages, and a cleaner main window.
 
@@ -13,7 +13,7 @@ Per-device graphs, ten languages, and a cleaner main window.
   time window as the sidebar graphs.
 - New setting: automatically open that graph for pinned devices.
 - A quick "Offline (DB)" switch in the header hides or shows known devices
-  from the database that are currently offline — handy to declutter the table.
+  from the database that are currently offline, handy to declutter the table.
 - Eight more languages, for ten in total: English, German, Spanish, French,
   Chinese, Hindi, Arabic, Portuguese, Russian and Japanese. Switch instantly
   in the settings; the app also follows your Windows language automatically.
@@ -32,7 +32,7 @@ Per-device graphs, ten languages, and a cleaner main window.
   slowly.
 - The "max time span" field in the graph settings is no longer oversized.
 
-## 2.7 — 2026-06-19
+## 2.7 - 2026-06-19
 
 Automatic updates and a thorough reliability pass.
 
@@ -43,7 +43,7 @@ Automatic updates and a thorough reliability pass.
   `check_for_updates = false` in the configuration file.
 
 ### Changed
-- When a device changes its IP address it is no longer listed twice — the
+- When a device changes its IP address it is no longer listed twice, the
   old entry is dropped and only the current address is kept (matched by MAC).
 - Smoother table and graphs under heavy scanning: per-ping and per-second
   work no longer redoes the same calculations.
@@ -55,7 +55,7 @@ Automatic updates and a thorough reliability pass.
 - Long hostnames now show an ellipsis with the full name on hover instead
   of being cut off, and the totals row never overlaps the thread counter.
 
-## 2.6 — 2026-06-06
+## 2.6 - 2026-06-06
 
 Graphs everywhere and a silky-smooth UI.
 
@@ -65,12 +65,12 @@ Graphs everywhere and a silky-smooth UI.
   sort to the top of the selector.
 - Every network in the sidebar gets its own small average-latency graph
   (can be turned off in the new Graphs settings).
-- Time markers under all graphs (1m, 2m, ... — finer steps for short
+- Time markers under all graphs (1m, 2m, ..., finer steps for short
   windows).
 
 ### Changed
 - The logo animation runs on its own render thread and the graph math on
-  a worker thread — nothing stutters anymore, even under heavy scan load.
+  a worker thread, nothing stutters anymore, even under heavy scan load.
 - Paths inside the program folder are shown and stored Windows-style
   (.\scanner.db); database and configuration now default to the folder
   next to the exe. Existing installs keep their locations.
@@ -85,12 +85,12 @@ Graphs everywhere and a silky-smooth UI.
 - The pin icon reliably turns red on hover; unpinning is a single click,
   pinning a double-click on the IP.
 
-## 2.5 — 2026-06-06
+## 2.5 - 2026-06-06
 
 Big usability release.
 
 ### Added
-- Language switches instantly — no more restart when changing it in the
+- Language switches instantly, no more restart when changing it in the
   settings.
 - Known devices appear the moment a scan starts, with their stored hostname
   and MAC. Live results replace the stored values as the scan progresses.
@@ -106,7 +106,7 @@ Big usability release.
 - Hostnames are edited in a popup that spans the column; the X restores the
   automatic name.
 - Latency history graphs (sidebar bottom + internet panel) with a device
-  selector, time markers and a configurable time window — new "Graphs"
+  selector, time markers and a configurable time window, new "Graphs"
   settings section.
 - Internet latency panel gained a totals row and a small history graph.
 - Old configuration and database files from previous versions are upgraded
@@ -126,7 +126,7 @@ Big usability release.
   makes the cursor jump.
 - Toggling TXT/CSV export no longer resets the selected ping count.
 
-## 2.4 — 2026-06-04
+## 2.4 - 2026-06-04
 
 Stability and cleanup release.
 
@@ -144,20 +144,20 @@ Stability and cleanup release.
   same number format, following your Windows region settings.
 - File dialogs and the last remaining texts are now fully translated (DE/EN).
 
-## 2.3 — 2026-06-04
+## 2.3 - 2026-06-04
 
 ### Added
 - Language can be switched in the settings (automatic, German, English).
 - TXT/CSV export toggles in the sidebar, with name and size of the written
   files shown right below.
-- Color picker for the progress-bar colors — click a legend square to
+- Color picker for the progress-bar colors, click a legend square to
   change it.
 - Internet latency values with one decimal and heatmap colors, centered
   under their column headers.
 - The logo's center dot now glows while the scanner is working.
 
 ### Changed
-- Settings save instantly — the Save button is gone.
+- Settings save instantly, the Save button is gone.
 - The device progress bar no longer shows an "unknown" segment.
 
 ## 2.2 and earlier
