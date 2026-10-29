@@ -44,7 +44,7 @@ public static class ConfigManager
     private static readonly string[] SettingsPages = { "Scan", "Display", "Internet", "Graphs", "Data", "App", "About", "Help" };
 
     // The six Tools-window pages, in nav order.
-    private static readonly string[] ToolsPages = { "WakeOnLan", "PortCheck", "DnsLookup", "PingRoute", "Calculator", "Certificate", "HostDiscovery", "ServiceDetection", "OsEstimate", "Checks", "ScanExport" };
+    private static readonly string[] ToolsPages = { "WakeOnLan", "PortCheck", "DnsLookup", "PingRoute", "Calculator", "MacTool", "Certificate", "HostDiscovery", "ServiceDetection", "OsEstimate", "Checks", "ScanExport" };
 
     // Table columns that can be hidden - IP/status/hostname stay mandatory.
     // "loss" and "jitter" are hidden by default (see ScanConfig.HiddenColumns).

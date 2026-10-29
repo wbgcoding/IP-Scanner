@@ -191,15 +191,17 @@ public class ConfigManagerTests
 
     // The Tools window remembers its last-open page the same way the
     // Settings overlay does (SettingsPage) - same round-trip plus fallback shape.
-    [Fact]
-    public void Save_ThenLoad_RoundTrips_ToolsLastPage()
+    [Theory]
+    [InlineData("Certificate")]
+    [InlineData("MacTool")]
+    public void Save_ThenLoad_RoundTrips_ToolsLastPage(string page)
     {
-        var cfg = new ScanConfig { ToolsLastPage = "Certificate" };
+        var cfg = new ScanConfig { ToolsLastPage = page };
         var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".conf");
         ConfigManager.Save(path, cfg);
         var loaded = ConfigManager.Load(path);
 
-        Assert.Equal("Certificate", loaded.ToolsLastPage);
+        Assert.Equal(page, loaded.ToolsLastPage);
     }
 
     // The new Help settings page must round-trip like every other
