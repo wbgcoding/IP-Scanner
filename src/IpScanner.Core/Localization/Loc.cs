@@ -856,9 +856,6 @@ public static class Loc
     public static string PinnedIps => S("Angeheftete IPs", "Pinned IPs");
     public static string PingInterval => S("Ping-Intervall", "Ping interval");
     public static string OfflineAfter => S("Offline nach X Fehlversuchen", "Offline after X failures");
-    public static string InitPings => S("Such-Pings je IP", "Discovery pings per IP");
-    public static string StartupPings => S("Pings bei Start", "Pings at startup");
-    public static string DefaultPings => S("Standard-Pings", "Default pings");
     public static string InvalidPath => S("Ungültiger Pfad", "Invalid path");
     // Shown instead of InvalidPath when the text is a syntactically
     // valid path, but points at a drive root or the user's own profile folder -
@@ -869,9 +866,7 @@ public static class Loc
     public static string ScanThreads => S("Threads pro Scan", "Threads per scan");
     // "0 Threads" wird zum Kontrollkästchen "Unbegrenzt" (reuses DbRetentionUnlimited's "Unlimited" key).
     public static string UnlimitedThreadsLabel => S("Unbegrenzt", "Unlimited");
-    public static string EndlessLabel => S("Endlos", "Endless");
     public static string OffLabel => S("Aus", "Off");
-    public static string DiscoveryOnlyLabel => S("Nur Erkennung", "Discovery only");
     public static string KeyCtrl => S("Strg", "Ctrl");
     public static string KeyDel => S("Entf", "Del");
     public static string ShortcutCtrlF => $"{KeyCtrl}+F";
@@ -1165,18 +1160,9 @@ public static class Loc
     public static string TipOfflineAfter => S(
         "Nach so vielen Fehlpings in Folge gilt ein Gerät als offline und verschwindet aus der Tabelle.",
         "After this many consecutive failed pings a device counts as offline and leaves the table.");
-    public static string TipInitPings => S(
-        "Such-Versuche pro IP in der Discovery-Phase (stoppt bei der ersten Antwort). Höher = zuverlässiger bei trägen Geräten, langsamer.",
-        "Discovery attempts per IP (stops at the first reply). Higher = more reliable for slow devices, but slower.");
     public static string TipEnableInternet => S(
         "Misst nebenbei die Latenz zu öffentlichen Hosts in der Seitenleiste. Zeigt, ob die Internetverbindung steht.",
         "Also measures latency to public hosts in the sidebar. Shows whether the internet connection is up.");
-    public static string TipDefaultPings => S(
-        "Vorbelegung des Ping-Dropdowns oben rechts beim Programmstart. Mit Endlos wird bis zum Stopp gepingt.",
-        "Preset for the ping dropdown at the top right when the app starts. Tick Endless to keep pinging until stopped.");
-    public static string TipStartupPings => S(
-        "Ping-Anzahl je Gerät für den automatischen Scan direkt nach dem Programmstart. Mit Nur Erkennung werden nur Geräte gesucht.",
-        "Ping count per device for the automatic scan right after startup. Tick Discovery only to just look for devices.");
     public static string TipOfflineRecheck => S(
         "Prüft während eines Durchlaufs alle N Sekunden, ob Offline-IPs online gekommen sind. Neue Geräte steigen sofort in den Durchlauf ein. Wirkt nur bei endlosen Pings.",
         "While a run is active, rechecks offline IPs every N seconds. Devices that come online join the run immediately. Only takes effect with endless pings.");
@@ -1355,10 +1341,8 @@ public static class Loc
             ["scan_threads"] = (() => TipScanThreads, "100"),
             ["ping_interval_ms"] = (() => TipPingInterval, "100 ms"),
             ["offline_after_failed_pings"] = (() => TipOfflineAfter, "5"),
-            ["init_ping_count"] = (() => TipInitPings, "1"),
             ["enable_internet_ping"] = (() => TipEnableInternet, "true"),
             ["ping_count"] = (() => TipDefaultPings, "10"),
-            ["startup_ping_count"] = (() => TipStartupPings, "10"),
             ["offline_recheck_seconds"] = (() => TipOfflineRecheck, "5 s"),
             ["ui_scale"] = (() => TipTextScale, "100%"),
             ["output_directory"] = (() => TipOutputDir, @".\Scans"),
@@ -2548,4 +2532,25 @@ public static class Loc
     public static string RouteAvgLabel => S("Mittel", "Avg");
     public static string RouteBestLabel => S("Beste", "Best");
     public static string RouteWorstLabel => S("Schlechteste", "Worst");
+
+    // Batch Y1
+    public static string ColPorts => S("Ports", "Ports");
+    public static string TipColPorts => S(
+        "Zeigt die offenen TCP-Ports, die auf dem Gerät gefunden wurden. Fahre über eine Zelle, um die ganze Liste mit Dienstnamen zu sehen.",
+        "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.");
+    public static string ColFirstSeen => S("Zuerst gesehen", "First seen");
+    public static string ColLastSeen => S("Zuletzt gesehen", "Last seen");
+    public static string TipColFirstSeen => S(
+        "Zeigt, wann das Gerät zum ersten Mal online gesehen wurde. Das merkt sich das Programm nur, solange die Datenbank bekannter Geräte aktiv ist.",
+        "Shows when the device was first seen online. Only remembered while the known devices database is on.");
+    public static string TipColLastSeen => S(
+        "Zeigt, wann das Gerät zuletzt online gesehen wurde. Das merkt sich das Programm nur, solange die Datenbank bekannter Geräte aktiv ist.",
+        "Shows when the device was last seen online. Only remembered while the known devices database is on.");
+    public static string PrivateAddress => S("Private Adresse", "Private address");
+    public static string PrivateAddressTip => S(
+        "Zufällige, vom Gerät selbst vergebene MAC-Adresse (Datenschutzfunktion von Handys und Laptops).",
+        "Random MAC address the device picked itself (privacy feature of phones and laptops).");
+    public static string TipDefaultPings => S(
+        "Anzahl der Pings je Gerät. Wird im Ping-Dropdown oben rechts eingestellt; -1 pingt bis zum Stopp.",
+        "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.");
 }

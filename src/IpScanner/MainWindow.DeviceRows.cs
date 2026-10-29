@@ -458,14 +458,7 @@ public partial class MainWindow : Window
         UiScaleBox.Text = c.UiScalePercent.ToString();
         IntervalBox.Text = c.PingIntervalMs.ToString();
         OfflineAfterBox.Text = c.OfflineAfterFailedPings.ToString();
-        InitPingCountBox.Text = c.InitPingCount.ToString();
-        // Endless / discovery only / off are checkboxes; the number boxes always show a real value.
-        DefaultPingsEndlessBox.IsChecked = c.PingCount == ScanConfig.InfinitePingCount;
-        DefaultPingsBox.IsEnabled = c.PingCount != ScanConfig.InfinitePingCount;
-        DefaultPingsBox.Text = (c.PingCount > 0 ? c.PingCount : ScanConfig.Bounds.PingCountDefault).ToString();
-        StartupPingsDiscoveryBox.IsChecked = c.StartupPingCount == 0;
-        StartupPingsBox.IsEnabled = c.StartupPingCount != 0;
-        StartupPingsBox.Text = (c.StartupPingCount > 0 ? c.StartupPingCount : ScanConfig.Bounds.StartupPingCountDefault).ToString();
+        // Off is a checkbox; the number box always shows a real value.
         OfflineRecheckOffBox.IsChecked = c.OfflineRecheckSeconds == 0;
         OfflineRecheckBox.Text = (c.OfflineRecheckSeconds > 0 ? c.OfflineRecheckSeconds : ScanConfig.Bounds.OfflineRecheckSecondsDefault).ToString();
         UpdateOfflineRecheckEnabled();
@@ -511,8 +504,11 @@ public partial class MainWindow : Window
         ProgressColBox.IsChecked = !c.HiddenColumns.Contains("progress");
         MacColBox.IsChecked = !c.HiddenColumns.Contains("mac");
         VendorColBox.IsChecked = !c.HiddenColumns.Contains("vendor");
+        PortsColBox.IsChecked = !c.HiddenColumns.Contains("ports");
         MethodColBox.IsChecked = !c.HiddenColumns.Contains("method");
         OsColBox.IsChecked = !c.HiddenColumns.Contains("os");
+        FirstSeenColBox.IsChecked = !c.HiddenColumns.Contains("first_seen");
+        LastSeenColBox.IsChecked = !c.HiddenColumns.Contains("last_seen");
         TxtToggle.IsChecked = c.FileOutput;
         CsvToggle.IsChecked = c.ExportCsv;
         HeatMs1Box.Text = c.HeatMs1.ToString("0.#");

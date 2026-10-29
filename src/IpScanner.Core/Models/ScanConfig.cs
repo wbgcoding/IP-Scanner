@@ -10,9 +10,9 @@ public sealed class ScanConfig
     public int PingCount { get; set; } = 10;                  // -1 = infinite
     public int PingIntervalMs { get; set; } = 100;
     public int OfflineAfterFailedPings { get; set; } = 5;
+    /// <summary>Discovery attempts per IP in the first pass. Fixed at 1 in the app and in the config
+    /// file; only the engine tests and the CLI set it.</summary>
     public int InitPingCount { get; set; } = 1;
-    /// <summary>Ping count for the automatic sweep right after the app starts.</summary>
-    public int StartupPingCount { get; set; } = 10;
     /// <summary>Recheck offline IPs every N seconds during a run (0 = off).</summary>
     public int OfflineRecheckSeconds { get; set; } = 5;
     /// <summary>Retry hostname lookup for devices with no name every N
@@ -112,10 +112,11 @@ public sealed class ScanConfig
     /// <summary>Compact table rows (22px) instead of normal (28px).</summary>
     public bool CompactRows { get; set; }
     /// <summary>Keys of table columns hidden by the user (group, avg,
-    /// min, max, last, loss, jitter, progress, mac, vendor). IP/status/hostname stay
-    /// mandatory. Loss and jitter start hidden by default for a brand-new config;
-    /// an existing config file already has its own saved list and is not touched.</summary>
-    public List<string> HiddenColumns { get; set; } = new() { "loss", "jitter", "method", "os" };
+    /// min, max, last, loss, jitter, progress, mac, vendor, ports, method, os, first_seen, last_seen).
+    /// IP/status/hostname stay mandatory. Jitter, method, OS and the two seen-times start hidden
+    /// by default for a brand-new config; an existing config file already has its own saved
+    /// list and keeps it (the seen-times are added to it once, so they do not appear unasked).</summary>
+    public List<string> HiddenColumns { get; set; } = new() { "jitter", "method", "os", "first_seen", "last_seen" };
 
     // Scan convenience.
     /// <summary>Auto-repeat the scan every N minutes (0/5/15/30/60). 0 = off.</summary>
@@ -222,8 +223,6 @@ public sealed class ScanConfig
         public const int PingCountMin = 1, PingCountMax = 10_000_000, PingCountDefault = 10;
         public const int PingIntervalMsMin = 0, PingIntervalMsMax = 10_000, PingIntervalMsDefault = 100;
         public const int OfflineAfterFailedPingsMin = 1, OfflineAfterFailedPingsMax = 100, OfflineAfterFailedPingsDefault = 5;
-        public const int InitPingCountMin = 1, InitPingCountMax = 100, InitPingCountDefault = 1;
-        public const int StartupPingCountMin = 0, StartupPingCountMax = 10_000, StartupPingCountDefault = 10;
         public const int OfflineRecheckSecondsMin = 0, OfflineRecheckSecondsMax = 3600, OfflineRecheckSecondsDefault = 5;
         public const int HostnameRetryMinutesMin = 0, HostnameRetryMinutesMax = 1440, HostnameRetryMinutesDefault = 10;
         public const int InternetTimeoutMsMin = 100, InternetTimeoutMsMax = 10_000, InternetTimeoutMsDefault = 1000;
@@ -294,7 +293,7 @@ public sealed class ScanConfig
     {
         Subnets = Subnets, PinnedIps = PinnedIps, PingCount = pingCount,
         PingIntervalMs = PingIntervalMs, OfflineAfterFailedPings = OfflineAfterFailedPings,
-        InitPingCount = InitPingCount, StartupPingCount = StartupPingCount,
+        InitPingCount = InitPingCount,
         OfflineRecheckSeconds = OfflineRecheckSeconds, HostnameRetryMinutes = HostnameRetryMinutes,
         EnableInternetPing = EnableInternetPing, InternetTimeoutMs = InternetTimeoutMs,
         InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb, ScanHistory = ScanHistory,

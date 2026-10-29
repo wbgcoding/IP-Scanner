@@ -99,12 +99,51 @@ public class ConfigManagerTests
     }
 
     [Fact]
+    public void Save_NoLongerWritesTheRetiredPingCountKeys()
+    {
+        var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".conf");
+        ConfigManager.Save(path, new ScanConfig { PingCount = 25 });
+        var text = File.ReadAllText(path);
+
+        Assert.Contains("ping_count = 25", text);
+        Assert.DoesNotContain("init_ping_count", text);
+        Assert.DoesNotContain("startup_ping_count", text);
+    }
+
+    [Fact]
+    public void Load_StillAcceptsTheRetiredPingCountKeys_WithoutEffect()
+    {
+        var path = WriteTemp("ping_count = 30\ninit_ping_count = 7\nstartup_ping_count = 5\n");
+        var cfg = ConfigManager.Load(path);
+
+        Assert.Equal(30, cfg.PingCount);
+        Assert.Equal(1, cfg.InitPingCount);
+    }
+
+    [Fact]
+    public void Migrate_DropsTheRetiredKeysOfAnOldFile_AndLeavesACurrentFileAlone()
+    {
+        var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".conf");
+        ConfigManager.Save(path, new ScanConfig { PingCount = 40 });
+        File.AppendAllText(path, "init_ping_count = 4\nstartup_ping_count = 6\n");
+        var before = File.GetLastWriteTimeUtc(path);
+        System.Threading.Thread.Sleep(20);
+
+        ConfigManager.MigrateIfNeeded(path);
+
+        Assert.Equal(before, File.GetLastWriteTimeUtc(path));   // the retired keys are no reason to rewrite
+        var loaded = ConfigManager.Load(path);
+        Assert.Equal(40, loaded.PingCount);
+        Assert.Equal(1, loaded.InitPingCount);
+    }
+
+    [Fact]
     public void Save_ThenLoad_RoundTrips_AllSettings()
     {
         var cfg = new ScanConfig
         {
             PingCount = 100, PingIntervalMs = 250, ExportCsv = true, FileOutput = true,
-            OfflineAfterFailedPings = 7, InitPingCount = 3, StartupPingCount = 8, OfflineRecheckSeconds = 9,
+            OfflineAfterFailedPings = 7, OfflineRecheckSeconds = 9,
             EnableInternetPing = false, InternetTimeoutMs = 2200,
             KnownDevicesDb = false, DatabasePath = "./Data/other.db",
             OutputDirectory = "./Out", ScanThreads = 77, UiScalePercent = 120, SidebarWidth = 420,
@@ -122,8 +161,6 @@ public class ConfigManagerTests
         Assert.True(loaded.ExportCsv);
         Assert.True(loaded.FileOutput);
         Assert.Equal(7, loaded.OfflineAfterFailedPings);
-        Assert.Equal(3, loaded.InitPingCount);
-        Assert.Equal(8, loaded.StartupPingCount);
         Assert.Equal(9, loaded.OfflineRecheckSeconds);
         Assert.False(loaded.EnableInternetPing);
         Assert.Equal(2200, loaded.InternetTimeoutMs);
@@ -296,8 +333,8 @@ public class ConfigManagerTests
     }
 
     [Fact]
-    public void NewScanConfig_HidesLossAndJitterByDefault()
-        => Assert.Equal(new[] { "loss", "jitter", "method", "os" }, new ScanConfig().HiddenColumns);
+    public void NewScanConfig_ShowsLossAndHidesJitterByDefault()
+        => Assert.Equal(new[] { "jitter", "method", "os", "first_seen", "last_seen" }, new ScanConfig().HiddenColumns);
 
     // Background hostname-retry cadence, 0 = off.
     [Fact]
