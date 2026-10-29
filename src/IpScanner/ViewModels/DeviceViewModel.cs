@@ -362,7 +362,6 @@ public sealed class DeviceViewModel : ObservableObject
             if (stored is null) { ObserveServiceScan(); return; }
             Services.ReplaceAll(stored.Services);
             _servicesScanned = true;
-            _portResultComplete = !stored.Partial;
             SetPortScanResultHeader(stored.SeenAt, stored.Partial);
             Raise(nameof(IsServicesEmptyVisible)); Raise(nameof(ServicesEmptyText));
         }
@@ -394,15 +393,13 @@ public sealed class DeviceViewModel : ObservableObject
         }
     }
     private bool _servicesScanned;
-    // True once a scan that covered all five "Open with" ports finished without error or cancel
-    // (quick scan, completed full sweep or a stored complete sweep). Unlike _servicesScanned it is
-    // never set by a failed or cancelled scan, so "not in the list" really means "closed".
-    private bool _portResultComplete;
     private bool _scanningServices;
 
-    /// <summary>True only when a finished port scan covered <paramref name="port"/> and did not find it open.</summary>
+    /// <summary>True only when a port scan of this app session got a refusal (reset) for the TCP port
+    /// and the port is not listed as open. Filtered or dropped probes and results stored by an older
+    /// session never count.</summary>
     internal bool IsPortKnownClosed(int port)
-        => _portResultComplete && !Services.Any(s => s.Protocol == NetProtocol.Tcp && s.Port == port);
+        => SessionPortFacts.IsClosed(_device.Ip, port) && !Services.Any(s => s.Protocol == NetProtocol.Tcp && s.Port == port);
     public bool IsScanningServices => _scanningServices;
     /// <summary>True whenever the "nothing to show" placeholder text should be
     /// visible - an empty result, a scan in progress covers itself separately.</summary>
@@ -435,7 +432,6 @@ public sealed class DeviceViewModel : ObservableObject
         {
             var found = await PortScanner.ScanAsync(_device.Ip, _serviceScanCts.Token);
             Services.ReplaceAll(found);
-            _portResultComplete = true;
             Raise(nameof(Os)); Raise(nameof(OsTip));
             await RunOsFingerprint(_serviceScanCts.Token);
         }
@@ -545,7 +541,6 @@ public sealed class DeviceViewModel : ObservableObject
                 if (!partial)
                 {
                     _servicesScanned = true;   // only a completed sweep satisfies the quick scan too
-                    _portResultComplete = true;
                 }
             }
             catch (OperationCanceledException) { return; }
