@@ -150,7 +150,9 @@ public class CsvExporterTests
 
             var path = CsvExporter.Write(new[] { d }, dir, "20260604_092300", "");
 
-            Assert.StartsWith("ip;status;", File.ReadAllLines(path)[0]);
+            var lines = File.ReadAllLines(path);
+            Assert.StartsWith("ip;status;", lines[0]);
+            Assert.Contains(";1,00;", lines[1]);
         }
         finally { System.Globalization.CultureInfo.CurrentCulture = previous; }
     }
