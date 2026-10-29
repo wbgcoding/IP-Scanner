@@ -55,7 +55,7 @@ public static class OpenWithBuilder
                 return Url(kind, Uri.UriSchemeHttps, ip);
             case OpenWithKind.RemoteDesktop:
                 return new OpenWithCommand(kind, Path.Combine(windowsDir, "System32", "mstsc.exe"),
-                    new[] { "/v:" + text }, false);
+                    new[] { "/v:" + (ip.AddressFamily == AddressFamily.InterNetworkV6 ? "[" + text + "]" : text) }, false);
             case OpenWithKind.Ssh:
                 return new OpenWithCommand(kind, Path.Combine(windowsDir, "System32", "OpenSSH", "ssh.exe"),
                     new[] { text }, false);
@@ -99,11 +99,10 @@ public static class OpenWithBuilder
 
     private static OpenWithCommand? Url(OpenWithKind kind, string scheme, IPAddress ip)
     {
-        // The host goes through UriBuilder (brackets for IPv6, scope id percent-encoded); the result is
-        // the only string started through the shell.
-        var host = ip.AddressFamily == AddressFamily.InterNetworkV6 && ip.ScopeId != 0
-            ? ip.ToString().Replace("%", "%25")
-            : ip.ToString();
+        // The host goes through UriBuilder (brackets for IPv6); the result is the only string started
+        // through the shell. UriBuilder leaves a scope id out, which is right for a browser: the URL
+        // never carries a zone.
+        var host = ip.ToString();
         try
         {
             var uri = new UriBuilder(scheme, host).Uri;

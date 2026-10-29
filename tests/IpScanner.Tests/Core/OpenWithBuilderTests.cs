@@ -59,7 +59,17 @@ public class OpenWithBuilderTests
         Assert.Equal("", uri.Query);
         Assert.Equal("", uri.Fragment);
         Assert.DoesNotContain(" ", c.FileName);
+        Assert.Equal("http://[fe80::1]/", c.FileName);
+        Assert.Equal("[fe80::1]", uri.Host);
     }
+
+    [Theory]
+    [InlineData("fe80::1", "/v:[fe80::1]")]
+    [InlineData("fe80::1%5", "/v:[fe80::1%5]")]
+    [InlineData("2001:db8::7", "/v:[2001:db8::7]")]
+    [InlineData("192.168.1.5", "/v:192.168.1.5")]
+    public void RemoteDesktop_BracketsAnIpv6Address(string address, string expected)
+        => Assert.Equal(new[] { expected }, OpenWithBuilder.Build(OpenWithKind.RemoteDesktop, address, Win)!.Arguments);
 
     [Theory]
     [InlineData(OpenWithKind.BrowserHttp)]
