@@ -2556,4 +2556,6 @@ public static class Loc
 
     // Batch Y1b
     public static string TrayScanDoneOneText => S("1 Gerät online.", "1 device online.");
+    public static string DevicePingContinuous => S("Dauerping", "Continuous ping");
+    public static string DeviceTraceRoute => S("Weg zum Ziel", "Trace route");
 }
