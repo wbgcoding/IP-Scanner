@@ -146,7 +146,7 @@ public class OsDisplayTests
         var info = new NetworkInfo { Ip = "10.0.0.1", Gateway = "10.0.0.1" };
         var devices = new[] { win, plain };
 
-        var csv = File.ReadAllText(IpScanner.Core.Export.CsvExporter.Write(devices, dir, "20260601_120000", "x", ports));
+        var csv = File.ReadAllText(IpScanner.Core.Export.CsvExporter.Write(devices, dir, "20260601_120000", "x", ports, ','));
         var json = File.ReadAllText(IpScanner.Core.Export.JsonExporter.Write(devices, info, dir, "20260601_120000", "x", ports));
         var html = File.ReadAllText(IpScanner.Core.Export.HtmlExporter.Write(devices, info, dir, "20260601_120000", "x", null, ports));
         var txt = File.ReadAllText(IpScanner.Core.Export.TxtExporter.Write(devices, info, dir, "20260601_120000", "x", null, ports));
