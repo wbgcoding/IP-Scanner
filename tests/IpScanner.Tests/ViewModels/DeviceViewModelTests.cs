@@ -191,8 +191,11 @@ public class DeviceViewModelTests
         // Loc.German defaults from the OS system language, so the expected decimal separator
         // would depend on the machine's locale and on whatever LocalizationTests left in the
         // shared static. Set the language this test needs and restore it afterwards.
+        // The decimal separator follows the number format culture, not the UI language, so pin both.
         var wasGerman = Loc.German;
+        var wasCulture = System.Globalization.CultureInfo.CurrentCulture;
         Loc.SetLanguage("de");
+        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("de-DE");
         try
         {
             var d = new Device("192.168.1.1") { Hostname = "router" };
@@ -206,6 +209,7 @@ public class DeviceViewModelTests
         }
         finally
         {
+            System.Globalization.CultureInfo.CurrentCulture = wasCulture;
             Loc.SetLanguage(wasGerman ? "de" : "en");
         }
     }
