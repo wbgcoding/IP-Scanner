@@ -50,6 +50,7 @@ public partial class ArchivePage
     {
         _comparing = on;
         MainArea.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
+        OverviewScroll.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
         FilterBar.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
         CompareArea.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
         ManagementRow.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
@@ -182,11 +183,17 @@ public partial class ArchivePage
     }
 
     /// <summary>Surface tool: selects a run and one of its devices, as a click would.</summary>
-    internal async Task ReviewSelectAsync(int run, int device)
+    internal async Task ReviewSelectAsync(int run, int device, int tab = -1)
     {
-        RunsGrid.SelectedIndex = run;
+        if (run >= 0) RunsGrid.SelectedIndex = run;
         await Task.Delay(400);
-        if (DevicesGrid.Items.Count > device) DevicesGrid.SelectedIndex = device;
+        if (device >= 0 && DevicesGrid.Items.Count > device) DevicesGrid.SelectedIndex = device;
+        if (tab >= 0) DetailTabs.SelectedIndex = tab;
+        // The runs and detail sit below the key figures: scroll them into the view like a reader would.
+        await Task.Delay(100);
+        OverviewScroll.UpdateLayout();
+        FrameworkElement target = _stacked && (device >= 0 || tab >= 0) ? DetailPane : MainArea;
+        if (target.IsVisible) OverviewScroll.ScrollToVerticalOffset(OverviewScroll.VerticalOffset + target.TranslatePoint(new Point(0, 0), OverviewScroll).Y);
     }
 
     /// <summary>Surface tool: opens the comparison view.</summary>

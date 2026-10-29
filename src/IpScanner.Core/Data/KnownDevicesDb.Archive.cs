@@ -250,7 +250,12 @@ public sealed partial class KnownDevicesDb
     /// after they are aggregated; cancelled runs are skipped unless
     /// <paramref name="includeCancelled"/> is set.</summary>
     public ScanArchiveStatistics GetScanArchiveStatistics(DateTimeOffset? from = null, DateTimeOffset? through = null,
-        bool includeCancelled = false)
+        bool includeCancelled = false) => ReadArchiveStatistics(from, through, includeCancelled, null);
+
+    /// <summary>The statistics pass; <paramref name="perRun"/>, when set, also receives each run with its
+    /// device rows right after they were folded in (the rows are only collected for that callback).</summary>
+    private ScanArchiveStatistics ReadArchiveStatistics(DateTimeOffset? from, DateTimeOffset? through,
+        bool includeCancelled, Action<ArchivedScan, IReadOnlyList<ArchivedDevice>>? perRun)
     {
         if (_crypto is null) return new ScanArchiveStatistics(0, 0, Array.Empty<ArchivedDeviceStatistics>());
         using var conn = Open();
@@ -287,6 +292,7 @@ public sealed partial class KnownDevicesDb
             using var rowsCmd = conn.CreateCommand("SELECT payload FROM scan_devices WHERE scan_id=$id");
             rowsCmd.Transaction = snapshot;
             rowsCmd.Parameters.AddWithValue("$id", id);
+            var runRows = perRun is null ? null : new List<ArchivedDevice>();
             using (var rows = rowsCmd.ExecuteReader())
             {
                 while (rows.Read())
@@ -295,12 +301,14 @@ public sealed partial class KnownDevicesDb
                     var envelope = body is null ? null : JsonSerializer.Deserialize<DeviceEnvelope>(body);
                     if (envelope?.Version != 1) throw new InvalidDataException("Scan device format is not supported by this version.");
                     var device = envelope.Device;
+                    runRows?.Add(device);
                     var key = ArchiveDeviceKey(device);
                     if (!devices.TryGetValue(key, out var stats))
                         devices.Add(key, stats = new DeviceStatsBuilder(key, device, scan.StartedAt));
                     else stats.Add(device, scan.StartedAt);
                 }
             }
+            if (runRows is not null) perRun!(scan, runRows);
             ArchiveStatisticsRunHook?.Invoke();
         }
         return new ScanArchiveStatistics(runs, samples,

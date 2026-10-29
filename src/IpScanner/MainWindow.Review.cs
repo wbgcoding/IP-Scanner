@@ -255,7 +255,7 @@ public partial class MainWindow
 
     internal Task ReviewOpenArchiveCompareAsync() => ArchiveOverlay.ReviewShowCompareAsync();
 
-    internal Task ReviewSelectArchiveRunAsync(int run, int device) => ArchiveOverlay.ReviewSelectAsync(run, device);
+    internal Task ReviewSelectArchiveRunAsync(int run, int device, int tab = -1) => ArchiveOverlay.ReviewSelectAsync(run, device, tab);
 
     internal ToolsWindow ReviewOpenTools(string page, Action<ToolsViewModel>? setup = null)
     {
