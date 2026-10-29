@@ -366,7 +366,7 @@
         <Style x:Key="KpiValue" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{DynamicResource Text}"/>
-            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="0,3,0,3"/>
             <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
             <Style.Triggers>
@@ -582,7 +582,7 @@
                                                 <DataGridTextColumn ElementStyle="{StaticResource ArchiveNumberCell}" Header="{loc:L Max}" Binding="{Binding MaxText}" SortMemberPath="MaxSort" Width="Auto"/>
                                                 <DataGridTextColumn ElementStyle="{StaticResource ArchiveNumberCell}" Header="{loc:L Jitter}" Binding="{Binding JitterText}" SortMemberPath="JitterSort" Width="Auto"/>
                                                 <DataGridTextColumn ElementStyle="{StaticResource ArchiveLossCell}" Header="{loc:L Loss}" Binding="{Binding LossText}" SortMemberPath="LossSort" Width="Auto"/>
-                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L DeviceNote}" Binding="{Binding Note}" Width="Auto" MaxWidth="160"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L DeviceNote}" Binding="{Binding Note}" Width="Auto" MinWidth="56" MaxWidth="160"/>
                                             </DataGrid.Columns>
                                         </DataGrid>
                                         <TextBlock x:Name="DevicesHint" Style="{StaticResource ArchiveHint}"/>
@@ -614,7 +614,7 @@
                                                     <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveAvailability}" Binding="{Binding Availability}" SortMemberPath="AvailabilitySort" Width="Auto"/>
                                                     <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" SortMemberPath="LatencySort" Width="Auto"/>
                                                     <DataGridTextColumn x:Name="HistoryFirstSeenColumn" ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveFirstSeen}" Binding="{Binding FirstSeen}" SortMemberPath="FirstSeenSort" Width="Auto"/>
-                                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveLastSeen}" Binding="{Binding LastSeen}" SortMemberPath="LastSeenSort" Width="Auto"/>
+                                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveLastSeen}" Binding="{Binding LastSeen}" SortMemberPath="LastSeenSort" Width="*" MinWidth="90"/>
                                                 </DataGrid.Columns>
                                             </DataGrid>
                                             <TextBlock x:Name="HistoryHint" Style="{StaticResource ArchiveHint}"/>
@@ -625,7 +625,7 @@
                                                 <DataGrid.Columns>
                                                     <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveDate}" Binding="{Binding Date}" Width="Auto"/>
                                                     <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveAvailability}" Binding="{Binding Availability}" Width="Auto"/>
-                                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" Width="Auto"/>
+                                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" Width="*" MinWidth="90"/>
                                                 </DataGrid.Columns>
                                             </DataGrid>
                                             <TextBlock x:Name="TrendHint" Style="{StaticResource ArchiveHint}" Margin="16,24,16,16" Text="{loc:L ArchiveTrendHint}"/>
