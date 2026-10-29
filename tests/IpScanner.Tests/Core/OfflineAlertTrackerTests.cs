@@ -96,9 +96,10 @@ public class OfflineAlertTrackerTests
         var t = Armed();
         for (int i = 0; i < 3; i++) t.Observe(false, i * 1000);
         t.Observe(true, 5000);
-        t.Observe(false, 6000);
-        t.Observe(false, 7000);
-        Assert.Equal(OfflineAlertKind.Lost, t.Observe(false, 8000)!.Value.Kind);
+        long later = OfflineAlertTracker.CooldownMs + 6000;
+        t.Observe(false, later);
+        t.Observe(false, later + 1000);
+        Assert.Equal(OfflineAlertKind.Lost, t.Observe(false, later + 2000)!.Value.Kind);
     }
 
     [Fact]
@@ -151,5 +152,77 @@ public class OfflineAlertTrackerTests
         d.AlertOffline = true;
         d.RecordPing(new PingResult(true, 3, 64));
         Assert.False(d.TryTakeAlert(out _));
+    }
+
+    [Fact]
+    public void FlappingDevice_IsAnnouncedOncePerCooldown()
+    {
+        var t = Armed();
+        int alerts = 0;
+        // F,F,F,S,F,F,F,S within ten seconds: the second outage raises neither lost nor back.
+        foreach (var (ok, ms) in new[] { (false, 1000L), (false, 2000L), (false, 3000L), (true, 4000L),
+                                         (false, 5000L), (false, 6000L), (false, 7000L), (true, 8000L) })
+            if (t.Observe(ok, ms) is not null) alerts++;
+        Assert.Equal(2, alerts);
+        Assert.False(t.IsDown);
+    }
+
+    [Fact]
+    public void SuppressedOutage_IsRaisedWhenItOutlastsTheCooldown()
+    {
+        var t = Armed();
+        for (int i = 1; i <= 3; i++) t.Observe(false, i * 1000);
+        Assert.Equal(OfflineAlertKind.Back, t.Observe(true, 4000)!.Value.Kind);
+        for (int i = 5; i <= 7; i++) Assert.Null(t.Observe(false, i * 1000));
+        // Still down when five minutes have passed since the first announcement.
+        Assert.Null(t.Observe(false, OfflineAlertTracker.CooldownMs));
+        var late = t.Observe(false, 3000 + OfflineAlertTracker.CooldownMs);
+        Assert.Equal(OfflineAlertKind.Lost, late!.Value.Kind);
+        Assert.Equal(OfflineAlertKind.Back, t.Observe(true, 3000 + OfflineAlertTracker.CooldownMs + 1000)!.Value.Kind);
+    }
+
+    [Fact]
+    public void OutageAfterTheCooldown_IsAnnouncedNormally()
+    {
+        var t = Armed();
+        for (int i = 1; i <= 3; i++) t.Observe(false, i * 1000);
+        t.Observe(true, 4000);
+        long later = 3000 + OfflineAlertTracker.CooldownMs + 10_000;
+        Assert.Null(t.Observe(false, later));
+        Assert.Null(t.Observe(false, later + 1000));
+        Assert.Equal(OfflineAlertKind.Lost, t.Observe(false, later + 2000)!.Value.Kind);
+    }
+
+    [Fact]
+    public void Batcher_MergesAlertsWithinTheWindowIntoOneGroupPerKind()
+    {
+        var b = new OfflineAlertBatcher();
+        var lost = new OfflineAlert(OfflineAlertKind.Lost, TimeSpan.Zero);
+        b.Add("a (10.0.0.1)", lost, 10_000);
+        b.Add("b (10.0.0.2)", lost, 10_900);
+        b.Add("c (10.0.0.3)", lost, 11_900);
+        b.Add("d (10.0.0.4)", new OfflineAlert(OfflineAlertKind.Back, TimeSpan.FromSeconds(5)), 11_000);
+        Assert.Empty(b.TakeDue(11_999));
+        var due = b.TakeDue(12_000);
+        var group = Assert.Single(due);
+        Assert.Equal(OfflineAlertKind.Lost, group.Kind);
+        Assert.Equal(3, group.Items.Count);
+        Assert.Equal(string.Format(IpScanner.Core.Localization.Loc.TrayDevicesLostTextFmt, 3), group.Text);
+        Assert.True(b.HasPending);
+        var back = Assert.Single(b.TakeDue(13_000));
+        Assert.Equal(OfflineAlertKind.Back, back.Kind);
+        Assert.False(b.HasPending);
+    }
+
+    [Fact]
+    public void Batcher_ASingleAlertKeepsTheDeviceName_AndAfterTheWindowStartsAFreshGroup()
+    {
+        var b = new OfflineAlertBatcher();
+        b.Add("NAS (10.0.0.5)", new OfflineAlert(OfflineAlertKind.Back, TimeSpan.FromSeconds(42)), 0);
+        var one = Assert.Single(b.TakeDue(2000));
+        Assert.Equal(string.Format(IpScanner.Core.Localization.Loc.TrayDeviceBackTextFmt, "NAS (10.0.0.5)", "0:42"), one.Text);
+        b.Add("x", new OfflineAlert(OfflineAlertKind.Back, TimeSpan.Zero), 5000);
+        Assert.Empty(b.TakeDue(6000));
+        Assert.Single(b.TakeDue(7000));
     }
 }

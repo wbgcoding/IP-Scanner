@@ -1267,6 +1267,8 @@
   "Device reachable again": "Устройство снова доступно",
   "{0} is no longer reachable.": "{0} больше недоступно.",
   "{0} is reachable again (after {1}).": "{0} снова доступно (через {1}).",
+  "{0} devices are no longer reachable.": "{0} устройств больше недоступны.",
+  "{0} devices are reachable again.": "{0} устройств снова доступны.",
   "Open with": "Открыть с помощью",
   "Browser (HTTP)": "Браузер (HTTP)",
   "Browser (HTTPS)": "Браузер (HTTPS)",

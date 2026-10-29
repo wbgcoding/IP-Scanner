@@ -1267,6 +1267,8 @@
   "Device reachable again": "डिवाइस फिर से उपलब्ध",
   "{0} is no longer reachable.": "{0} अब उपलब्ध नहीं है।",
   "{0} is reachable again (after {1}).": "{0} फिर से उपलब्ध है ({1} के बाद)।",
+  "{0} devices are no longer reachable.": "{0} डिवाइस अब उपलब्ध नहीं हैं।",
+  "{0} devices are reachable again.": "{0} डिवाइस फिर से उपलब्ध हैं।",
   "Open with": "इससे खोलें",
   "Browser (HTTP)": "ब्राउज़र (HTTP)",
   "Browser (HTTPS)": "ब्राउज़र (HTTPS)",

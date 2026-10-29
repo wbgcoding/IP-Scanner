@@ -2563,6 +2563,8 @@ public static class Loc
     public static string TrayDeviceBackTitle => S("Gerät wieder erreichbar", "Device reachable again");
     public static string TrayDeviceLostTextFmt => S("{0} ist nicht mehr erreichbar.", "{0} is no longer reachable.");
     public static string TrayDeviceBackTextFmt => S("{0} ist wieder erreichbar (nach {1}).", "{0} is reachable again (after {1}).");
+    public static string TrayDevicesLostTextFmt => S("{0} Geräte sind nicht mehr erreichbar.", "{0} devices are no longer reachable.");
+    public static string TrayDevicesBackTextFmt => S("{0} Geräte sind wieder erreichbar.", "{0} devices are reachable again.");
     public static string DeviceOpenWith => S("Öffnen mit", "Open with");
     public static string OpenWithBrowserHttp => S("Browser (HTTP)", "Browser (HTTP)");
     public static string OpenWithBrowserHttps => S("Browser (HTTPS)", "Browser (HTTPS)");

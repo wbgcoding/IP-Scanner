@@ -1267,6 +1267,8 @@
   "Device reachable again": "Appareil de nouveau joignable",
   "{0} is no longer reachable.": "{0} n'est plus joignable.",
   "{0} is reachable again (after {1}).": "{0} est de nouveau joignable (après {1}).",
+  "{0} devices are no longer reachable.": "{0} appareils ne sont plus joignables.",
+  "{0} devices are reachable again.": "{0} appareils sont de nouveau joignables.",
   "Open with": "Ouvrir avec",
   "Browser (HTTP)": "Navigateur (HTTP)",
   "Browser (HTTPS)": "Navigateur (HTTPS)",

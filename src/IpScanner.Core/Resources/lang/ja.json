@@ -1267,6 +1267,8 @@
   "Device reachable again": "デバイスに再び到達できます",
   "{0} is no longer reachable.": "{0} に到達できなくなりました。",
   "{0} is reachable again (after {1}).": "{0} に再び到達できます ({1} 後)。",
+  "{0} devices are no longer reachable.": "{0} 台のデバイスに接続できなくなりました。",
+  "{0} devices are reachable again.": "{0} 台のデバイスに再び接続できます。",
   "Open with": "開く方法",
   "Browser (HTTP)": "ブラウザー (HTTP)",
   "Browser (HTTPS)": "ブラウザー (HTTPS)",

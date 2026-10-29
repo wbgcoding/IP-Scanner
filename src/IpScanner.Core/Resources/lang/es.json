@@ -1267,6 +1267,8 @@
   "Device reachable again": "Dispositivo accesible de nuevo",
   "{0} is no longer reachable.": "{0} ya no es accesible.",
   "{0} is reachable again (after {1}).": "{0} vuelve a ser accesible (tras {1}).",
+  "{0} devices are no longer reachable.": "{0} dispositivos ya no son accesibles.",
+  "{0} devices are reachable again.": "{0} dispositivos vuelven a ser accesibles.",
   "Open with": "Abrir con",
   "Browser (HTTP)": "Navegador (HTTP)",
   "Browser (HTTPS)": "Navegador (HTTPS)",

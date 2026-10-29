@@ -1267,6 +1267,8 @@
   "Device reachable again": "Device reachable again",
   "{0} is no longer reachable.": "{0} is no longer reachable.",
   "{0} is reachable again (after {1}).": "{0} is reachable again (after {1}).",
+  "{0} devices are no longer reachable.": "{0} devices are no longer reachable.",
+  "{0} devices are reachable again.": "{0} devices are reachable again.",
   "Open with": "Open with",
   "Browser (HTTP)": "Browser (HTTP)",
   "Browser (HTTPS)": "Browser (HTTPS)",
