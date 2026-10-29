@@ -1248,5 +1248,6 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "Dirección IPv4 o IPv6 de otro servidor para incluir en la comparación.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "Añade a la comparación el servidor que has escrito. Se permiten 6 como máximo.",
   "Takes this server out of the comparison.": "Quita este servidor de la comparación.",
-  "Remove": "Quitar"
+  "Remove": "Quitar",
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "Muestra los puertos TCP abiertos encontrados en el dispositivo. Pasa el cursor sobre una celda para ver la lista completa con los nombres de los servicios."
 }

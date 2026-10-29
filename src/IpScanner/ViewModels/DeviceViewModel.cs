@@ -26,6 +26,7 @@ public sealed class DeviceViewModel : ObservableObject
         _isPinned = isPinned;
         IpSortKey = Core.Net.IpAddressKey.TryParse(device.Ip, out var key) ? key : default;
         ServicesView = System.Windows.Data.CollectionViewSource.GetDefaultView(Services);
+        Services.CollectionChanged += (_, _) => { Raise(nameof(Ports)); Raise(nameof(PortsTip)); Raise(nameof(PortsSortKey)); };
         ServicesView.Filter = o => o is NetService s && ServiceSearch.Matches(s.Name, s.Port, _serviceFilterText);
     }
 
@@ -82,6 +83,12 @@ public sealed class DeviceViewModel : ObservableObject
         return _os;
     }
     /// <summary>Operating system estimate for the table, empty when nothing is known.</summary>
+    /// <summary>Open TCP ports for the table cell, ascending and cut with an ellipsis; a dash when none is known.</summary>
+    public string Ports => PortsSummary.Text(Services);
+    /// <summary>Full open TCP port list with service names for the cell tooltip, null when none is known.</summary>
+    public string? PortsTip => PortsSummary.Tip(Services);
+    /// <summary>Column sort key: count of open TCP ports, then the lowest port.</summary>
+    public long PortsSortKey => PortsSummary.SortKey(Services);
     public string Os => Core.Scanner.Os.OsDisplay.Text(CurrentOs());
     public string OsTip => Core.Scanner.Os.OsDisplay.Tip(CurrentOs());
     /// <summary>A muted device never shows the offline-red highlight -
