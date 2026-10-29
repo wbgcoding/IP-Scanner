@@ -7,10 +7,10 @@ namespace IpScanner.Tests.Core;
 public class LogRedactorTests
 {
     [Theory]
-    [InlineData("No such host is known: nas-ben.fritz.box", "No such host is known: <host>.box")]
+    [InlineData("No such host is known: nas-home.fritz.box", "No such host is known: <host>.box")]
     [InlineData("lookup of Printer-2.office.lan failed", "lookup of <host>.lan failed")]
     [InlineData("ping tv.home.arpa timed out", "ping <host>.home.arpa timed out")]
-    [InlineData("No such host is known. (nas-ben:443)", "No such host is known. (<host>:443)")]
+    [InlineData("No such host is known. (nas-home:443)", "No such host is known. (<host>:443)")]
     public void DeviceHostNames_AreRedacted_KeepingTheSuffixOrPort(string text, string expected) =>
         Assert.Equal(expected, LogRedactor.Redact(text, null, null));
 
@@ -68,7 +68,7 @@ public class LogRedactorTests
     [Fact]
     public void ShortProfilePath_IsReplaced()
         => Assert.Equal(@"copy %USERPROFILE%\AppData\Local\Temp\x failed",
-            LogRedactor.Redact(@"copy C:\Users\BENJAM~1\AppData\Local\Temp\x failed", @"C:\Users\Benjamin", "Benjamin", @"C:\Users\BENJAM~1"));
+            LogRedactor.Redact(@"copy C:\Users\JOHANN~1\AppData\Local\Temp\x failed", @"C:\Users\Johannes", "Johannes", @"C:\Users\JOHANN~1"));
 
     [Fact]
     public void MachineName_IsReplaced_AsAWholeWordOnly()
