@@ -93,11 +93,11 @@ public class ArchiveLayoutTests
             Assert.Equal(3, tabs.Items.Count);
             tabs.SelectedIndex = 2;
             page.UpdateLayout();
-            foreach (var name in new[] { "HistoryGrid", "TrendGrid" })
-            {
-                var grid = (DataGrid)page.FindName(name);
-                Assert.Contains(grid.Columns, c => c.Header is string h && h == Loc.ArchiveLatencyTrend && c.Width.IsAuto);
-            }
+            // The latency column keeps its own width in the history grid; the trend grid lets it take the rest.
+            var history = (DataGrid)page.FindName("HistoryGrid");
+            Assert.Contains(history.Columns, c => c.Header is string h && h == Loc.ArchiveLatencyTrend && c.Width.IsAuto);
+            var trend = (DataGrid)page.FindName("TrendGrid");
+            Assert.Contains(trend.Columns, c => c.Header is string h && h == Loc.ArchiveLatencyTrend && c.Width.IsStar);
             return Task.CompletedTask;
         });
     }
