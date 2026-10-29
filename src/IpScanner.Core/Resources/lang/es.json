@@ -1258,5 +1258,6 @@
   "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Muestra cuándo se vio el dispositivo en línea por última vez. Solo se recuerda mientras la base de datos de dispositivos conocidos esté activada.",
   "Private address": "Dirección privada",
   "Random MAC address the device picked itself (privacy feature of phones and laptops).": "Dirección MAC aleatoria que el propio dispositivo eligió (función de privacidad de móviles y portátiles).",
-  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "Número de pings por dispositivo. Se ajusta en el menú de ping de arriba a la derecha; -1 sigue haciendo ping hasta que se detenga."
+  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "Número de pings por dispositivo. Se ajusta en el menú de ping de arriba a la derecha; -1 sigue haciendo ping hasta que se detenga.",
+  "1 device online.": "1 dispositivo en línea."
 }

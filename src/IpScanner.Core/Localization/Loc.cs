@@ -938,7 +938,7 @@ public static class Loc
         "Starts the app straight into the tray without showing the window.");
     public static string TrayScanDoneTitle => S("Scan abgeschlossen", "Scan finished");
     public static string TrayScanDoneTextFmt => S("{0} Geräte online.", "{0} devices online.");
-    public static string TrayScanDoneText(int online) => string.Format(TrayScanDoneTextFmt, online);
+    public static string TrayScanDoneText(int online) => online == 1 ? TrayScanDoneOneText : string.Format(TrayScanDoneTextFmt, online);
     public static string TrayNewDeviceTitle => S("Neues Gerät gefunden", "New device found");
     public static string TrayNewDeviceTextFmt => S("{0} ({1}) ist neu im Netzwerk.", "{0} ({1}) is new on the network.");
     public static string TrayNewDeviceText(string ip, string name) => string.Format(TrayNewDeviceTextFmt, ip, name);
@@ -2553,4 +2553,7 @@ public static class Loc
     public static string TipDefaultPings => S(
         "Anzahl der Pings je Gerät. Wird im Ping-Dropdown oben rechts eingestellt; -1 pingt bis zum Stopp.",
         "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.");
+
+    // Batch Y1b
+    public static string TrayScanDoneOneText => S("1 Gerät online.", "1 device online.");
 }
