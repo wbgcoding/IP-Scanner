@@ -38,6 +38,10 @@ public static class OpenWithBuilder
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
 
+    /// <summary>Every port <see cref="PortOf"/> can return; the only ports whose refusal anyone asks about.</summary>
+    public static IReadOnlySet<int> MenuPorts { get; } =
+        new HashSet<int>(Enum.GetValues<OpenWithKind>().Select(PortOf));
+
     /// <summary>The launch for <paramref name="kind"/> on <paramref name="address"/>, or null when the
     /// address is not a plain unicast IP or the kind has no safe form for it. <paramref name="windowsDir"/>
     /// is the Windows folder the helper programs live in (injectable for tests).</summary>
