@@ -207,4 +207,15 @@ public class ArchiveSummaryTests
         // The merged run stands for two runs and is left out of the duration average.
         Assert.Equal(60, after.AvgDurationSeconds, 3);
     }
+
+    [Fact]
+    public void Summary_OnlineHeadline_SkipsANewerCancelledRun()
+    {
+        var db = NewDb();
+        Save(db, T0, Enumerable.Range(1, 40).Select(n => Dev(n, 10)).ToArray());
+        Save(db, T0.AddHours(1), [Dev(1, 10), Dev(2, 10), Dev(3, 10)], cancelled: true, seconds: 5);
+        var s = db.GetScanArchiveSummary();
+        Assert.Equal(40, s.LastRunOnline);
+        Assert.Equal(40, s.LastRunDevices);
+    }
 }
