@@ -47,7 +47,7 @@ public static class ConfigManager
     private static readonly string[] ToolsPages = { "WakeOnLan", "PortCheck", "DnsLookup", "PingRoute", "Calculator", "MacTool", "Certificate", "HostDiscovery", "ServiceDetection", "OsEstimate", "Checks", "ScanExport" };
 
     // Table columns that can be hidden - IP/status/hostname stay mandatory.
-    // "loss" and "jitter" are hidden by default (see ScanConfig.HiddenColumns).
+    // "jitter", "method" and "os" are hidden by default (see ScanConfig.HiddenColumns).
     private static readonly string[] OptionalColumnKeys =
         { "group", "avg", "min", "max", "last", "loss", "jitter", "progress", "mac", "vendor", "method" };
 
