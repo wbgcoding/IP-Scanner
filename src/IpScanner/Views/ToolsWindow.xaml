@@ -61,8 +61,14 @@
             </Grid>
         </Border>
 
-        <!-- Left tool list + right work area. -->
-        <DockPanel Grid.Row="1">
+        <!-- Left tool list + right work area. At a large text size on a small screen the window cannot
+             grow to its scaled minimum, so the area keeps that minimum and scrolls instead of clipping.
+             It fills the viewport otherwise, so the pages' star rows still stretch. -->
+        <ScrollViewer x:Name="ToolsScroll" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                      Focusable="False">
+        <DockPanel MinWidth="820" MinHeight="524"
+                   Width="{Binding ViewportWidth, ElementName=ToolsScroll}"
+                   Height="{Binding ViewportHeight, ElementName=ToolsScroll}">
             <ListBox x:Name="ToolsNavList" ToolTip="{loc:L TipToolsNav}" DockPanel.Dock="Left" Width="180" Margin="10,10,4,10"
                      Style="{StaticResource SettingsNavList}" ItemContainerStyle="{StaticResource SettingsNavItem}"
                      SelectionChanged="OnToolsNavChanged">
@@ -170,5 +176,6 @@
             <ContentControl x:Name="ToolContent"/>
         </DockPanel>
         </DockPanel>
+        </ScrollViewer>
     </Grid>
 </Window>
