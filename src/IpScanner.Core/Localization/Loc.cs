@@ -2558,4 +2558,9 @@ public static class Loc
     public static string TrayScanDoneOneText => S("1 Gerät online.", "1 device online.");
     public static string DevicePingContinuous => S("Dauerping", "Continuous ping");
     public static string DeviceTraceRoute => S("Weg zum Ziel", "Trace route");
+    public static string DeviceAlertOffline => S("Bei Ausfall melden", "Alert when offline");
+    public static string TrayDeviceLostTitle => S("Gerät nicht erreichbar", "Device unreachable");
+    public static string TrayDeviceBackTitle => S("Gerät wieder erreichbar", "Device reachable again");
+    public static string TrayDeviceLostTextFmt => S("{0} ist nicht mehr erreichbar.", "{0} is no longer reachable.");
+    public static string TrayDeviceBackTextFmt => S("{0} ist wieder erreichbar (nach {1}).", "{0} is reachable again (after {1}).");
 }

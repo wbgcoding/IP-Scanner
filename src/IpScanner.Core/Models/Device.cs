@@ -34,6 +34,38 @@ public sealed class Device
     /// switched off at night). Still pinged normally; only presentation and the
     /// recheck cadence change.</summary>
     public bool IsMuted { get; set; }
+
+    private readonly Scanner.OfflineAlertTracker _alertTracker = new();
+    private readonly Queue<Scanner.OfflineAlert> _alerts = new();
+    private bool _alertOffline;
+
+    /// <summary>Mirrors the overrides-store "alert when offline" flag. While on, every ping feeds
+    /// an <see cref="Scanner.OfflineAlertTracker"/> and its alerts wait for <see cref="TryTakeAlert"/>;
+    /// switching it off drops a running outage and anything not yet taken.</summary>
+    public bool AlertOffline
+    {
+        get { lock (this) return _alertOffline; }
+        set
+        {
+            lock (this)
+            {
+                if (_alertOffline == value) return;
+                _alertOffline = value;
+                if (!value) { _alertTracker.Reset(); _alerts.Clear(); }
+            }
+        }
+    }
+
+    /// <summary>Takes the oldest pending offline/back alert, false when there is none.</summary>
+    public bool TryTakeAlert(out Scanner.OfflineAlert alert)
+    {
+        lock (this)
+        {
+            if (_alerts.Count > 0) { alert = _alerts.Dequeue(); return true; }
+            alert = default;
+            return false;
+        }
+    }
     /// <summary>Set when a second, different MAC answered for this same
     /// IP during the current run (ScanEngine.ApplyEnrichRank) - a same-or-worse-
     /// ranked resolver disagreeing with the already-applied MAC.</summary>
@@ -109,6 +141,8 @@ public sealed class Device
         lock (this)   // recheck and analysis threads may touch the same device
         {
             if (countsTowardTarget) CurrentPings++;
+            if (_alertOffline && _alertTracker.Observe(r.Success, Environment.TickCount64) is { } alert)
+                _alerts.Enqueue(alert);
             if (r.Success)
             {
                 Seen = true;

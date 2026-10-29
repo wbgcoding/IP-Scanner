@@ -1261,5 +1261,10 @@
   "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "Количество пингов на устройство. Задаётся в выпадающем списке пинга справа вверху; -1 пингует до остановки.",
   "1 device online.": "В сети 1 устройство.",
   "Continuous ping": "Непрерывный ping",
-  "Trace route": "Трассировка маршрута"
+  "Trace route": "Трассировка маршрута",
+  "Alert when offline": "Уведомлять при отключении",
+  "Device unreachable": "Устройство недоступно",
+  "Device reachable again": "Устройство снова доступно",
+  "{0} is no longer reachable.": "{0} больше недоступно.",
+  "{0} is reachable again (after {1}).": "{0} снова доступно (через {1})."
 }

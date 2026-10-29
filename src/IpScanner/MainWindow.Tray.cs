@@ -37,6 +37,21 @@ public partial class MainWindow : Window
 
         // Balloon on scan end / newly found device.
         _vm.NewUnknownDeviceFound += OnNewUnknownDevice;
+        _vm.DeviceAlert += OnDeviceAlert;
+    }
+
+    /// <summary>Balloon for a watched device that stopped answering or answers again. Shown while
+    /// either tray notification setting is on; the log line is written regardless.</summary>
+    private void OnDeviceAlert(string name, Core.Scanner.OfflineAlert alert)
+    {
+        if (!(_config.NotifyScanDone || _config.NotifyNewDevice) || _tray is null) return;
+        UpdateTrayVisibility();
+        bool lost = alert.Kind == Core.Scanner.OfflineAlertKind.Lost;
+        _tray.ShowBalloonTip(6000,
+            lost ? Loc.TrayDeviceLostTitle : Loc.TrayDeviceBackTitle,
+            lost ? string.Format(Loc.TrayDeviceLostTextFmt, name)
+                 : string.Format(Loc.TrayDeviceBackTextFmt, name, Core.NumberFormat.Duration(alert.Down)),
+            lost ? System.Windows.Forms.ToolTipIcon.Warning : System.Windows.Forms.ToolTipIcon.Info);
     }
 
     private void OnNewUnknownDevice(ViewModels.DeviceViewModel vm)
