@@ -16,8 +16,12 @@ public static class CsvExporter
 
     public static string Write(IEnumerable<Device> devices, string outputDir,
                                string timestamp, string gatewaySlug,
-                               IReadOnlyDictionary<string, IReadOnlyList<NetService>>? ports = null)
+                               IReadOnlyDictionary<string, IReadOnlyList<NetService>>? ports = null,
+                               char? delimiter = null)
     {
+        // GUI exports follow the list separator of the user's culture; a caller that
+        // needs a fixed data format (the CLI) passes ','.
+        var sep = delimiter ?? ListSeparator();
         outputDir = IpScanner.Core.Models.ScanConfig.ResolvePath(outputDir);
         // Restrict the reports folder to this Windows account before the
         // first file lands in it, same as the config/database folders.
@@ -26,31 +30,30 @@ public static class CsvExporter
         var path = Path.Combine(outputDir, $"network_scan_{timestamp}{suffix}.csv");
 
         var sb = new StringBuilder();
-        sb.AppendLine(string.Join(',', Columns));
+        sb.AppendLine(string.Join(sep, Columns));
         foreach (var d in devices.OrderBy(d => d.Ip, Net.IpAddressKey.TextComparer))
         {
             if (!d.IsOnline && !d.FromDb && !d.Seen) continue;
             string Num(double? v) => v?.ToString("F2", CultureInfo.InvariantCulture) ?? "";
             var target = d.TargetPings == ScanConfig.InfinitePingCount ? "∞" : d.TargetPings.ToString();
-            // "80/TCP HTTP; 443/TCP HTTPS" - "; " never collides with the
-            // CSV delimiter, so the whole field stays a single unquoted-safe cell.
+            // "80/TCP HTTP; 443/TCP HTTPS": Esc quotes the cell when ';' is the delimiter.
             var openPorts = ports is not null && ports.TryGetValue(d.Ip, out var found) && found.Count > 0
                 ? string.Join("; ", found.OrderBy(s => s.Port).Select(s => $"{s.PortLabel} {s.DisplayName}"))
                 : "";
-            sb.AppendLine(string.Join(',', new[]
+            sb.AppendLine(string.Join(sep, new[]
             {
-                Esc(d.Ip),
+                Esc(d.Ip, sep),
                 d.IsListed ? "LISTED" : d.IsOnline ? "ONLINE" : "OFFLINE",
-                Esc(DefuseFormula(d.Hostname == Device.Unknown ? "" : d.Hostname ?? "")),
+                Esc(DefuseFormula(d.Hostname == Device.Unknown ? "" : d.Hostname ?? ""), sep),
                 ExportGroup(d.GroupId),
-                Esc(MacVendorLookup.Instance.Lookup(d.Mac) ?? ""),
-                Esc(d.Mac == Device.Unknown ? "" : d.Mac ?? ""),
+                Esc(MacVendorLookup.Instance.Lookup(d.Mac) ?? "", sep),
+                Esc(d.Mac == Device.Unknown ? "" : d.Mac ?? "", sep),
                 Num(d.AvgMs), Num(d.MinMs), Num(d.MaxMs), Num(d.LastMs),
                 d.CurrentPings.ToString(), target, d.FromDb ? "1" : "0",
-                Esc(DefuseFormula(openPorts)),
-                Esc(d.DiscoveryMethod ?? ""),
-                Esc(Scanner.Os.OsDisplay.ForExport(d, ports)),
-                Esc(DefuseFormula(d.Note ?? "")),
+                Esc(DefuseFormula(openPorts), sep),
+                Esc(d.DiscoveryMethod ?? "", sep),
+                Esc(Scanner.Os.OsDisplay.ForExport(d, ports), sep),
+                Esc(DefuseFormula(d.Note ?? ""), sep),
             }));
         }
         IpScanner.Core.Data.FileProtection.WriteReport(path, sb.ToString(), Encoding.UTF8, ownedDir);
@@ -60,9 +63,14 @@ public static class CsvExporter
     /// <summary>Group numbering in exports starts at 0 = ungrouped, 1 = gateway, ...</summary>
     internal static string ExportGroup(int groupId) => groupId <= 1 ? "0" : (groupId - 1).ToString();
 
+    /// <summary>The list separator of the current culture (";" on de-DE), the delimiter a
+    /// spreadsheet expects from a double-clicked file; comma when the culture gives none.</summary>
+    internal static char ListSeparator() =>
+        CultureInfo.CurrentCulture.TextInfo.ListSeparator is { Length: > 0 } s ? s[0] : ',';
+
     /// <summary>RFC 4180: quote fields containing delimiter, quote or newline.</summary>
-    internal static string Esc(string field) =>
-        field.IndexOfAny(new[] { ',', '"', '\n', '\r' }) < 0
+    internal static string Esc(string field, char delimiter = ',') =>
+        field.IndexOfAny(new[] { delimiter, '"', '\n', '\r' }) < 0
             ? field
             : "\"" + field.Replace("\"", "\"\"") + "\"";
 
