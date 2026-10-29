@@ -547,6 +547,7 @@ public sealed class MainViewModel : ObservableObject
                     ApplyPinnedName(d);
                     ApplyColorOverride(d);
                     ApplyMuteOverride(d);
+                    ApplyAlertOverride(d);
                 }
                 vm.Refresh();
             }
@@ -632,6 +633,41 @@ public sealed class MainViewModel : ObservableObject
     }
 
     public bool IsMuted(DeviceViewModel vm) => vm.Model.IsMuted;
+
+    /// <summary>Mirrors the overrides-store "alert when offline" flag onto the device,
+    /// where the ping path reads it.</summary>
+    private void ApplyAlertOverride(Device d) =>
+        d.AlertOffline = _overrides.Get(StableMac(d), d.Ip)?.AlertOffline == true;
+
+    /// <summary>"Alert when offline" context-menu toggle.</summary>
+    public void SetAlertOffline(DeviceViewModel vm, bool value)
+    {
+        var d = vm.Model;
+        _overrides.SetAlertOffline(StableMac(d), d.Ip, value);
+        d.AlertOffline = value;
+    }
+
+    public bool IsAlertOffline(DeviceViewModel vm) => vm.Model.AlertOffline;
+
+    /// <summary>A watched device stopped answering or came back: the display name and the alert.
+    /// Raised on the UI thread.</summary>
+    public event Action<string, OfflineAlert>? DeviceAlert;
+
+    /// <summary>Hands the alerts a ping queued on <paramref name="d"/> to the log and the UI.</summary>
+    private void DrainAlerts(Device d)
+    {
+        while (d.TryTakeAlert(out var alert))
+        {
+            string name;
+            lock (d) name = string.IsNullOrWhiteSpace(d.Hostname) || d.Hostname == Device.Unknown ? d.Ip : $"{d.Hostname} ({d.Ip})";
+            if (alert.Kind == OfflineAlertKind.Lost)
+                Core.Log.Warn(Core.LogArea.Scan, $"Watched device {d.Ip} stopped answering");
+            else
+                Core.Log.Info(Core.LogArea.Scan, $"Watched device {d.Ip} answers again after {Core.NumberFormat.Duration(alert.Down)}");
+            var a = alert;
+            _dispatch(() => DeviceAlert?.Invoke(name, a));
+        }
+    }
 
     /// <summary>The ports shown for a row, unless they are a stored result older than the scan
     /// the report is about - a closed port must not be printed as open.</summary>
@@ -1449,12 +1485,13 @@ public sealed class MainViewModel : ObservableObject
         // Self values are re-forced every ping (enrichment must not win on the
         // own row); lock(d) serializes with the engine's enrichment writers.
         if (d.Ip == _selfIp) lock (d) ApplySelfInfo(d);
+        DrainAlerts(d);
         if (!d.IsOnline && !d.Seen && !d.FromDb) return;
 
         // Known rows are only marked dirty (flushed by the throttled aggregate
         // pass) - dispatching per ping floods the UI thread and lags the table.
         // Most override metadata is stable per row. A late MAC can reveal a
-        // MAC-keyed note after row creation, so reconcile that identity once.
+        // MAC-keyed note, mute or alert flag after row creation, so reconcile that identity once.
         DeviceViewModel? tracked;
         lock (_byIpLock) _byIp.TryGetValue(d.Ip, out tracked);
         if (tracked is not null)
@@ -1469,6 +1506,8 @@ public sealed class MainViewModel : ObservableObject
                         {
                             var mac = StableMac(d);
                             if (mac == current.AppliedNoteMac) return;
+                            ApplyMuteOverride(d);
+                            ApplyAlertOverride(d);
                             ApplyNoteOverride(d);
                             current.AppliedNoteMac = mac;
                         }
@@ -1490,6 +1529,7 @@ public sealed class MainViewModel : ObservableObject
                     ApplyHostnameOverride(d);
                     ApplyColorOverride(d);
                     ApplyMuteOverride(d);
+                    ApplyAlertOverride(d);
                     ApplyNoteOverride(d);
                 }
                 var vm = new DeviceViewModel(d, d.Ip == _selfIp, _pinned.Contains(d.Ip),
@@ -1542,6 +1582,7 @@ public sealed class MainViewModel : ObservableObject
                     ApplyHostnameOverride(dev);
                     ApplyColorOverride(dev);
                     ApplyMuteOverride(dev);
+                    ApplyAlertOverride(dev);
                     ApplyNoteOverride(dev);
                 }
                 if (!_byIp.ContainsKey(dev.Ip))

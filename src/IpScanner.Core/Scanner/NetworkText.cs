@@ -14,8 +14,13 @@ internal static class NetworkText
         var clean = new StringBuilder(s.Length);
         foreach (var c in s)
             if (allowLineBreaks && c == '\n') clean.Append(c);
-            else if (!char.IsControl(c)) clean.Append(c);
+            else if (!char.IsControl(c) && !IsBidiControl(c)) clean.Append(c);
         var result = clean.ToString().Trim();
         return result.Length > maxLen ? result[..maxLen] : result;
     }
+
+    /// <summary>Direction marks and overrides (U+200E/F, U+202A-E, U+2066-9) that reorder the text around
+    /// them: a device name must not be able to flip how the words next to it read.</summary>
+    private static bool IsBidiControl(char c) =>
+        c is '‎' or '‏' or (>= '‪' and <= '‮') or (>= '⁦' and <= '⁩');
 }

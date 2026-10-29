@@ -176,7 +176,7 @@ public class LocalizationTests
     // Product names, protocol and format names, key caps and operating systems that read the same in every language.
     private static readonly HashSet<string> KeptInEnglish = new(StringComparer.Ordinal)
     {
-        "Ctrl", "Del", "Ping", "DNS", "MAC", "N/A", "OK", "Windows", "Linux/Unix", "ULA", "DHCP discover", "TTL",
+        "Ctrl", "Del", "Ping", "DNS", "MAC", "N/A", "OK", "Windows", "Linux/Unix", "ULA", "DHCP discover", "TTL", "SSH",
     };
 
     // Words a Latin-script language spells exactly like English (or borrows as is), per language.

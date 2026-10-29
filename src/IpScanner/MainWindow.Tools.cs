@@ -29,9 +29,43 @@ public partial class MainWindow : Window
 
     private void OnToolsClick(object sender, RoutedEventArgs e)
     {
-        if (_toolsWindow is not null) { _toolsWindow.Activate(); return; }
-        _toolsWindow = new ToolsWindow(this) { Owner = this };
-        _toolsWindow.Closed += (_, _) => _toolsWindow = null;
-        _toolsWindow.Show();
+        var window = OpenToolsWindow();
+        var selected = DeviceGrid.SelectedItem as ViewModels.DeviceViewModel;
+        if (selected is not null) window.PrefillDevice(selected.Ip, selected.Model.Mac);
+    }
+
+    /// <summary>The one tools window: created on first use, brought to the front afterwards.</summary>
+    private ToolsWindow OpenToolsWindow()
+    {
+        if (_toolsWindow is not null) { _toolsWindow.Activate(); return _toolsWindow; }
+        var window = new ToolsWindow(this) { Owner = this };
+        _toolsWindow = window;
+        window.Closed += (_, _) => _toolsWindow = null;
+        window.Show();
+        return window;
+    }
+
+    /// <summary>Context menu: opens the ping page on this device and starts the continuous ping.</summary>
+    private async void OnDeviceContinuousPing(object sender, RoutedEventArgs e)
+    {
+        await UiGuard.Run(async () =>
+        {
+            if (MenuVm(sender) is not { } vm) return;
+            var window = OpenToolsWindow();
+            window.PrefillDevice(vm.Ip, vm.Model.Mac);
+            await window.StartPingForAsync(vm.Ip);
+        }, Core.Localization.Loc.Tools);
+    }
+
+    /// <summary>Context menu: opens the ping page on this device and starts the route trace.</summary>
+    private async void OnDeviceTraceRoute(object sender, RoutedEventArgs e)
+    {
+        await UiGuard.Run(async () =>
+        {
+            if (MenuVm(sender) is not { } vm) return;
+            var window = OpenToolsWindow();
+            window.PrefillDevice(vm.Ip, vm.Model.Mac);
+            await window.StartRouteForAsync(vm.Ip);
+        }, Core.Localization.Loc.Tools);
     }
 }

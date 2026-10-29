@@ -1,0 +1,76 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using IpScanner.Core.Models;
+using IpScanner.Core.Scanner;
+using IpScanner.ViewModels;
+using Xunit;
+
+namespace IpScanner.Tests.Core;
+
+public class SessionPortFactsTests
+{
+    private sealed class Scripted : IPortStrategy
+    {
+        private readonly Func<int, PortResult> _answer;
+        public Scripted(Func<int, PortResult> answer) => _answer = answer;
+        public NetProtocol Protocol => NetProtocol.Tcp;
+        public Task<PortResult?> ProbeAsync(string ip, int port, string name, CancellationToken ct)
+            => Task.FromResult<PortResult?>(_answer(port));
+    }
+
+    private static Task Scan(string ip, Func<int, PortResult> answer, params int[] ports)
+        => PortScanEngine.RunCoreAsync(ip, ports, new Scripted(answer), Array.Empty<int>(), null, null, null,
+            CancellationToken.None, null);
+
+    private static PortResult R(int port, PortState state, string reason)
+        => new(port, NetProtocol.Tcp, state, reason);
+
+    [Fact]
+    public async Task OnlyResetOrRefusal_CountsAsClosed_SilenceDoesNot()
+    {
+        const string ip = "192.0.2.201";
+        await Scan(ip, p => p switch
+        {
+            22 => R(p, PortState.Closed, PortReason.ConnectRefused),
+            80 => R(p, PortState.Closed, PortReason.Rst),
+            443 => R(p, PortState.Filtered, PortReason.NoResponse),
+            445 => R(p, PortState.Filtered, PortReason.IcmpUnreachable),
+            _ => R(p, PortState.Open, PortReason.Connected),
+        }, 22, 80, 443, 445, 3389);
+
+        Assert.True(SessionPortFacts.IsClosed(ip, 22));
+        Assert.True(SessionPortFacts.IsClosed(ip, 80));
+        Assert.False(SessionPortFacts.IsClosed(ip, 443));
+        Assert.False(SessionPortFacts.IsClosed(ip, 445));
+        Assert.False(SessionPortFacts.IsClosed(ip, 3389));
+    }
+
+    [Fact]
+    public async Task ALaterScanThatDoesNotSeeTheRefusal_ClearsTheFact()
+    {
+        const string ip = "192.0.2.202";
+        await Scan(ip, p => R(p, PortState.Closed, PortReason.ConnectRefused), 443);
+        Assert.True(SessionPortFacts.IsClosed(ip, 443));
+        await Scan(ip, p => R(p, PortState.Filtered, PortReason.NoResponse), 443);
+        Assert.False(SessionPortFacts.IsClosed(ip, 443));
+    }
+
+    [Fact]
+    public void Row_IsKnownClosedOnlyAfterARefusalInThisSession_NeverFromAStoredResult()
+    {
+        const string ip = "192.0.2.203";
+        var vm = new DeviceViewModel(new Device(ip));
+        // A complete result from an older session lacking 443 (or a filtered port) proves nothing.
+        vm.Services.ReplaceAll(new[] { new NetService("SSH", 22, NetProtocol.Tcp) });
+        Assert.False(vm.IsPortKnownClosed(443));
+
+        SessionPortFacts.Record(new PortResult(443, NetProtocol.Tcp, PortState.Closed, PortReason.ConnectRefused) { Ip = ip });
+        Assert.True(vm.IsPortKnownClosed(443));
+
+        // Listed as open now (e.g. a later full sweep merged it in): enabled again.
+        vm.Services.ReplaceAll(new[] { new NetService("HTTPS", 443, NetProtocol.Tcp) });
+        Assert.False(vm.IsPortKnownClosed(443));
+    }
+}

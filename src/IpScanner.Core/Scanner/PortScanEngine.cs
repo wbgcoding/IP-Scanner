@@ -107,6 +107,7 @@ public static class PortScanEngine
                             if (result is null) continue;
                             result = result with { Ip = ip };
                             results.Add(result);
+                            SessionPortFacts.Record(result);
                             onResult?.Invoke(result);
                         }
                         catch (RawScanException ex)

@@ -56,6 +56,16 @@ public static class NumberFormat
         return string.Format(Loc.EtaHoursFmt, Math.Ceiling(remaining.TotalHours).ToString("0", c));
     }
 
+    /// <summary>Elapsed time, language neutral: "0:42", "12:05", "3:07:09" (hours keep growing past a day).</summary>
+    public static string Duration(TimeSpan span)
+    {
+        if (span < TimeSpan.Zero) span = TimeSpan.Zero;
+        long hours = (long)span.TotalHours;
+        return hours > 0
+            ? $"{hours}:{span.Minutes:00}:{span.Seconds:00}"
+            : $"{span.Minutes}:{span.Seconds:00}";
+    }
+
     /// <summary>File size: 980 B, 12,3 KB, 4,2 MB, 1,1 GB.</summary>
     public static string Bytes(long b)
     {
