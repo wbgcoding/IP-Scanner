@@ -6,7 +6,6 @@
   "Service": "サービス",
   "known_devices.csv": "既知のデバイス.csv",
   "Scan archive": "スキャン履歴",
-  "Show range": "期間を表示",
   "All": "すべて",
   "Scan runs": "スキャン一覧",
   "Date": "日時",
@@ -36,8 +35,6 @@
   "Select a device above to see how it did in each run.": "上でデバイスを選ぶと、各実行での結果が表示されます。",
   "No scan runs in this range yet. Start a scan or choose another range.": "この期間にスキャンはありません。スキャンを開始するか、別の期間を選択してください。",
   "{0} runs, {1} scan samples": "{0} 件のスキャン、{1} 件のサンプル",
-  "{0} of {1} devices online · {2} pings succeeded, {3} failed · Networks: {4}": "{1} 台中 {0} 台がオンライン · Ping 成功 {2} 件、失敗 {3} 件 · ネットワーク: {4}",
-  "Database size: {0:0.0} MiB": "データベースのサイズ: {0:0.0} MiB",
   "Permanently delete the scan run from {0} on network {1}?": "{0} のネットワーク {1} のスキャンを完全に削除しますか？",
   "Permanently delete {0} scan runs from {1:d} through {2:d}?": "{1:d} から {2:d} の {0} 件のスキャンを完全に削除しますか？",
   "Compact up to {0} scan runs older than {1} days into daily summaries? Individual run details will be lost.": "{1} 日より古い最大 {0} 件のスキャンを日別の集計にまとめますか？個別の詳細は失われます。",
@@ -905,8 +902,6 @@
   "Narrows the service list to entries that contain this text.": "このテキストを含むサービスだけに一覧を絞り込みます。",
   "First day of the range to show. Leave empty to start at the oldest run.": "表示する期間の開始日です。空欄にすると最も古い記録から表示します。",
   "Last day of the range to show. Leave empty to include the newest run.": "表示する期間の最終日です。空欄にすると最新の記録まで含めます。",
-  "Lists only the runs inside the chosen days. Delete range acts on exactly these runs.": "選んだ日付の範囲にある記録だけを一覧表示します。「期間を削除」はまさにこれらの記録が対象です。",
-  "Clears both dates and lists every stored run again.": "両方の日付を消去して、保存済みのすべての記録を再び表示します。",
   "Shows or hides the comparison of two runs: which devices appeared, disappeared or changed latency.": "2つの記録の比較を表示または非表示にします。新しく現れた機器、消えた機器、遅延が変わった機器が分かります。",
   "The archive is empty. Starts a scan whose result can then appear in the archive.": "アーカイブは空です。スキャンを開始すると、その結果がアーカイブに表示されるようになります。",
   "The earlier run to compare against.": "比較の基準にする、より前の記録です。",
@@ -1281,5 +1276,9 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "比較に加える別のサーバーの IPv4 または IPv6 アドレス。",
   "Adds the server you typed to the comparison. At most 6 are possible.": "入力したサーバーを比較に追加します。最大 6 台までです。",
   "Takes this server out of the comparison.": "このサーバーを比較から外します。",
-  "Remove": "削除"
+  "Remove": "削除",
+  "Shows only the runs of the last 24 hours and clears both date fields.": "直近24時間のスキャンだけを表示し、両方の日付欄を空にします。",
+  "Shows only the runs of the last 7 days and clears both date fields.": "直近7日間のスキャンだけを表示し、両方の日付欄を空にします。",
+  "Shows only the runs of the last 30 days and clears both date fields.": "直近30日間のスキャンだけを表示し、両方の日付欄を空にします。",
+  "Shows every stored run and clears both date fields.": "保存されているすべてのスキャンを表示し、両方の日付欄を空にします。"
 }

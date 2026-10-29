@@ -6,7 +6,6 @@
   "Service": "Служба",
   "known_devices.csv": "известные_устройства.csv",
   "Scan archive": "Архив сканирований",
-  "Show range": "Показать период",
   "All": "Все",
   "Scan runs": "Сканирования",
   "Date": "Дата",
@@ -36,8 +35,6 @@
   "Select a device above to see how it did in each run.": "Выберите устройство выше, чтобы увидеть его результат в каждом запуске.",
   "No scan runs in this range yet. Start a scan or choose another range.": "За этот период сканирований нет. Запустите сканирование или выберите другой период.",
   "{0} runs, {1} scan samples": "Сканирований: {0}, образцов: {1}",
-  "{0} of {1} devices online · {2} pings succeeded, {3} failed · Networks: {4}": "В сети {0} из {1} устройств · успешных пингов: {2}, неудачных: {3} · Сети: {4}",
-  "Database size: {0:0.0} MiB": "Размер базы данных: {0:0.0} МиБ",
   "Permanently delete the scan run from {0} on network {1}?": "Безвозвратно удалить сканирование от {0} в сети {1}?",
   "Permanently delete {0} scan runs from {1:d} through {2:d}?": "Безвозвратно удалить {0} сканирований с {1:d} по {2:d}?",
   "Compact up to {0} scan runs older than {1} days into daily summaries? Individual run details will be lost.": "Объединить до {0} сканирований старше {1} дней в сводки по дням? Подробности отдельных сканирований будут потеряны.",
@@ -905,8 +902,6 @@
   "Narrows the service list to entries that contain this text.": "Оставляет в списке служб только записи, содержащие этот текст.",
   "First day of the range to show. Leave empty to start at the oldest run.": "Первый день отображаемого периода. Оставьте пустым, чтобы начать с самого старого запуска.",
   "Last day of the range to show. Leave empty to include the newest run.": "Последний день отображаемого периода. Оставьте пустым, чтобы включить самый новый запуск.",
-  "Lists only the runs inside the chosen days. Delete range acts on exactly these runs.": "Показывает только запуски в выбранном диапазоне дат. Удаление периода затрагивает именно эти запуски.",
-  "Clears both dates and lists every stored run again.": "Очищает обе даты и снова показывает все сохранённые запуски.",
   "Shows or hides the comparison of two runs: which devices appeared, disappeared or changed latency.": "Показывает или скрывает сравнение двух запусков: какие устройства появились, исчезли или изменили задержку.",
   "The archive is empty. Starts a scan whose result can then appear in the archive.": "Архив пуст. Запускает сканирование, результат которого затем может появиться в архиве.",
   "The earlier run to compare against.": "Более ранний запуск, с которым сравнивают.",
@@ -1281,5 +1276,9 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "Адрес IPv4 или IPv6 ещё одного сервера для сравнения.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "Добавляет введённый сервер к сравнению. Не более 6.",
   "Takes this server out of the comparison.": "Убирает этот сервер из сравнения.",
-  "Remove": "Убрать"
+  "Remove": "Убрать",
+  "Shows only the runs of the last 24 hours and clears both date fields.": "Показывает только запуски за последние 24 часа и очищает обе даты.",
+  "Shows only the runs of the last 7 days and clears both date fields.": "Показывает только запуски за последние 7 дней и очищает обе даты.",
+  "Shows only the runs of the last 30 days and clears both date fields.": "Показывает только запуски за последние 30 дней и очищает обе даты.",
+  "Shows every stored run and clears both date fields.": "Показывает все сохранённые запуски и очищает обе даты."
 }

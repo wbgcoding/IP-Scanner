@@ -6,7 +6,6 @@
   "Service": "الخدمة",
   "known_devices.csv": "الأجهزة_المعروفة.csv",
   "Scan archive": "أرشيف المسح",
-  "Show range": "عرض الفترة",
   "All": "الكل",
   "Scan runs": "عمليات المسح",
   "Date": "التاريخ",
@@ -36,8 +35,6 @@
   "Select a device above to see how it did in each run.": "اختر جهازًا أعلاه لرؤية نتيجته في كل عملية.",
   "No scan runs in this range yet. Start a scan or choose another range.": "لا توجد عمليات مسح في هذه الفترة. ابدأ مسحًا أو اختر فترة أخرى.",
   "{0} runs, {1} scan samples": "{0} عمليات مسح، {1} عينات",
-  "{0} of {1} devices online · {2} pings succeeded, {3} failed · Networks: {4}": "{0} من أصل {1} أجهزة متصلة · نجح {2} طلب ping وفشل {3} · الشبكات: {4}",
-  "Database size: {0:0.0} MiB": "حجم قاعدة البيانات: {0:0.0} MiB",
   "Permanently delete the scan run from {0} on network {1}?": "هل تريد حذف مسح {0} على الشبكة {1} نهائيًا؟",
   "Permanently delete {0} scan runs from {1:d} through {2:d}?": "هل تريد حذف {0} عمليات مسح من {1:d} إلى {2:d} نهائيًا؟",
   "Compact up to {0} scan runs older than {1} days into daily summaries? Individual run details will be lost.": "هل تريد دمج ما يصل إلى {0} عمليات مسح أقدم من {1} يوم في ملخصات يومية؟ ستفقد تفاصيل كل مسح.",
@@ -905,8 +902,6 @@
   "Narrows the service list to entries that contain this text.": "يحصر قائمة الخدمات في الإدخالات التي تحتوي على هذا النص.",
   "First day of the range to show. Leave empty to start at the oldest run.": "اليوم الأول من النطاق المعروض. اتركه فارغاً للبدء من أقدم عملية.",
   "Last day of the range to show. Leave empty to include the newest run.": "اليوم الأخير من النطاق المعروض. اتركه فارغاً لتضمين أحدث عملية.",
-  "Lists only the runs inside the chosen days. Delete range acts on exactly these runs.": "يعرض فقط العمليات ضمن الأيام المختارة. يعمل حذف النطاق على هذه العمليات بالضبط.",
-  "Clears both dates and lists every stored run again.": "يمسح التاريخين ويعرض كل العمليات المحفوظة من جديد.",
   "Shows or hides the comparison of two runs: which devices appeared, disappeared or changed latency.": "يُظهر مقارنة عمليتين أو يخفيها: الأجهزة التي ظهرت أو اختفت أو تغيّر زمن استجابتها.",
   "The archive is empty. Starts a scan whose result can then appear in the archive.": "الأرشيف فارغ. يبدأ فحصاً يمكن أن تظهر نتيجته بعد ذلك في الأرشيف.",
   "The earlier run to compare against.": "العملية الأقدم التي تُجرى المقارنة معها.",
@@ -1281,5 +1276,9 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "عنوان IPv4 أو IPv6 لخادم إضافي يُدرج في المقارنة.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "يضيف الخادم الذي كتبته إلى المقارنة. الحد الأقصى 6 خوادم.",
   "Takes this server out of the comparison.": "يزيل هذا الخادم من المقارنة.",
-  "Remove": "إزالة"
+  "Remove": "إزالة",
+  "Shows only the runs of the last 24 hours and clears both date fields.": "يعرض فقط عمليات الفحص خلال آخر 24 ساعة ويمسح حقلي التاريخ.",
+  "Shows only the runs of the last 7 days and clears both date fields.": "يعرض فقط عمليات الفحص خلال آخر 7 أيام ويمسح حقلي التاريخ.",
+  "Shows only the runs of the last 30 days and clears both date fields.": "يعرض فقط عمليات الفحص خلال آخر 30 يومًا ويمسح حقلي التاريخ.",
+  "Shows every stored run and clears both date fields.": "يعرض كل عمليات الفحص المحفوظة ويمسح حقلي التاريخ."
 }
