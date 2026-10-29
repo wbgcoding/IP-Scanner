@@ -50,6 +50,7 @@ public partial class ArchivePage
     {
         _comparing = on;
         MainArea.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
+        OverviewScroll.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
         FilterBar.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
         CompareArea.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
         ManagementRow.Visibility = on ? Visibility.Collapsed : Visibility.Visible;
@@ -182,11 +183,12 @@ public partial class ArchivePage
     }
 
     /// <summary>Surface tool: selects a run and one of its devices, as a click would.</summary>
-    internal async Task ReviewSelectAsync(int run, int device)
+    internal async Task ReviewSelectAsync(int run, int device, int tab = -1)
     {
         RunsGrid.SelectedIndex = run;
         await Task.Delay(400);
-        if (DevicesGrid.Items.Count > device) DevicesGrid.SelectedIndex = device;
+        if (device >= 0 && DevicesGrid.Items.Count > device) DevicesGrid.SelectedIndex = device;
+        if (tab >= 0) DetailTabs.SelectedIndex = tab;
     }
 
     /// <summary>Surface tool: opens the comparison view.</summary>

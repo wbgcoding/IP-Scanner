@@ -20,10 +20,17 @@ public partial class ArchivePage : UserControl
     private ScanConfig? _config;
     private IReadOnlyList<ArchivedScan> _scans = [];
     private ScanArchiveStatistics? _statistics;
+    private ArchiveSummary _summary = ArchiveSummary.Empty;
+    private long _dbBytes;
     private bool _busy;
+    private bool _reloadPending;
     private bool _lastLoadOk;
+    private bool _suppressRange;
     private int _selectionVersion;
     private int _trendVersion;
+    private IReadOnlyList<DeviceRow> _deviceRows = [];
+    private IReadOnlyList<PortRow> _portRows = [];
+    private IReadOnlyList<HistoryRow> _historyRows = [];
 
     public event EventHandler? CloseRequested;
     public event EventHandler? StartScanRequested;
@@ -34,11 +41,19 @@ public partial class ArchivePage : UserControl
     public async Task OpenAsync(ScanConfig config)
     {
         _config = config;
-        FromDate.SelectedDate = null;
-        ToDate.SelectedDate = null;
+        _suppressRange = true;
+        try
+        {
+            FromDate.SelectedDate = null;
+            ToDate.SelectedDate = null;
+            SearchBox.Text = "";
+            _quick = QuickRange.All;
+            SyncQuickButtons();
+        }
+        finally { _suppressRange = false; }
         DaysBox.Text = config.ArchiveCompactionDays > 0
             ? config.ArchiveCompactionDays.ToString(CultureInfo.CurrentCulture) : "30";
-        SetDetailTab(false);
+        DetailTabs.SelectedIndex = 0;
         await ReloadAsync();
     }
 
@@ -58,10 +73,27 @@ public partial class ArchivePage : UserControl
         return (from, through);
     }
 
+    /// <summary>A quick range counts back from now; otherwise the two date pickers decide.</summary>
     private (DateTimeOffset? From, DateTimeOffset? Through) Range() =>
-        DateRange(FromDate.SelectedDate, ToDate.SelectedDate);
+        QuickSpan(_quick) is { } span
+            ? (DateTimeOffset.Now - span, null)
+            : DateRange(FromDate.SelectedDate, ToDate.SelectedDate);
 
+    /// <summary>Reads the range again. A call while a load or an action is running is not lost:
+    /// it runs once more when the current one has finished.</summary>
     private async Task ReloadAsync()
+    {
+        if (_config is null) return;
+        if (_busy) { _reloadPending = true; return; }
+        do
+        {
+            _reloadPending = false;
+            await LoadOnceAsync();
+        }
+        while (_reloadPending && _config is not null);
+    }
+
+    private async Task LoadOnceAsync()
     {
         if (_config is null || _busy) return;
         try
@@ -74,30 +106,40 @@ public partial class ArchivePage : UserControl
             StatusText.Text = Loc.ArchiveLoading;
             var path = _config.DatabasePath;
             var (from, through) = Range();
-            var result = await Task.Run(() =>
+            var overview = await Task.Run(() =>
             {
                 var db = new KnownDevicesDb(path);
                 if (!db.IsUsable) throw new ArchiveKeyException();
-                return (Runs: db.ListScanArchive(from, through), Stats: db.GetScanArchiveStatistics(from, through));
+                return db.GetScanArchiveOverview(from, through);
             });
-            _scans = result.Runs;
-            _statistics = result.Stats;
-            RunsGrid.ItemsSource = _scans.Select(x => new RunRow(x)).ToArray();
+            _scans = overview.Scans;
+            _statistics = overview.Statistics;
+            _summary = overview.Summary;
+            var points = _summary.Runs.ToDictionary(x => x.RunId);
+            RunsGrid.ItemsSource = _scans.Select(x =>
+            {
+                points.TryGetValue(x.Id, out var point);
+                return new RunRow(x) { AvgMs = point?.AvgLatencyMs, Findings = point?.FindingCount ?? 0 };
+            }).ToArray();
             RunsGrid.SelectedIndex = -1;
-            HistoryGrid.ItemsSource = _statistics.Devices.OrderBy(x => Core.Net.Ipv4.SortKey(x.Ip))
+            _historyRows = _statistics.Devices.OrderBy(x => Core.Net.Ipv4.SortKey(x.Ip))
                 .Select(x => new HistoryRow(x)).ToArray();
             HistoryGrid.SelectedIndex = -1;
-            HistoryHint.Text = _statistics.Devices.Count == 0 ? Loc.ArchiveEmpty : "";
             TrendGrid.ItemsSource = null;
             TrendHint.Visibility = Visibility.Visible;
-            DevicesGrid.ItemsSource = null;
-            DevicesHint.Text = "";
+            _deviceRows = [];
+            _portRows = [];
             DetailText.Text = Loc.ArchiveSelectRun;
+            DetailText.Visibility = Visibility.Visible;
+            RunCard.Visibility = Visibility.Collapsed;
+            ApplyFilter();
+            RunsHint.Text = _scans.Count == 0 ? Loc.ArchiveEmpty : "";
             StatusText.Text = _scans.Count == 0 ? Loc.ArchiveEmpty :
                 string.Format(CultureInfo.CurrentCulture, Loc.ArchiveRangeSummary,
                     _scans.Count, _statistics.SampleCount);
             StartScanButton.Visibility = _scans.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             UpdateSize();
+            RenderOverview();
             DeleteRangeButton.IsEnabled = from is not null && through is not null && _scans.Count > 0;
             DeleteRunButton.IsEnabled = false;
             _lastLoadOk = true;
@@ -112,36 +154,8 @@ public partial class ArchivePage : UserControl
     {
         if (_config is null) return;
         var path = ScanConfig.ResolvePath(_config.DatabasePath);
-        long size = new[] { path, path + "-wal", path + "-shm" }
+        _dbBytes = new[] { path, path + "-wal", path + "-shm" }
             .Where(File.Exists).Sum(x => new FileInfo(x).Length);
-        SizeText.Text = string.Format(CultureInfo.CurrentCulture, Loc.ArchiveDatabaseSize,
-            size / 1048576.0);
-    }
-
-    /// <summary>Below this page width the least important columns (run duration, first seen) are hidden
-    /// so the two columns of the overview keep readable text instead of scrolling sideways.</summary>
-    internal const double CompactWidth = 880;
-
-    private void OnPageSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        var compact = e.NewSize.Width < CompactWidth;
-        var visibility = compact ? Visibility.Collapsed : Visibility.Visible;
-        RunDurationColumn.Visibility = visibility;
-        HistoryFirstSeenColumn.Visibility = visibility;
-        // Narrow pages give the run list the larger share so its three columns fit without a scroll bar.
-        MainArea.ColumnDefinitions[0].Width = new GridLength(compact ? 5 : 4, GridUnitType.Star);
-        MainArea.ColumnDefinitions[2].Width = new GridLength(compact ? 4 : 5, GridUnitType.Star);
-        MainArea.ColumnDefinitions[2].MinWidth = compact ? 300 : 330;
-    }
-
-    private void OnDetailTab(object sender, RoutedEventArgs e) => SetDetailTab(sender == HistoryTab);
-
-    private void SetDetailTab(bool history)
-    {
-        HistoryTab.IsChecked = history;
-        DevicesTab.IsChecked = !history;
-        HistoryView.Visibility = history ? Visibility.Visible : Visibility.Collapsed;
-        DevicesView.Visibility = history ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private async void OnRunSelected(object sender, SelectionChangedEventArgs e)
@@ -149,27 +163,32 @@ public partial class ArchivePage : UserControl
         await UiGuard.Run(async () =>
         {
             DeleteRunButton.IsEnabled = RunsGrid.SelectedItem is RunRow;
-            DevicesGrid.ItemsSource = null;
-            DevicesHint.Text = "";
+            _deviceRows = [];
+            _portRows = [];
+            RunCard.Visibility = Visibility.Collapsed;
             if (RunsGrid.SelectedItem is not RunRow row || _config is null)
             {
                 DetailText.Text = Loc.ArchiveSelectRun;
+                DetailText.Visibility = Visibility.Visible;
+                ApplyFilter();
                 return;
             }
             int version = ++_selectionVersion;
             try
             {
                 DetailText.Text = Loc.ArchiveLoading;
+                DetailText.Visibility = Visibility.Visible;
+                ApplyFilter();
                 var path = _config.DatabasePath;
                 var detail = await Task.Run(() => new KnownDevicesDb(path).LoadScanArchive(row.Scan.Id));
                 if (version != _selectionVersion || detail is null) return;
-                var scan = detail.Scan;
-                DetailText.Text = string.Format(CultureInfo.CurrentCulture, Loc.ArchiveRunSummary,
-                    scan.OnlineCount, scan.DeviceCount, scan.PingSuccess, scan.PingFailed,
-                    scan.Subnets.Length == 0 ? Loc.NotAvailable : string.Join(", ", scan.Subnets));
-                DevicesGrid.ItemsSource = detail.Devices.OrderBy(x => Core.Net.Ipv4.SortKey(x.Ip))
+                _deviceRows = detail.Devices.OrderBy(x => Core.Net.Ipv4.SortKey(x.Ip))
                     .Select(x => new DeviceRow(x)).ToArray();
-                DevicesHint.Text = detail.Devices.Count == 0 ? Loc.ArchiveNoDevices : "";
+                _portRows = BuildPortRows(detail.Findings);
+                FactsList.ItemsSource = BuildFacts(detail.Scan);
+                RunCard.Visibility = Visibility.Visible;
+                DetailText.Visibility = Visibility.Collapsed;
+                ApplyFilter();
             }
             catch (Exception ex) { ShowError(ex); }
         }, Loc.ArchiveTitle);
@@ -184,10 +203,12 @@ public partial class ArchivePage : UserControl
         var target = HistoryGrid.Items.Cast<HistoryRow>().FirstOrDefault(x => x.Stats.DeviceKey == match.DeviceKey);
         if (target is null) return;
         // The trend loads on the History tab, so the click has to land there to show anything.
-        SetDetailTab(true);
+        DetailTabs.SelectedIndex = HistoryTabIndex;
         HistoryGrid.SelectedItem = target;
         HistoryGrid.ScrollIntoView(target);
     }
+
+    private const int HistoryTabIndex = 2;
 
     private async void OnHistorySelected(object sender, SelectionChangedEventArgs e)
     {
@@ -221,20 +242,6 @@ public partial class ArchivePage : UserControl
 
     private static string DeviceKey(ArchivedDevice device) => string.IsNullOrWhiteSpace(device.Mac)
         ? "ip:" + device.Ip : "mac:" + device.Mac.ToUpperInvariant();
-
-    private async void OnApplyRange(object sender, RoutedEventArgs e)
-    {
-        await UiGuard.Run(() => ReloadAsync(), Loc.ArchiveTitle);
-    }
-    private async void OnClearRange(object sender, RoutedEventArgs e)
-    {
-        await UiGuard.Run(async () =>
-        {
-            FromDate.SelectedDate = null;
-            ToDate.SelectedDate = null;
-            await ReloadAsync();
-        }, Loc.ArchiveTitle);
-    }
 
     private void OnClose(object sender, RoutedEventArgs e) => CloseRequested?.Invoke(this, EventArgs.Empty);
     private void OnStartScan(object sender, RoutedEventArgs e) => StartScanRequested?.Invoke(this, EventArgs.Empty);
@@ -438,30 +445,95 @@ public partial class ArchivePage : UserControl
 
     internal sealed record RunRow(ArchivedScan Scan)
     {
+        /// <summary>Average latency of the run in ms, null when nothing answered.</summary>
+        public double? AvgMs { get; init; }
+        /// <summary>Conflicts plus port changes found in this run.</summary>
+        public int Findings { get; init; }
+
         public string DateText => Scan.StartedAt.LocalDateTime.ToString("g", CultureInfo.CurrentCulture);
+        public DateTimeOffset Started => Scan.StartedAt;
         /// <summary>Grouping key of the scan (kept for matching); the table shows <see cref="NetworkText"/>.</summary>
         public string Network => Scan.Network;
         public string NetworkText => NetworkSummary(Scan);
         public string NetworkFull => ArchivePage.NetworkFull(Scan);
         public int DeviceCount => Scan.DeviceCount;
+        public int OnlineCount => Scan.OnlineCount;
         public string DurationText => ArchivePage.DurationText(Scan);
+
+        /// <summary>A merged run stands for several runs, so its own length would be meaningless.</summary>
+        public bool Compacted => Scan.SampleCount > 1;
+        public double DurationSeconds => Compacted ? -1 : (Scan.FinishedAt - Scan.StartedAt).TotalSeconds;
+        public string DurationClock => Compacted ? Loc.NotAvailable
+            : (Scan.FinishedAt - Scan.StartedAt).ToString(@"hh\:mm\:ss", CultureInfo.CurrentCulture);
+        public string AvgText => AvgMs?.ToString("0.0", CultureInfo.CurrentCulture) ?? Loc.NotAvailable;
+        public double AvgSort => AvgMs ?? -1;
+        public string LatencyBrush => Core.Palette.Heat(AvgMs);
+
+        public double? LossPercent => Scan.PingSuccess + Scan.PingFailed == 0 ? null
+            : 100.0 * Scan.PingFailed / (Scan.PingSuccess + Scan.PingFailed);
+        public string LossText => LossPercent?.ToString("0.0'%'", CultureInfo.CurrentCulture) ?? Loc.NotAvailable;
+        public double LossSort => LossPercent ?? -1;
+        public string LossBrush => LossColor(LossPercent);
+        public string FindingsText => Findings.ToString(CultureInfo.CurrentCulture);
+        public string StatusText => Scan.Cancelled ? Loc.ArchiveStopped : Compacted ? Loc.ArchiveStatusCompacted : "";
     }
 
-    private sealed record DeviceRow(ArchivedDevice Device)
+    /// <summary>Loss in the main table's colours: none is green, then yellow, peach and red.</summary>
+    internal static string LossColor(double? percent) => percent switch
+    {
+        null => Core.Palette.MidGray,
+        <= 0 => Core.Palette.Green,
+        < 5 => Core.Palette.Yellow,
+        < 20 => Core.Palette.Peach,
+        _ => Core.Palette.Red
+    };
+
+    private static string Ms(double? value) => value?.ToString("0.0", CultureInfo.CurrentCulture) ?? Loc.NotAvailable;
+
+    internal sealed record DeviceRow(ArchivedDevice Device)
     {
         public string Ip => Device.Ip;
+        public long IpSort => Core.Net.Ipv4.SortKey(Device.Ip);
         public string? Hostname => Device.Hostname;
+        public string? Mac => Device.Mac;
+        public string? Vendor => Device.Vendor;
+        public string? Note => Device.Note;
         public string Status => Device.Online ? Loc.Online : Loc.Offline;
-        public string Latency => Device.AvgMs?.ToString("0.0", CultureInfo.CurrentCulture) ?? Loc.NotAvailable;
+        public int OnlineSort => Device.Online ? 1 : 0;
+        public string DotBrush => Device.Online ? Core.Palette.Green : Core.Palette.MidGray;
+        public string AvgText => Ms(Device.AvgMs);
+        public string MinText => Ms(Device.MinMs);
+        public string MaxText => Ms(Device.MaxMs);
+        public string JitterText => Ms(Device.JitterMs);
+        public double AvgSort => Device.AvgMs ?? -1;
+        public double MinSort => Device.MinMs ?? -1;
+        public double MaxSort => Device.MaxMs ?? -1;
+        public double JitterSort => Device.JitterMs ?? -1;
+        public string LossText => Device.LossPercent?.ToString("0.0'%'", CultureInfo.CurrentCulture) ?? Loc.NotAvailable;
+        public double LossSort => Device.LossPercent ?? -1;
+        public string LatencyBrush => Core.Palette.Heat(Device.AvgMs);
+        public string LossBrush => LossColor(Device.LossPercent);
+        public string Latency => Ms(Device.AvgMs);
     }
 
-    private sealed record HistoryRow(ArchivedDeviceStatistics Stats)
+    internal sealed record PortRow(string Ip, string Kind, string? Detail)
+    {
+        public long IpSort => Core.Net.Ipv4.SortKey(Ip);
+        public string KindLabel => KindText(Kind);
+    }
+
+    internal sealed record HistoryRow(ArchivedDeviceStatistics Stats)
     {
         public string Ip => Stats.Ip;
+        public long IpSort => Core.Net.Ipv4.SortKey(Stats.Ip);
         public string Availability => Stats.AvailabilityPercent.ToString("0.0'%'", CultureInfo.CurrentCulture);
-        public string Latency => Stats.AvgMs?.ToString("0.0", CultureInfo.CurrentCulture) ?? Loc.NotAvailable;
+        public double AvailabilitySort => Stats.AvailabilityPercent;
+        public string Latency => Ms(Stats.AvgMs);
+        public double LatencySort => Stats.AvgMs ?? -1;
         public string FirstSeen => Stats.FirstSeenAt.LocalDateTime.ToString("d", CultureInfo.CurrentCulture);
+        public DateTimeOffset FirstSeenSort => Stats.FirstSeenAt;
         public string LastSeen => Stats.LastSeenAt.LocalDateTime.ToString("d", CultureInfo.CurrentCulture);
+        public DateTimeOffset LastSeenSort => Stats.LastSeenAt;
     }
 
     private sealed record TrendRow(DateTimeOffset At, ArchivedDevice Device)
@@ -469,6 +541,6 @@ public partial class ArchivePage : UserControl
         public string Date => At.LocalDateTime.ToString("g", CultureInfo.CurrentCulture);
         public string Availability => (100.0 * Device.OnlineCount / Math.Max(1, Device.ObservedCount))
             .ToString("0.0'%'", CultureInfo.CurrentCulture);
-        public string Latency => Device.AvgMs?.ToString("0.0", CultureInfo.CurrentCulture) ?? Loc.NotAvailable;
+        public string Latency => Ms(Device.AvgMs);
     }
 }
