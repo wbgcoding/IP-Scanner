@@ -152,7 +152,7 @@ public sealed class PingToolViewModel : ObservableObject
     }
 
     /// <summary>Shown for the loss before the first probe was sent.</summary>
-    internal const string NoLoss = "\u2014";
+    internal const string NoLoss = "\u2013";
 
     internal static string FormatLoss(int sent, int received)
         => sent == 0 ? NoLoss : $"{(sent - received) * 100.0 / sent:0.#}%";

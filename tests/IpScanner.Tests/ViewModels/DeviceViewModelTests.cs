@@ -26,7 +26,7 @@ public class DeviceViewModelTests
     {
         var vm = new DeviceViewModel(new Device("192.0.2.9") { Hostname = raw });
         Assert.Null(vm.CopyableHostname);
-        Assert.Equal(((char)0x2014).ToString(), vm.Hostname);
+        Assert.Equal(((char)0x2013).ToString(), vm.Hostname);
     }
 
     [Fact]
@@ -256,15 +256,15 @@ public class DeviceViewModelTests
     {
         var d = new Device("192.168.1.1");
         var vm = new DeviceViewModel(d);
-        Assert.Equal("—", vm.Vendor);   // no MAC yet
+        Assert.Equal("–", vm.Vendor);   // no MAC yet
 
         d.Mac = "00:00:00:11:22:33";    // OUI present in the embedded vendor DB (Xerox, historically stable)
         var resolved = vm.Vendor;
-        Assert.NotEqual("—", resolved);
+        Assert.NotEqual("–", resolved);
         Assert.Equal(resolved, vm.Vendor);   // second read hits the cache, same result
 
         d.Mac = null;                   // MAC lost/reset must invalidate the cache
-        Assert.Equal("—", vm.Vendor);
+        Assert.Equal("–", vm.Vendor);
     }
 
     [Fact]

@@ -35,14 +35,14 @@ public static class NumberFormat
 
     /// <summary>Latency: "12,3 ms" (current culture), "-" when missing.</summary>
     public static string Ms(double? v) =>
-        v is null ? "\u2014" : MsValue(v.Value) + " ms";
+        v is null ? "\u2013" : MsValue(v.Value) + " ms";
 
     /// <summary>The number part of <see cref="Ms"/> ("12,3"), for texts that carry the unit themselves.</summary>
     public static string MsValue(double v) => v.ToString("F1", CultureInfo.CurrentCulture);
 
     /// <summary>Packet loss "12,3 %" (current culture), "-" when missing.</summary>
     public static string Percent(double? v) =>
-        v is null ? "—" : v.Value.ToString("F1", CultureInfo.CurrentCulture) + " %";
+        v is null ? "–" : v.Value.ToString("F1", CultureInfo.CurrentCulture) + " %";
 
     /// <summary>Rough remaining-time estimate for a long-running sweep -
     /// "~12 s", "~3 min" (localized unit). Deliberately coarse (one unit, rounded)
