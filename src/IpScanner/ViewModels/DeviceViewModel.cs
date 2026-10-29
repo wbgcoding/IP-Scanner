@@ -182,6 +182,15 @@ public sealed class DeviceViewModel : ObservableObject
             return _cachedVendor;
         }
     }
+
+    /// <summary>True when the vendor is unknown only because the MAC is a random, self-assigned one
+    /// (locally administered bit) - phones and laptops use these as a privacy feature.</summary>
+    public bool IsPrivateMac => Vendor == "–" && _device.Mac is { } m && m != Device.Unknown
+                                && ConflictDetector.IsLocallyAdministered(m);
+    /// <summary>The vendor cell text: the vendor, or a note that the address is private.</summary>
+    public string VendorDisplay => IsPrivateMac ? Loc.PrivateAddress : Vendor;
+    /// <summary>Tooltip of the vendor cell, only for a private address.</summary>
+    public string? VendorTip => IsPrivateMac ? Loc.PrivateAddressTip : null;
     /// <summary>Online device whose MAC is not in the known-devices database (new/unknown).
     /// A muted device never gets the rogue highlight either.</summary>
     public bool IsRogue => !_device.IsMuted && _device.IsOnline && !_device.FromDb && !IsSelf
@@ -667,7 +676,7 @@ public sealed class DeviceViewModel : ObservableObject
         Raise(nameof(Status)); Raise(nameof(StatusColor)); Raise(nameof(IsOnline)); Raise(nameof(Hostname)); Raise(nameof(Method));
         Raise(nameof(Os)); Raise(nameof(OsTip));
         Raise(nameof(ServicesEmptyText));
-        Raise(nameof(Mac)); Raise(nameof(HasMac)); Raise(nameof(Vendor)); Raise(nameof(IsRogue)); Raise(nameof(GroupId)); Raise(nameof(GroupColor));
+        Raise(nameof(Mac)); Raise(nameof(HasMac)); Raise(nameof(Vendor)); Raise(nameof(VendorDisplay)); Raise(nameof(IsPrivateMac)); Raise(nameof(VendorTip)); Raise(nameof(IsRogue)); Raise(nameof(GroupId)); Raise(nameof(GroupColor));
         Raise(nameof(DeviceTypeIconKey));
         Raise(nameof(IsMuted)); Raise(nameof(IpColor));
         Raise(nameof(ConflictHint)); Raise(nameof(HasConflictHint));

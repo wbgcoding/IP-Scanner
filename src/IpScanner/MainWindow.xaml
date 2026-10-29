@@ -815,12 +815,19 @@
                                         ElementStyle="{StaticResource CenterCell}"/>
                     <DataGridTextColumn x:Name="MacColumn" Header="{loc:L Mac}" Binding="{Binding Mac}" Width="Auto" MinWidth="136"
                                         ElementStyle="{StaticResource CenterCell}"/>
-                    <DataGridTextColumn x:Name="VendorColumn" Header="{loc:L Vendor}" Binding="{Binding Vendor}" Width="Auto" MinWidth="110" MaxWidth="220">
+                    <DataGridTextColumn x:Name="VendorColumn" Header="{loc:L Vendor}" Binding="{Binding VendorDisplay}" SortMemberPath="Vendor" Width="Auto" MinWidth="110" MaxWidth="220">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="Margin" Value="4,0"/>
+                                <Setter Property="ToolTip" Value="{Binding VendorTip}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPrivateMac}" Value="True">
+                                        <Setter Property="Foreground" Value="{DynamicResource Subtext}"/>
+                                        <Setter Property="FontStyle" Value="Italic"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>

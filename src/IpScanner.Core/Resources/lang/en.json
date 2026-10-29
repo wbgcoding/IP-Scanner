@@ -1251,5 +1251,7 @@
   "Remove": "Remove",
   "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.",
   "Shows when the device was first seen online. Only remembered while the known devices database is on.": "Shows when the device was first seen online. Only remembered while the known devices database is on.",
-  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Shows when the device was last seen online. Only remembered while the known devices database is on."
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Shows when the device was last seen online. Only remembered while the known devices database is on.",
+  "Private address": "Private address",
+  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "Random MAC address the device picked itself (privacy feature of phones and laptops)."
 }

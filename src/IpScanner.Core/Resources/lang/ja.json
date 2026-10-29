@@ -1251,5 +1251,7 @@
   "Remove": "削除",
   "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "デバイスで見つかった開いている TCP ポートを表示します。セルにカーソルを合わせると、サービス名付きの完全な一覧が表示されます。",
   "Shows when the device was first seen online. Only remembered while the known devices database is on.": "デバイスが初めてオンラインで確認された日時を表示します。既知デバイスのデータベースが有効な間だけ記憶されます。",
-  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "デバイスが最後にオンラインで確認された日時を表示します。既知デバイスのデータベースが有効な間だけ記憶されます。"
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "デバイスが最後にオンラインで確認された日時を表示します。既知デバイスのデータベースが有効な間だけ記憶されます。",
+  "Private address": "プライベートアドレス",
+  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "デバイス自身が選んだランダムな MAC アドレスです(スマートフォンやノートパソコンのプライバシー機能)。"
 }
