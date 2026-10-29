@@ -13,7 +13,7 @@
     <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
     <!-- ZIP with AES-256 (WinZip AE-2) for password-protected backups; MIT licensed. -->
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <!-- DPAPI wrapper for the per-installation device-data key: managed-only, safe for
