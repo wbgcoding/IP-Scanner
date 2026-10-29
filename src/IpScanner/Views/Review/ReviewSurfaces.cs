@@ -32,7 +32,7 @@ internal sealed record Surface(string Id, string Group, bool Resizable, Func<Rev
 internal static class ReviewSurfaces
 {
     internal static readonly string[] SettingsPages = { "Scan", "Display", "Internet", "Graphs", "Data", "App", "About", "Help" };
-    internal static readonly string[] ToolPages = { "WakeOnLan", "PortCheck", "DnsLookup", "PingRoute", "Calculator", "Certificate", "HostDiscovery", "ServiceDetection", "OsEstimate", "Checks", "ScanExport" };
+    internal static readonly string[] ToolPages = { "WakeOnLan", "PortCheck", "DnsLookup", "PingRoute", "Calculator", "MacTool", "Certificate", "HostDiscovery", "ServiceDetection", "OsEstimate", "Checks", "ScanExport" };
 
     internal static ScanConfig SampleConfig(ReviewContext c) => new()
     {
@@ -343,6 +343,18 @@ internal static class ReviewSurfaces
             v.Calculator.SubnetMask = "/56";
             v.Calculator.ContainsAddress = "2a02:8071:1234:5611::42";
         }, null, "tools.CalculatorIpv6");
+        // The subnet split with a capped table, and the MAC page with a vendor and a table result.
+        AddMarks(list, "Calculator", v =>
+        {
+            v.Calculator.SubnetAddress = "10.20.0.0";
+            v.Calculator.SubnetMask = "/16";
+            v.Calculator.SplitPrefix = "/24";
+        }, null, "tools.CalculatorSplit");
+        AddMarks(list, "MacTool", v =>
+        {
+            v.Mac.VendorMac = "00:00:00:11:22:33";
+            v.Mac.ArpIp = "192.168.1.1";
+        }, null, "tools.MacToolMarks");
         // The route table with hops: header and values must line up column by column.
         AddMarks(list, "PingRoute", v =>
         {

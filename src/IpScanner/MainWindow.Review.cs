@@ -30,7 +30,7 @@ public partial class MainWindow
         string[] names =
         {
             "fritz.box", "nas-01", "printer-hp", "laptop-anna", "tv-livingroom", "switch-core", "camera-door",
-            "pi-hole", "desktop-ben", "phone-anna", "tablet-kids", "ap-upstairs", "printer-brother", "xbox",
+            "pi-hole", "desktop-max", "phone-anna", "tablet-kids", "ap-upstairs", "printer-brother", "xbox",
             "thermostat", "sonos-kitchen", "server-lab", "nuc-media", "plug-office", "doorbell",
         };
         string[] macPrefix =

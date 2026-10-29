@@ -197,7 +197,7 @@ public class PortScannerTests
         // Giving these ports a distinguishing name must not silently
         // disable "open in browser" or the HTTP banner grab - neither may key
         // off the literal string "HTTP".
-        var entry = Assert.Single(PortScanner.TcpPorts.Where(p => p.Port == port));
+        var entry = Assert.Single(PortScanner.TcpPorts, p => p.Port == port);
         Assert.Equal(expectedName, entry.Name);
 
         var svc = new NetService(entry.Name, port, NetProtocol.Tcp) { Ip = "192.168.1.1" };

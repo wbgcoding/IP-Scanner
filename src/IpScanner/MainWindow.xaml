@@ -1909,8 +1909,6 @@
                                               ToolTip="{loc:L TipMinimizeToTray}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                                     <CheckBox x:Name="CheckForUpdatesBox" Content="{loc:L CheckForUpdatesLabel}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,8,0,0"
                                               ToolTip="{loc:L TipCheckForUpdates}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
-                                    <CheckBox x:Name="VerboseLogBox" Content="{loc:L VerboseLogLabel}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,8,0,0"
-                                              ToolTip="{loc:L TipVerboseLog}" Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
                                     <DockPanel Margin="0,12,0,0">
                                         <TextBlock x:Name="UpdateStatusText" DockPanel.Dock="Right" Foreground="{DynamicResource Subtext}" FontSize="12" VerticalAlignment="Center"/>
                                         <Button Content="{loc:L CheckUpdatesNow}" Click="OnCheckUpdatesNow" ToolTip="{loc:L TipCheckUpdatesNow}" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Padding="14,6"/>

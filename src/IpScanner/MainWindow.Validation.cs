@@ -125,7 +125,6 @@ public partial class MainWindow : Window
         c.ShowOfflineFromDb = OfflineToggle.IsChecked == true;
         c.MinimizeToTray = MinimizeTrayBox.IsChecked == true;
         c.CheckForUpdates = CheckForUpdatesBox.IsChecked == true;
-        c.VerboseLog = VerboseLogBox.IsChecked == true;
         c.GraphMaxSeconds = Bounded(GraphMaxBox, ScanConfig.Bounds.GraphMaxSecondsMin, ScanConfig.Bounds.GraphMaxSecondsMax, ScanConfig.Bounds.GraphMaxSecondsDefault);
         c.PingCount = defaultPings;
         // The "unlimited" checkbox forces 0 (one thread per device) regardless of whatever

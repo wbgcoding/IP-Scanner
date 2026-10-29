@@ -384,6 +384,7 @@ public partial class MainWindow : Window
         ApplySkippedLegendVisibility();
         ApplyPortScanSettings();
         PersistConfigDebounced();
+        Core.Log.Info(Core.LogArea.Config, "Settings saved");
     }
 
     private void OnSettingChanged(object sender, RoutedEventArgs e) => ApplyInstant();

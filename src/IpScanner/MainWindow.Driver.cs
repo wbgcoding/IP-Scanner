@@ -15,6 +15,7 @@ public partial class MainWindow
     private void RefreshDriverBar()
     {
         var status = PacketDriver.Status;
+        Core.Log.Info(Core.LogArea.App, status.Available ? "Npcap detected" : "Npcap missing or unusable");
         DriverBarMessage.Text = Loc.DriverBarFor(status.Reason);
         DriverBar.Visibility = status.Available || _driverBarDismissed ? Visibility.Collapsed : Visibility.Visible;
         BuildDriverHelp();

@@ -35,6 +35,8 @@ error.log
 *.txt
 # ...but the embedded vendor DB must stay tracked.
 !src/IpScanner.Core/Resources/oui.txt
+# ...and the pinned workflow tool list.
+!.github/zizmor-requirements.txt
 
 # Brainstorm companion scratch files
 .superpowers/
@@ -61,3 +63,20 @@ obj/
 *.db-wal
 *.db-shm
 build+install on phone.bat
+
+.tmp/
+.env
+.env.*
+!.env.example
+*.bak
+*.tmp
+*.orig
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+coverage/
+.signing/
+.DS_Store
+Thumbs.db

@@ -55,6 +55,7 @@ public partial class MainWindow : Window
         // App.OnStartup already loaded the config (needed for the theme); reuse it.
         _config = App.BootConfig ?? LoadPersistedConfig();
         Core.Log.VerboseProvider = () => _config.VerboseLog;
+        Core.Log.Info(Core.LogArea.App, $"App started: version {typeof(MainWindow).Assembly.GetName().Version?.ToString(3)}, language {_config.Language}");
         Loc.SetLanguage(_config.Language);
         // Restore the persisted adapter choice before anything below
         // detects the network or pings - both read this live.
@@ -301,6 +302,7 @@ public partial class MainWindow : Window
     {
         if (manual) SetUpdateStatus(UpdateStatusKind.Checking);
         var result = await Core.UpdateService.CheckAsync();
+        Core.Log.Info(Core.LogArea.Update, $"Update check result: {result.Status}");
         if (_closing) return;
         if (result.Status == Core.UpdateService.CheckStatus.Failed)
         {

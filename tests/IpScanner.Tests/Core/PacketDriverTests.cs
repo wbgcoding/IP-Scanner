@@ -148,10 +148,19 @@ public class PacketDriverTests
 
     private static Task NoDelay(TimeSpan _, CancellationToken ct) { ct.ThrowIfCancellationRequested(); return Task.CompletedTask; }
 
+    private static readonly AsyncLocal<bool> OwnFlow = new();
+
+    // Other test classes read the shared status in parallel; only this test's own calls reach the fake.
+    private static Func<PacketDriverStatus> Own(Func<PacketDriverStatus> detect)
+    {
+        OwnFlow.Value = true;
+        return () => OwnFlow.Value ? detect() : PacketDriverStatus.Missing;
+    }
+
     private static Func<PacketDriverStatus> Script(params PacketDriverStatus[] steps)
     {
         int i = 0;
-        return () => steps[Math.Min(i++, steps.Length - 1)];
+        return Own(() => steps[Math.Min(i++, steps.Length - 1)]);
     }
 
     [Fact]
@@ -194,7 +203,7 @@ public class PacketDriverTests
         try
         {
             int polls = 0;
-            PacketDriver.DetectOverride = () => { polls++; return PacketDriverStatus.Missing; };
+            PacketDriver.DetectOverride = Own(() => { polls++; return PacketDriverStatus.Missing; });
             Assert.False(await PacketDriver.WaitForInstallAsync(CancellationToken.None, TimeSpan.FromSeconds(2), TimeSpan.FromMinutes(10), NoDelay));
             Assert.Equal(300, polls);
         }
@@ -209,7 +218,7 @@ public class PacketDriverTests
         {
             using var cts = new CancellationTokenSource();
             int polls = 0;
-            PacketDriver.DetectOverride = () => { if (++polls == 3) cts.Cancel(); return PacketDriverStatus.Missing; };
+            PacketDriver.DetectOverride = Own(() => { if (++polls == 3) cts.Cancel(); return PacketDriverStatus.Missing; });
             Assert.False(await PacketDriver.WaitForInstallAsync(cts.Token, delay: NoDelay));
             Assert.Equal(3, polls);
         }

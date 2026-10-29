@@ -70,6 +70,7 @@ public partial class MainWindow
                     _ => throw new ArgumentOutOfRangeException(nameof(request.Format))
                 });
                 _vm.RecordExport(path);
+                Core.Log.Info(Core.LogArea.Tools, $"Export written: {request.Format}, {devices.Count} rows");
                 var folder = Path.GetDirectoryName(path);
                 ShowNotice(string.Format(Loc.SavedFmt, path), folder is null ? null : Loc.OpenFolder,
                     folder is null ? null : () => OpenFolderInExplorer(folder));

@@ -27,6 +27,8 @@ public sealed class PingRouteToolViewModel : ObservableObject
     }
 }
 
+public sealed record PingReplyRow(string Time, string Result, bool TimedOut);
+
 public sealed class PingToolViewModel : ObservableObject
 {
     private const int MaxSamples = 60;
@@ -64,6 +66,9 @@ public sealed class PingToolViewModel : ObservableObject
 
     public bool CanStart => !IsRunning && Target.Trim().Length > 0;
 
+    /// <summary>Latest replies first, at most 60.</summary>
+    public ObservableCollection<PingReplyRow> Replies { get; } = new();
+
     public int Sent { get; private set; }
     public int Received { get; private set; }
     public string LossText { get; private set; } = NoLoss;
@@ -100,6 +105,7 @@ public sealed class PingToolViewModel : ObservableObject
         Sent = 0; Received = 0; _min = double.MaxValue; _max = double.MinValue; _sum = 0; _last = 0;
         LossText = NoLoss; StatsText = ""; Status = "";
         Raise(nameof(Sent)); Raise(nameof(Received)); Raise(nameof(LossText)); Raise(nameof(StatsText));
+        Replies.Clear();
         _samples = new RingBuffer<double?>();
         BuildGraph();
 
@@ -113,19 +119,15 @@ public sealed class PingToolViewModel : ObservableObject
         {
             while (!ct.IsCancellationRequested)
             {
-                Sent++;
                 double? rtt = null;
                 try
                 {
                     var reply = await ping.SendPingAsync(target, timeoutMs, payload).WaitAsync(ct);
-                    if (reply.Status == IPStatus.Success) { rtt = reply.RoundtripTime; Received++; }
+                    if (reply.Status == IPStatus.Success) rtt = reply.RoundtripTime;
                 }
                 catch (PingException) { /* unresolved host, offline adapter - counts as a miss */ }
 
-                RecordSample(rtt);
-                Raise(nameof(Sent)); Raise(nameof(Received));
-                LossText = FormatLoss(); Raise(nameof(LossText));
-                StatsText = FormatStats(); Raise(nameof(StatsText));
+                AddSample(rtt);
 
                 await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), ct).ContinueWith(_ => { }, TaskScheduler.Default);
                 if (ct.IsCancellationRequested) break;
@@ -140,6 +142,20 @@ public sealed class PingToolViewModel : ObservableObject
         }
     }
 
+    /// <summary>Counts one probe (null = no reply), then refreshes the statistics, the graph and the reply list.</summary>
+    internal void AddSample(double? rtt)
+    {
+        Sent++;
+        if (rtt is not null) Received++;
+        RecordSample(rtt);
+        Replies.Insert(0, new PingReplyRow(DateTime.Now.ToString("T", CultureInfo.CurrentCulture),
+            rtt is { } v ? NumberFormat.Ms(v) : Loc.PingTimedOut, rtt is null));
+        while (Replies.Count > MaxSamples) Replies.RemoveAt(Replies.Count - 1);
+        Raise(nameof(Sent)); Raise(nameof(Received));
+        LossText = FormatLoss(); Raise(nameof(LossText));
+        StatsText = FormatStats(); Raise(nameof(StatsText));
+    }
+
     private void RecordSample(double? rtt)
     {
         _samples.Add(rtt, MaxSamples);
@@ -152,7 +168,7 @@ public sealed class PingToolViewModel : ObservableObject
     }
 
     /// <summary>Shown for the loss before the first probe was sent.</summary>
-    internal const string NoLoss = "\u2014";
+    internal const string NoLoss = "\u2013";
 
     internal static string FormatLoss(int sent, int received)
         => sent == 0 ? NoLoss : $"{(sent - received) * 100.0 / sent:0.#}%";

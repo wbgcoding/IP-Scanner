@@ -46,7 +46,7 @@ public sealed class NetworkInfoViewModel : ObservableObject, IDeletable
     public string BadgeColor { get => _badgeColor; private set { if (_badgeColor != value) { _badgeColor = value; Raise(nameof(BadgeColor)); Raise(nameof(BadgeForeground)); } } }
     public string BadgeForeground => Core.Palette.ContrastOn(_badgeColor);
     public string Title      => _name.Length > 0 ? _name : $"{Core.Localization.Loc.Network} {Index}";
-    private string _cidr = "—", _ip = "—", _mac = "—", _gateway = "—", _subnetMask = "—", _dns = "—", _dnsShort = "—", _interface = "";
+    private string _cidr = "–", _ip = "–", _mac = "–", _gateway = "–", _subnetMask = "–", _dns = "–", _dnsShort = "–", _interface = "";
     public string Cidr       { get => _cidr;       private set => SetProperty(ref _cidr, value); }
     public string Ip         { get => _ip;         private set => SetProperty(ref _ip, value); }
     public string Mac        { get => _mac;        private set => SetProperty(ref _mac, value); }
@@ -109,15 +109,15 @@ public sealed class NetworkInfoViewModel : ObservableObject, IDeletable
         Prefix = prefix;
         IsPrimary = primary;
         IsPending = pending;
-        Cidr       = info.Cidr       ?? "—";
-        Ip         = info.Ip         ?? "—";
-        Mac        = info.Mac        ?? "—";
-        Gateway    = info.Gateway    ?? "—";
-        SubnetMask = info.SubnetMask ?? "—";
-        Dns        = info.DnsServers.Count > 0 ? string.Join(", ", info.DnsServers) : "—";
+        Cidr       = info.Cidr       ?? "–";
+        Ip         = info.Ip         ?? "–";
+        Mac        = info.Mac        ?? "–";
+        Gateway    = info.Gateway    ?? "–";
+        SubnetMask = info.SubnetMask ?? "–";
+        Dns        = info.DnsServers.Count > 0 ? string.Join(", ", info.DnsServers) : "–";
         DnsShort   = info.DnsServers.Count switch
         {
-            0 => "—",
+            0 => "–",
             1 => info.DnsServers[0],
             _ => $"{info.DnsServers[0]} +{info.DnsServers.Count - 1}",
         };

@@ -94,7 +94,7 @@ public sealed class DeviceViewModel : ObservableObject
     public bool IsMuted => _device.IsMuted;
     /// <summary>True when this row originates from the known-devices database.</summary>
     public bool IsFromDb => _device.FromDb;
-    public string Hostname => _device.Hostname is null or Device.Unknown ? "—" : _device.Hostname;
+    public string Hostname => _device.Hostname is null or Device.Unknown ? "–" : _device.Hostname;
     /// <summary>The real hostname, or null when none is known (the table shows a dash then; copy actions must not).</summary>
     internal string? CopyableHostname => string.IsNullOrEmpty(_device.Hostname) || _device.Hostname == Device.Unknown ? null : _device.Hostname;
     public string Note => _note;
@@ -133,7 +133,7 @@ public sealed class DeviceViewModel : ObservableObject
         Raise(nameof(Note));
         if (draftWasUnchanged) NoteDraft = note;
     }
-    public string Mac => _device.Mac is null or Device.Unknown ? "—" : _device.Mac;
+    public string Mac => _device.Mac is null or Device.Unknown ? "–" : _device.Mac;
     /// <summary>False when no MAC is known yet - Wake-on-LAN can't target this row.</summary>
     public bool HasMac => _device.Mac is { } m && m != Device.Unknown;
 
@@ -147,7 +147,7 @@ public sealed class DeviceViewModel : ObservableObject
     // MAC itself changes at most once (when it's first resolved) - recomputing the
     // same OUI lookup every tick was pure waste.
     private string? _cachedVendorMac;
-    private string _cachedVendor = "—";
+    private string _cachedVendor = "–";
     public string Vendor
     {
         get
@@ -156,7 +156,7 @@ public sealed class DeviceViewModel : ObservableObject
             if (mac != _cachedVendorMac)
             {
                 _cachedVendorMac = mac;
-                _cachedVendor = mac is not null ? Core.Export.MacVendorLookup.Instance.Lookup(mac) ?? "—" : "—";
+                _cachedVendor = mac is not null ? Core.Export.MacVendorLookup.Instance.Lookup(mac) ?? "–" : "–";
             }
             return _cachedVendor;
         }

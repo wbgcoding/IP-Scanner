@@ -106,6 +106,14 @@
                         <TextBlock Text="{loc:L ToolCalculator}" Style="{StaticResource SettingsNavLabel}"/>
                     </StackPanel>
                 </ListBoxItem>
+                <ListBoxItem Tag="MacTool" AutomationProperties.Name="{loc:L ToolMacTool}">
+                    <StackPanel Orientation="Horizontal">
+                        <Viewbox Width="16" Height="16" Margin="0,0,10,0" FlowDirection="LeftToRight">
+                            <Path Fill="{DynamicResource Text}" Data="M4,5H20A2,2 0 0,1 22,7V15A2,2 0 0,1 20,17H15V19H9V17H4A2,2 0 0,1 2,15V7A2,2 0 0,1 4,5M4,7V15H20V7H18V11H16V7H14V11H12V7H10V11H8V7H6V11H4V7Z"/>
+                        </Viewbox>
+                        <TextBlock Text="{loc:L ToolMacTool}" Style="{StaticResource SettingsNavLabel}"/>
+                    </StackPanel>
+                </ListBoxItem>
                 <ListBoxItem Tag="Certificate" AutomationProperties.Name="{loc:L ToolCertificate}">
                     <StackPanel Orientation="Horizontal">
                         <Viewbox Width="16" Height="16" Margin="0,0,10,0" FlowDirection="LeftToRight">
