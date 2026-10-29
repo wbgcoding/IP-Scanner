@@ -18,7 +18,7 @@
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <!-- DPAPI wrapper for the per-installation device-data key: managed-only, safe for
          single-file publish (no native SQLCipher bundle, no password prompt). -->
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.14" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="IpScanner.Tests" />

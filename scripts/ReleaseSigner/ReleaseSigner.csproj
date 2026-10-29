@@ -9,6 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- DPAPI for the private key; development tool only, never shipped with the app. -->
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.14" />
   </ItemGroup>
 </Project>
