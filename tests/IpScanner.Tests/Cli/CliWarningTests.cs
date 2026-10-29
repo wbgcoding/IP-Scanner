@@ -49,7 +49,7 @@ public sealed class CliWarningTests
     [InlineData("-T4 192.0.2.10")]
     [InlineData("-T5 192.0.2.10")]
     [InlineData("-p 1-65535 --allow-full-scan 192.0.2.10")]
-    [InlineData("--top-ports 500 --allow-full-scan 192.0.2.10")]
+    [InlineData("--top-ports 1001 --allow-full-scan 192.0.2.10")]
     [InlineData("--checks intrusive --allow-intrusive 192.0.2.10")]
     public void AggressiveRun_WarnsOnceOnStderrAndStillRuns(string line)
     {

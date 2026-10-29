@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "将 grep 友好报告写入文件(- 表示标准输出)。",
   "Show why each port got its state.": "显示每个端口处于该状态的原因。",
   "Report only open (and open|filtered) ports.": "仅报告开放端口(以及 open|filtered 端口)。",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "允许扫描超过 100 个端口的选定范围(-p、--top-ports),最多全部 65535 个。",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "允许扫描超过 100 个端口的选定范围(-p),或 --top-ports 数量超过 1000 的扫描,最多全部 65535 个。",
   "Allow more than 65536 targets.": "允许超过 65536 个目标。",
   "Allow the intrusive check category.": "允许 intrusive 检查类别。",
   "Allow the FIN, Null, Xmas and Maimon scans.": "允许 FIN、Null、Xmas 和 Maimon 扫描。",

@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "grep向けレポートをファイルに書き出します(標準出力は -)。",
   "Show why each port got its state.": "各ポートがその状態になった理由を表示します。",
   "Report only open (and open|filtered) ports.": "開いているポート(および open|filtered)のみを報告します。",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "選択した100ポートを超えるスキャン(-p、--top-ports)を、全65535ポートまで許可します。",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "100ポートを超える選択スキャン(-p)、または1000を超える--top-ports指定のスキャンを、全65535ポートまで許可します。",
   "Allow more than 65536 targets.": "65536件を超えるターゲットを許可します。",
   "Allow the intrusive check category.": "intrusive カテゴリのチェックを許可します。",
   "Allow the FIN, Null, Xmas and Maimon scans.": "FIN、Null、Xmas、Maimon スキャンを許可します。",

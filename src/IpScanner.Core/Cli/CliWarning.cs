@@ -15,7 +15,7 @@ internal static class CliWarning
         if (ScanTypes.IsAggressive(type)) reasons.Add($"the '{ScanTypes.Label(type)}' scan sends unusual packets");
         if (intrusive) reasons.Add("intrusive checks can disturb the services they test");
         if ((o.Timing ?? ScanTiming.Normal) >= ScanTiming.Aggressive) reasons.Add("fast timing (T4/T5) is easy to notice and can overload weak devices");
-        if ((o.Ports is not null || o.TopPorts is not null) && PortScanGate.NeedsConfirmation(probes))
+        if ((o.Ports is not null || o.TopPorts is not null) && PortScanGate.NeedsConfirmation(o.TopPorts, probes))
             reasons.Add($"{probes} ports per host take long and are noisy");
         return reasons;
     }

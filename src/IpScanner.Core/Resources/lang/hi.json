@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "grep योग्य रिपोर्ट को फ़ाइल में लिखें (stdout के लिए -)।",
   "Show why each port got its state.": "दिखाएँ कि हर पोर्ट को उसकी स्थिति क्यों मिली।",
   "Report only open (and open|filtered) ports.": "केवल खुले (और open|filtered) पोर्ट की रिपोर्ट करें।",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "100 से अधिक पोर्ट (-p, --top-ports) के चुने हुए स्कैन की अनुमति दें, सभी 65535 तक।",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "100 से अधिक पोर्ट (-p) या 1000 से ऊपर की --top-ports संख्या के चुने हुए स्कैन की अनुमति दें, सभी 65535 तक।",
   "Allow more than 65536 targets.": "65536 से अधिक लक्ष्यों की अनुमति दें।",
   "Allow the intrusive check category.": "intrusive जाँच श्रेणी की अनुमति दें।",
   "Allow the FIN, Null, Xmas and Maimon scans.": "FIN, Null, Xmas और Maimon स्कैन की अनुमति दें।",
