@@ -46,8 +46,9 @@ public static class PortScanEngine
         string ip, IReadOnlyCollection<int> tcpPorts, IPortStrategy? tcp,
         IReadOnlyCollection<int> udpPorts, IPortStrategy? udp, IDisposable? owned,
         IProgress<int>? progress, CancellationToken callerCt, Action<PortResult>? onResult,
-        ScanTiming? timing = null, IScanClock? clock = null)
+        ScanTiming? timing = null, IScanClock? clock = null, SessionPortFacts? facts = null)
     {
+        facts ??= SessionPortFacts.Shared;
         try
         {
             // An explicit timing brings its own parallelism; otherwise the process-wide setting rules.
@@ -107,7 +108,7 @@ public static class PortScanEngine
                             if (result is null) continue;
                             result = result with { Ip = ip };
                             results.Add(result);
-                            SessionPortFacts.Record(result);
+                            facts.Record(result);
                             onResult?.Invoke(result);
                         }
                         catch (RawScanException ex)
