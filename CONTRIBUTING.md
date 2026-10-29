@@ -15,7 +15,7 @@ dotnet build IP-Scanner.slnx
 dotnet test IP-Scanner.slnx
 ```
 
-`build.bat` builds the self-contained release files `IP-Scanner.exe` and `ipscan-cli.exe` into `dist\`.
+`build.bat` builds the self-contained release file `IP-Scanner.exe` into `dist\`. The command line is the same exe run with arguments.
 
 ## Guidelines
 
