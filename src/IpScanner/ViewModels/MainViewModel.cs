@@ -1491,7 +1491,7 @@ public sealed class MainViewModel : ObservableObject
         // Known rows are only marked dirty (flushed by the throttled aggregate
         // pass) - dispatching per ping floods the UI thread and lags the table.
         // Most override metadata is stable per row. A late MAC can reveal a
-        // MAC-keyed note after row creation, so reconcile that identity once.
+        // MAC-keyed note, mute or alert flag after row creation, so reconcile that identity once.
         DeviceViewModel? tracked;
         lock (_byIpLock) _byIp.TryGetValue(d.Ip, out tracked);
         if (tracked is not null)
@@ -1506,6 +1506,8 @@ public sealed class MainViewModel : ObservableObject
                         {
                             var mac = StableMac(d);
                             if (mac == current.AppliedNoteMac) return;
+                            ApplyMuteOverride(d);
+                            ApplyAlertOverride(d);
                             ApplyNoteOverride(d);
                             current.AppliedNoteMac = mac;
                         }
