@@ -84,7 +84,9 @@
                 <StackPanel Grid.Column="0">
                     <Canvas x:Name="PingGraphCanvas" Height="60" ClipToBounds="True"
                             SizeChanged="OnPingGraphSizeChanged" FlowDirection="LeftToRight">
-                        <Polyline Points="{Binding GraphPoints}" Stroke="{DynamicResource Green}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                        <Path Data="{Binding GraphBands}" Fill="{DynamicResource Red}" Opacity="0.22"/>
+                        <Path Data="{Binding GraphLoss}" Stroke="{DynamicResource Red}" StrokeThickness="2"/>
+                        <Path Data="{Binding GraphLine}" Stroke="{DynamicResource Green}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
                         <TextBlock Text="{Binding GraphMax}" Canvas.Left="4" Canvas.Top="1" FontSize="9" Foreground="{DynamicResource MidGray}"/>
                         <TextBlock Text="{Binding GraphMin}" Canvas.Left="4" Canvas.Bottom="0" FontSize="9" Foreground="{DynamicResource MidGray}"/>
                     </Canvas>

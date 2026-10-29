@@ -95,8 +95,10 @@
                              an RTL layout - force LTR so the time axis keeps running forward. -->
                         <Canvas Width="360" Height="60" Margin="0,6,0,0" ClipToBounds="True"
                                 HorizontalAlignment="Left" SizeChanged="OnRowGraphSizeChanged" FlowDirection="LeftToRight">
-                            <Polyline Points="{Binding RowGraphPoints}" Stroke="{DynamicResource Green}"
-                                      StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                            <Path Data="{Binding RowGraphBands}" Fill="{DynamicResource Red}" Opacity="0.22"/>
+                            <Path Data="{Binding RowGraphLoss}" Stroke="{DynamicResource Red}" StrokeThickness="2"/>
+                            <Path Data="{Binding RowGraphLine}" Stroke="{DynamicResource Green}"
+                                  StrokeThickness="1.5" StrokeLineJoin="Round"/>
                             <TextBlock Text="{Binding RowGraphMax}" Canvas.Left="4" Canvas.Top="1"
                                        FontSize="9" Foreground="{DynamicResource MidGray}"/>
                             <TextBlock Text="{Binding RowGraphMin}" Canvas.Left="4" Canvas.Bottom="0"

@@ -79,4 +79,99 @@ public class GraphSeriesTests
         Assert.NotEmpty(r.Ticks);
         Assert.All(r.Ticks, t => Assert.True(t.X >= 0 && t.X <= 600));
     }
+
+    [Fact]
+    public void Compute_MarkLoss_BreaksTheLineAtLostSamples()
+    {
+        var r = GraphSeries.Compute(new double?[] { 1, 2, null, 3, 4, 5 }, 500, 60, 30, markLoss: true);
+        Assert.Equal(2, r.Segments.Count);
+        Assert.Equal(2, r.Segments[0].Count);
+        Assert.Equal(3, r.Segments[1].Count);
+        Assert.Equal(5, r.Points.Count);
+    }
+
+    [Fact]
+    public void Compute_WithoutMarkLoss_KeepsOneConnectedLineAndNoMarks()
+    {
+        // Averages and history buckets use null for "no data": they stay connected and unmarked.
+        var r = GraphSeries.Compute(new double?[] { 1, null, null, null, 3, 4 }, 500, 60, 30);
+        Assert.Single(r.Segments);
+        Assert.Empty(r.LossMarks);
+        Assert.Empty(r.Bands);
+    }
+
+    [Fact]
+    public void Compute_MarkLoss_PutsOneTickAtEachLostSampleX()
+    {
+        // 6 samples over 500 px: 100 px apart.
+        var r = GraphSeries.Compute(new double?[] { 1, null, 3, 4, null, 6 }, 500, 60, 30, markLoss: true);
+        Assert.Equal(new[] { 100.0, 400.0 }, r.LossMarks);
+        Assert.Empty(r.Bands);   // single losses get a tick only
+    }
+
+    [Fact]
+    public void Compute_MarkLoss_TwoLostInARowGetNoBand_ThreeDo()
+    {
+        var two = GraphSeries.Compute(new double?[] { 1, 2, null, null, 5, 6, 7 }, 600, 60, 30, markLoss: true);
+        Assert.Empty(two.Bands);
+        Assert.Equal(2, two.LossMarks.Count);
+
+        // 7 samples over 600 px: 100 px apart; samples 2..4 lost -> band from 150 to 450.
+        var three = GraphSeries.Compute(new double?[] { 1, 2, null, null, null, 6, 7 }, 600, 60, 30, markLoss: true);
+        Assert.Equal(3, three.LossMarks.Count);
+        var band = Assert.Single(three.Bands);
+        Assert.Equal(150, band.X, 6);
+        Assert.Equal(300, band.Width, 6);
+    }
+
+    [Fact]
+    public void Compute_MarkLoss_BandsAtTheEdgesAreClippedToTheGraph()
+    {
+        // 8 samples over 700 px: 100 px apart; samples 0..2 and 5..7 lost.
+        var r = GraphSeries.Compute(new double?[] { null, null, null, 4, 5, null, null, null }, 700, 60, 30, markLoss: true);
+        Assert.Equal(2, r.Bands.Count);
+        Assert.Equal(0, r.Bands[0].X, 6);
+        Assert.Equal(250, r.Bands[0].Width, 6);
+        Assert.Equal(450, r.Bands[1].X, 6);
+        Assert.Equal(250, r.Bands[1].Width, 6);
+    }
+
+    [Fact]
+    public void Compute_MarkLoss_AllLostStillMarksTheOutageWithoutALine()
+    {
+        var r = GraphSeries.Compute(new double?[] { null, null, null, null }, 300, 60, 30, markLoss: true);
+        Assert.Empty(r.Segments);
+        Assert.Equal(4, r.LossMarks.Count);
+        Assert.Single(r.Bands);
+        Assert.Equal("", r.MaxText);
+    }
+
+    [Fact]
+    public void Compute_MarkLoss_AnIsolatedSampleBetweenLossesStaysAsOwnSegment()
+    {
+        var r = GraphSeries.Compute(new double?[] { 1, null, 5, null, 2, 3 }, 500, 60, 30, markLoss: true);
+        Assert.Equal(3, r.Segments.Count);
+        Assert.Single(r.Segments[1]);
+        Assert.False(r.Line.Bounds.IsEmpty);
+    }
+
+    [Fact]
+    public void Compute_Geometries_AreFrozenForCrossThreadUse()
+    {
+        var r = GraphSeries.Compute(new double?[] { 1, null, null, null, 3, 4 }, 500, 60, 30, markLoss: true);
+        Assert.True(r.Line.IsFrozen);
+        Assert.True(r.LossGeometry.IsFrozen);
+        Assert.True(r.BandGeometry.IsFrozen);
+        Assert.False(r.LossGeometry.Bounds.IsEmpty);
+        Assert.False(r.BandGeometry.Bounds.IsEmpty);
+    }
+
+    [Fact]
+    public void Compute_LossTicksSitOnTheBaseline()
+    {
+        var r = GraphSeries.Compute(new double?[] { 1, null, 3 }, 200, 60, 30, markLoss: true);
+        double baseline = 60 - GraphSeries.PadBottom;
+        Assert.Equal(baseline, r.LossGeometry.Bounds.Bottom, 6);
+        Assert.Equal(baseline - GraphSeries.LossTickHeight, r.LossGeometry.Bounds.Top, 6);
+    }
 }
