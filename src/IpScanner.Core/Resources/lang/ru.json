@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "Записать отчёт для grep в файл (- для stdout).",
   "Show why each port got its state.": "Показать, почему каждый порт получил своё состояние.",
   "Report only open (and open|filtered) ports.": "Сообщать только об открытых портах (и open|filtered).",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "Разрешить выбранное сканирование более 100 портов (-p, --top-ports), вплоть до всех 65535.",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "Разрешить выбранное сканирование более 100 портов (-p) или значение --top-ports выше 1000, вплоть до всех 65535.",
   "Allow more than 65536 targets.": "Разрешить более 65536 целей.",
   "Allow the intrusive check category.": "Разрешить категорию проверок intrusive.",
   "Allow the FIN, Null, Xmas and Maimon scans.": "Разрешить сканирования FIN, Null, Xmas и Maimon.",

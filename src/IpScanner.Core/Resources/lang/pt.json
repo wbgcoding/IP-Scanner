@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "Grava o relatório grepable em um arquivo (- para stdout).",
   "Show why each port got its state.": "Mostra por que cada porta ficou nesse estado.",
   "Report only open (and open|filtered) ports.": "Relata somente as portas abertas (e open|filtered).",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "Permite uma varredura escolhida de mais de 100 portas (-p, --top-ports), até as 65535.",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "Permite uma varredura escolhida de mais de 100 portas (-p) ou uma contagem de --top-ports acima de 1000, até as 65535.",
   "Allow more than 65536 targets.": "Permite mais de 65536 alvos.",
   "Allow the intrusive check category.": "Permite a categoria de verificações intrusivas.",
   "Allow the FIN, Null, Xmas and Maimon scans.": "Permite as varreduras FIN, Null, Xmas e Maimon.",

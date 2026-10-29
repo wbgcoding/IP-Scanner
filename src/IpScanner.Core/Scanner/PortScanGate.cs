@@ -8,4 +8,14 @@ internal static class PortScanGate
     internal const int MaxUngatedPorts = 100;
 
     internal static bool NeedsConfirmation(int probeCount) => probeCount > MaxUngatedPorts;
+
+    /// <summary>Ports per protocol a "most common ports" count may ask for without a confirmation: the size
+    /// of the default scan, so naming that same count explicitly is never stricter than leaving it out.</summary>
+    internal const int MaxUngatedTopPorts = 1000;
+
+    internal static bool NeedsTopConfirmation(int topCount) => topCount > MaxUngatedTopPorts;
+
+    /// <summary>The gate for a command-line selection: a top-N count has its own limit, a port list uses the probe count.</summary>
+    internal static bool NeedsConfirmation(int? topCount, int probeCount) =>
+        topCount is { } n ? NeedsTopConfirmation(n) : NeedsConfirmation(probeCount);
 }

@@ -176,7 +176,7 @@ Call `IP-Scanner.exe [options] <target>...`. A target is a single address, a hos
 
 | Option | What it does |
 | --- | --- |
-| `--allow-full-scan` | Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535. |
+| `--allow-full-scan` | Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535. |
 | `--allow-large` | Allow more than 65536 targets. |
 | `--allow-intrusive` | Allow the intrusive check category. |
 | `--allow-aggressive` | Allow the FIN, Null, Xmas and Maimon scans. |
@@ -263,7 +263,7 @@ Alone, `-sU` replaces the TCP scan. Combine it with `-sT` or `-sS` to scan both.
 IP-Scanner.exe -sS -p- --allow-full-scan 192.0.2.10
 ```
 
-A scan of more than 100 ports needs `--allow-full-scan`. Because it is long and noisy, a notice is printed on stderr (see below).
+A chosen scan of more than 100 ports (or a `--top-ports` count above 1000) needs `--allow-full-scan`. Because it is long and noisy, a notice is printed on stderr (see below).
 
 ```text
 Open ports:

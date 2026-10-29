@@ -2304,7 +2304,7 @@ public static class Loc
     public static string HelpOpt_oG => S("Den grep-baren Bericht in eine Datei schreiben (- für die Standardausgabe).", "Write the grepable report to a file (- for stdout).");
     public static string HelpOpt_reason => S("Zeigen, warum jeder Port seinen Zustand hat.", "Show why each port got its state.");
     public static string HelpOpt_open => S("Nur offene Ports melden (und open|filtered).", "Report only open (and open|filtered) ports.");
-    public static string HelpOpt_allow_full_scan => S("Einen gewählten Scan von mehr als 100 Ports erlauben (-p, --top-ports), bis zu allen 65535.", "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.");
+    public static string HelpOpt_allow_full_scan => S("Einen gewählten Scan von mehr als 100 Ports (-p) oder einer --top-ports-Anzahl über 1000 erlauben, bis zu allen 65535.", "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.");
     public static string HelpOpt_allow_large => S("Mehr als 65536 Ziele erlauben.", "Allow more than 65536 targets.");
     public static string HelpOpt_allow_intrusive => S("Die Prüfkategorie intrusive erlauben.", "Allow the intrusive check category.");
     public static string HelpOpt_allow_aggressive => S("Die Scans FIN, Null, Xmas und Maimon erlauben.", "Allow the FIN, Null, Xmas and Maimon scans.");

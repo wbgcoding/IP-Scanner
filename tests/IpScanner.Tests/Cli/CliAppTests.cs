@@ -217,7 +217,7 @@ public sealed class CliAppTests : IDisposable
     [InlineData("-p 2-65535")]
     [InlineData("-p 1-65535")]
     [InlineData("-p 1-101")]
-    [InlineData("--top-ports 101")]
+    [InlineData("--top-ports 1001")]
     [InlineData("-sS -sU -p 1-51")]
     public void LargeChosenPortSelection_NeedsAllowFullScan(string ports)
     {
@@ -232,6 +232,8 @@ public sealed class CliAppTests : IDisposable
     [InlineData("-p 22,80,443")]
     [InlineData("-p 1-100")]
     [InlineData("--top-ports 100")]
+    [InlineData("--top-ports 101")]
+    [InlineData("--top-ports 1000")]
     [InlineData("-F")]
     [InlineData("")]
     public void SmallOrDefaultPortSelection_NeedsNoFlag(string ports)

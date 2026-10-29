@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "كتابة تقرير قابل للبحث بـ grep إلى ملف (- للخرج القياسي).",
   "Show why each port got its state.": "عرض سبب حصول كل منفذ على حالته.",
   "Report only open (and open|filtered) ports.": "الإبلاغ عن المنافذ المفتوحة فقط (و open|filtered).",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "السماح بفحص محدد لأكثر من 100 منفذ (-p و --top-ports)، حتى جميع المنافذ الـ 65535.",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "السماح بفحص محدد لأكثر من 100 منفذ (-p) أو لعدد --top-ports يزيد على 1000، حتى جميع المنافذ الـ 65535.",
   "Allow more than 65536 targets.": "السماح بأكثر من 65536 هدفًا.",
   "Allow the intrusive check category.": "السماح بفئة الفحوصات intrusive.",
   "Allow the FIN, Null, Xmas and Maimon scans.": "السماح بفحوصات FIN وNull وXmas وMaimon.",
