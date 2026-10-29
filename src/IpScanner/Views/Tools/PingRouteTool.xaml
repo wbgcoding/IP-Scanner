@@ -112,6 +112,14 @@
                         </TextBlock>
                         <TextBlock Text="{Binding StatsText}" Foreground="{DynamicResource Text}" FontSize="11"/>
                     </WrapPanel>
+                    <WrapPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <TextBlock Text="{loc:L PingZoomLabel}" Foreground="{DynamicResource Subtext}" FontSize="11"
+                                   VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <ComboBox MinWidth="80" ItemsSource="{Binding ZoomOptions}" SelectedItem="{Binding Zoom}" DisplayMemberPath="Label"
+                                  Margin="0,0,12,0" AutomationProperties.Name="{loc:L PingZoomLabel}" ToolTip="{loc:L TipPingZoom}"/>
+                        <Button Content="{loc:L ScanToolSaveButton}" Style="{StaticResource ToolGhostButton}" IsEnabled="{Binding CanSave}"
+                                Click="OnPingSaveClick" ToolTip="{loc:L TipPingSave}"/>
+                    </WrapPanel>
                     <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Peach}" FontSize="11" Margin="0,4,0,0"/>
                 </StackPanel>
 

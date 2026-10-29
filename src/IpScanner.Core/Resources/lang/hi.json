@@ -1248,5 +1248,12 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "तुलना में जोड़ने के लिए किसी और सर्वर का IPv4 या IPv6 पता।",
   "Adds the server you typed to the comparison. At most 6 are possible.": "लिखा हुआ सर्वर तुलना में जोड़ता है। अधिकतम 6 सर्वर संभव हैं।",
   "Takes this server out of the comparison.": "इस सर्वर को तुलना से हटाता है।",
-  "Remove": "हटाएँ"
+  "Remove": "हटाएँ",
+  "1 min": "1 मिनट",
+  "5 min": "5 मिनट",
+  "1 h": "1 घंटा",
+  "Time range": "समय सीमा",
+  "Outages: {0}": "रुकावटें: {0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "ग्राफ़ पिंग सत्र का कितना हिस्सा दिखाए। सहेजने पर हमेशा पूरा सत्र सहेजा जाता है।",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "इस सत्र की हर जाँच को CSV फ़ाइल में सहेजता है: समय, मिलीसेकंड में प्रतिक्रिया समय (खोने पर खाली) और स्थिति।"
 }

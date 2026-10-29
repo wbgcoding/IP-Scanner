@@ -111,7 +111,7 @@ public partial class ToolsWindow : Window
         "WakeOnLan" => new WakeOnLanTool(_owner, _vm.WakeOnLan),
         "PortCheck" => new PortCheckTool(_owner, _vm.PortCheck),
         "DnsLookup" => new DnsLookupTool(_vm.DnsLookup),
-        "PingRoute" => new PingRouteTool(_vm.PingRoute),
+        "PingRoute" => new PingRouteTool(_owner.Config, _vm.PingRoute),
         "Calculator" => new CalculatorTool(_vm.Calculator),
         "MacTool" => new MacTool(_vm.Mac),
         "Certificate" => new CertificateTool(_vm.Certificate),

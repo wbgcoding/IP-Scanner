@@ -1248,5 +1248,12 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "IPv4 or IPv6 address of another server to include in the comparison.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "Adds the server you typed to the comparison. At most 6 are possible.",
   "Takes this server out of the comparison.": "Takes this server out of the comparison.",
-  "Remove": "Remove"
+  "Remove": "Remove",
+  "1 min": "1 min",
+  "5 min": "5 min",
+  "1 h": "1 h",
+  "Time range": "Time range",
+  "Outages: {0}": "Outages: {0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "How much of the ping session the graph shows. Saving always includes the whole session.",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status."
 }

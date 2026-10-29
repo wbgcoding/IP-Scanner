@@ -63,6 +63,10 @@ public static class CsvExporter
     /// <summary>Group numbering in exports starts at 0 = ungrouped, 1 = gateway, ...</summary>
     internal static string ExportGroup(int groupId) => groupId <= 1 ? "0" : (groupId - 1).ToString();
 
+    /// <summary>Writes ready-made CSV text to a path the user chose: UTF-8 with BOM, replacing an existing file.</summary>
+    public static void WriteTo(string path, string csv) =>
+        ReportFile.WriteAtomic(path, Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(csv)).ToArray());
+
     /// <summary>The list separator of the current culture (";" on de-DE), the delimiter a
     /// spreadsheet expects from a double-clicked file; comma when the culture gives none.</summary>
     internal static char ListSeparator() =>

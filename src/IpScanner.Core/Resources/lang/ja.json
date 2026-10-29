@@ -1248,5 +1248,12 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "比較に加える別のサーバーの IPv4 または IPv6 アドレス。",
   "Adds the server you typed to the comparison. At most 6 are possible.": "入力したサーバーを比較に追加します。最大 6 台までです。",
   "Takes this server out of the comparison.": "このサーバーを比較から外します。",
-  "Remove": "削除"
+  "Remove": "削除",
+  "1 min": "1分",
+  "5 min": "5分",
+  "1 h": "1時間",
+  "Time range": "表示期間",
+  "Outages: {0}": "途絶: {0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "グラフに表示するPingセッションの範囲です。保存するときは常にセッション全体が対象になります。",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "このセッションの全プローブをCSVファイルに保存します。時刻、応答時間(ms、応答なしの場合は空)、状態を含みます。"
 }

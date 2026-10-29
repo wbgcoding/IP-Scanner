@@ -2533,4 +2533,13 @@ public static class Loc
     public static string TipDnsCompareAdd => S("Nimmt den eingegebenen Server in den Vergleich auf. Es sind höchstens 6 möglich.", "Adds the server you typed to the comparison. At most 6 are possible.");
     public static string TipDnsCompareRemove => S("Nimmt diesen Server aus dem Vergleich.", "Takes this server out of the comparison.");
     public static string DnsRemoveServerButton => S("Entfernen", "Remove");
+    // Batch Y2
+    public static string PingZoom1Min => S("1 Min", "1 min");
+    public static string PingZoom5Min => S("5 Min", "5 min");
+    public static string PingZoom1Hour => S("1 Std", "1 h");
+    public static string PingZoomAll => S("Alles", "All");
+    public static string PingZoomLabel => S("Zeitraum", "Time range");
+    public static string PingOutagesFmt => S("Ausfälle: {0}", "Outages: {0}");
+    public static string TipPingZoom => S("Wie viel der Ping-Sitzung das Diagramm zeigt. Gespeichert wird immer die ganze Sitzung.", "How much of the ping session the graph shows. Saving always includes the whole session.");
+    public static string TipPingSave => S("Speichert alle Pings dieser Sitzung als CSV-Datei: Zeit, Laufzeit in ms (leer bei Verlust) und Status.", "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.");
 }

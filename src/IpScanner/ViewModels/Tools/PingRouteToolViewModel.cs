@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using IpScanner.Core;
+using IpScanner.Core.Export;
 using IpScanner.Core.Localization;
 
 namespace IpScanner.ViewModels.Tools;
@@ -29,18 +30,48 @@ public sealed class PingRouteToolViewModel : ObservableObject
 
 public sealed record PingReplyRow(string Time, string Result, bool TimedOut);
 
+/// <summary>One probe of the session; <see cref="Ms"/> is null when no reply came back.</summary>
+internal readonly record struct PingSample(DateTime Time, double? Ms);
+
+/// <summary>A choice of the zoom box: how much of the session the graph shows (0 seconds = all of it).</summary>
+public sealed record PingZoom(string Label, int Seconds);
+
 public sealed class PingToolViewModel : ObservableObject
 {
-    private const int MaxSamples = 60;
+    private const int MaxReplyRows = 60;
+    /// <summary>Samples kept for the graph and the CSV: a full day at one probe per second.</summary>
+    internal const int MaxSessionSamples = 86_400;
+    /// <summary>A longer window is thinned to this many points so the graph stays cheap to draw.</summary>
+    private const int MaxGraphPoints = 1000;
     private const double DefaultGraphWidth = 500;
     private const double GraphHeight = 60;
 
-    private RingBuffer<double?> _samples = new();
+    private RingBuffer<PingSample> _session = new();
+    private int _outages;
+    private bool _lastLost;
     private double _graphWidth = DefaultGraphWidth;
     private CancellationTokenSource? _cts;
 
     public string[] IntervalOptions { get; } = { "0.5", "1", "2", "5" };
     public int[] PayloadOptions { get; } = { 32, 64, 512, 1400 };
+
+    public PingZoom[] ZoomOptions { get; }
+
+    public PingToolViewModel()
+    {
+        ZoomOptions = new PingZoom[]
+        {
+            new(Loc.PingZoom1Min, 60), new(Loc.PingZoom5Min, 300), new(Loc.PingZoom1Hour, 3600), new(Loc.PingZoomAll, 0),
+        };
+        _zoom = ZoomOptions[0];
+    }
+
+    private PingZoom _zoom;
+    public PingZoom Zoom
+    {
+        get => _zoom;
+        set { if (value is not null && _zoom != value) { _zoom = value; Raise(nameof(Zoom)); BuildGraph(); } }
+    }
 
     private string _target = "";
     public string Target
@@ -66,11 +97,17 @@ public sealed class PingToolViewModel : ObservableObject
 
     public bool CanStart => !IsRunning && Target.Trim().Length > 0;
 
-    /// <summary>Latest replies first, at most 60.</summary>
+    /// <summary>Latest replies first, at most 60 (the whole session is in the graph and the CSV).</summary>
     public ObservableCollection<PingReplyRow> Replies { get; } = new();
 
     public int Sent { get; private set; }
     public int Received { get; private set; }
+    /// <summary>Runs of lost probes: a miss right after a reply, or a lost first probe, starts one.</summary>
+    public int Outages => _outages;
+    public bool CanSave => !_isSaving && _session.Count > 0;
+
+    private bool _isSaving;
+    private void SetSaving(bool value) { _isSaving = value; Raise(nameof(CanSave)); }
     public string LossText { get; private set; } = NoLoss;
     public string StatsText { get; private set; } = "";
 
@@ -103,10 +140,11 @@ public sealed class PingToolViewModel : ObservableObject
         var intervalSeconds = double.Parse(Interval, CultureInfo.InvariantCulture);
 
         Sent = 0; Received = 0; _min = double.MaxValue; _max = double.MinValue; _sum = 0; _last = 0;
+        _outages = 0; _lastLost = false; _session = new RingBuffer<PingSample>();
         LossText = NoLoss; StatsText = ""; Status = "";
         Raise(nameof(Sent)); Raise(nameof(Received)); Raise(nameof(LossText)); Raise(nameof(StatsText));
+        Raise(nameof(Outages)); Raise(nameof(CanSave));
         Replies.Clear();
-        _samples = new RingBuffer<double?>();
         BuildGraph();
 
         IsRunning = true;
@@ -143,22 +181,25 @@ public sealed class PingToolViewModel : ObservableObject
     }
 
     /// <summary>Counts one probe (null = no reply), then refreshes the statistics, the graph and the reply list.</summary>
-    internal void AddSample(double? rtt)
+    internal void AddSample(double? rtt, DateTime? at = null)
     {
+        var time = at ?? DateTime.Now;
         Sent++;
         if (rtt is not null) Received++;
-        RecordSample(rtt);
-        Replies.Insert(0, new PingReplyRow(DateTime.Now.ToString("T", CultureInfo.CurrentCulture),
+        if (rtt is null && !_lastLost) _outages++;
+        _lastLost = rtt is null;
+        RecordSample(rtt, time);
+        Replies.Insert(0, new PingReplyRow(time.ToString("T", CultureInfo.CurrentCulture),
             rtt is { } v ? NumberFormat.Ms(v) : Loc.PingTimedOut, rtt is null));
-        while (Replies.Count > MaxSamples) Replies.RemoveAt(Replies.Count - 1);
-        Raise(nameof(Sent)); Raise(nameof(Received));
+        while (Replies.Count > MaxReplyRows) Replies.RemoveAt(Replies.Count - 1);
+        Raise(nameof(Sent)); Raise(nameof(Received)); Raise(nameof(Outages)); Raise(nameof(CanSave));
         LossText = FormatLoss(); Raise(nameof(LossText));
-        StatsText = FormatStats(); Raise(nameof(StatsText));
+        StatsText = FormatStatsLine(); Raise(nameof(StatsText));
     }
 
-    private void RecordSample(double? rtt)
+    private void RecordSample(double? rtt, DateTime time)
     {
-        _samples.Add(rtt, MaxSamples);
+        _session.Add(new PingSample(time, rtt), MaxSessionSamples);
         BuildGraph();
         if (rtt is not { } v) return;
         _last = v;
@@ -183,14 +224,101 @@ public sealed class PingToolViewModel : ObservableObject
             NumberFormat.MsValue(max),
             NumberFormat.MsValue(last));
 
-    private string FormatStats() => FormatStats(Received, _min, _sum, _max, _last);
+    /// <summary>The statistics followed by the outage count; the count shows from the first probe on.</summary>
+    internal static string FormatStatsLine(int sent, int received, double min, double sum, double max, double last, int outages)
+    {
+        var stats = FormatStats(received, min, sum, max, last);
+        if (sent == 0) return stats;
+        var lost = string.Format(Loc.PingOutagesFmt, outages);
+        return stats.Length == 0 ? lost : stats + "  |  " + lost;
+    }
+
+    private string FormatStatsLine() => FormatStatsLine(Sent, Received, _min, _sum, _max, _last, _outages);
 
     private void BuildGraph()
     {
-        var tick = GraphSeries.NiceTickStep(_samples.Count * ParseIntervalOrDefault());
-        var r = GraphSeries.Compute(_samples, _graphWidth, GraphHeight, tick, ParseIntervalOrDefault());
+        int first = ZoomStart();
+        int count = _session.Count - first;
+        double secondsPerSample = count > 1
+            ? Math.Max(0.001, (_session[_session.Count - 1].Time - _session[first].Time).TotalSeconds / (count - 1))
+            : ParseIntervalOrDefault();
+        var series = Thin(_session, first, out int perPoint);
+        secondsPerSample *= perPoint;
+        var tick = TickStep(series.Count * secondsPerSample);
+        var r = GraphSeries.Compute(series, _graphWidth, GraphHeight, tick, secondsPerSample);
         GraphPoints = r.Points; GraphMax = r.MaxText; GraphMin = r.MinText; GraphTicks = r.Ticks;
         Raise(nameof(GraphPoints)); Raise(nameof(GraphMax)); Raise(nameof(GraphMin)); Raise(nameof(GraphTicks));
+    }
+
+    /// <summary>Index of the first session sample the zoom box shows: those within its span of the newest one, or all.</summary>
+    private int ZoomStart()
+    {
+        if (_session.Count == 0 || Zoom.Seconds <= 0) return 0;
+        var cutoff = _session[_session.Count - 1].Time.AddSeconds(-Zoom.Seconds);
+        int first = _session.Count;
+        while (first > 0 && _session[first - 1].Time >= cutoff) first--;
+        return first;
+    }
+
+    /// <summary>Thins the samples from <paramref name="first"/> on to at most <see cref="MaxGraphPoints"/> values; each keeps
+    /// the slowest reply of its group so a spike never disappears, and is null only when the whole group was lost.</summary>
+    internal static List<double?> Thin(IReadOnlyList<PingSample> all, int first, out int perPoint)
+    {
+        int count = all.Count - first;
+        perPoint = Math.Max(1, (count + MaxGraphPoints - 1) / MaxGraphPoints);
+        var result = new List<double?>((count + perPoint - 1) / perPoint);
+        for (int i = first; i < all.Count; i += perPoint)
+        {
+            double? worst = null;
+            for (int j = i; j < Math.Min(i + perPoint, all.Count); j++)
+                if (all[j].Ms is { } v && (worst is null || v > worst)) worst = v;
+            result.Add(worst);
+        }
+        return result;
+    }
+
+    private static readonly int[] TickSteps =
+        { 2, 5, 15, 30, 60, 300, 900, 1800, 3600, 7200, 14400, 21600, 43200, 86400 };
+
+    /// <summary>A tick step in seconds that leaves about eight labels over the visible span.</summary>
+    internal static int TickStep(double spanSeconds)
+    {
+        foreach (var step in TickSteps) if (spanSeconds / step <= 8) return step;
+        return TickSteps[^1];
+    }
+
+    /// <summary>The session as CSV: one row per probe with its time, the round trip in ms (empty when lost) and the status.</summary>
+    internal string BuildCsv(char delimiter)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append("time").Append(delimiter).Append("ms").Append(delimiter).Append("status").Append("\r\n");
+        foreach (var smp in _session)
+        {
+            sb.Append(smp.Time.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)).Append(delimiter)
+              .Append(smp.Ms is { } v ? v.ToString("0.###", CultureInfo.InvariantCulture) : "").Append(delimiter)
+              .Append(smp.Ms is null ? "timeout" : "ok").Append("\r\n");
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>Writes the session CSV (list separator of the user's culture, UTF-8 with BOM) to <paramref name="path"/>.</summary>
+    public async Task<bool> SaveAsync(string path)
+    {
+        if (!CanSave) return false;
+        var csv = BuildCsv(CsvExporter.ListSeparator());
+        SetSaving(true);
+        try
+        {
+            await Task.Run(() => CsvExporter.WriteTo(path, csv));
+            Status = string.Format(Loc.ScanToolSavedFmt, path);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Status = string.Format(Loc.ScanToolSaveFailedFmt, ex.Message);
+            return false;
+        }
+        finally { SetSaving(false); }
     }
 
     private double ParseIntervalOrDefault()
