@@ -266,29 +266,34 @@ public class ScanEngineTests
     public async Task Enrichment_GateIsPerEngine_StuckLookupOnOneEngineDoesNotBlockAnother()
     {
         PingResult AllOnline(string ip, int _) => new PingResult(true, 1.0, 64);
-        var release = new ManualResetEventSlim();
+        var release = new TaskCompletionSource<(string? mac, string? host)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        int entered = 0;
 
-        // Saturate the first engine's enrichment gate (24 slots) with resolvers that
-        // block until released - a whole /24 comes online, far more than the gate size.
-        var stuckEnrichers = new[]
+        // Saturate the first engine's enrichment gate (24 slots) with resolvers that wait until
+        // released - a whole /24 comes online, far more than the gate size. They wait on a task, not
+        // on a pool thread, so a busy pool cannot starve the second engine in this test.
+        var stuckEnrichers = new Func<string, CancellationToken, Task<(string? mac, string? host)>>[]
         {
-            EnrichTechnique.FromSync(ip => { release.Wait(5000); return (null, "stuck"); }),
+            (ip, ct) => { Interlocked.Increment(ref entered); return release.Task; },
         };
         var engine1 = new ScanEngine(AllOnline, stuckEnrichers);
         var cfg = new ScanConfig { PingCount = 1, PingIntervalMs = 0, OfflineRecheckSeconds = 0 };
-        await engine1.ScanAsync(TargetSpec.FromPrefixes(new[] { "10.1.0" }).Expand(), cfg, CancellationToken.None);
-        await Task.Delay(200); // let the fire-and-forget enrichment actually grab gate slots
+        try
+        {
+            await engine1.ScanAsync(TargetSpec.FromPrefixes(new[] { "10.1.0" }).Expand(), cfg, CancellationToken.None);
+            // Every gate slot is taken once 24 resolvers are waiting.
+            Assert.True(SpinWait.SpinUntil(() => Volatile.Read(ref entered) >= 24, 30_000));
 
-        var fastEnrichers = new[] { EnrichTechnique.FromSync(ip => (null, "quick-name")) };
-        var engine2 = new ScanEngine(AllOnline, fastEnrichers);
-        await engine2.ScanAsync(TargetSpec.FromPrefixes(new[] { "10.2.0" }).Expand(), cfg, CancellationToken.None);
+            var fastEnrichers = new[] { EnrichTechnique.FromSync(ip => (null, "quick-name")) };
+            var engine2 = new ScanEngine(AllOnline, fastEnrichers);
+            await engine2.ScanAsync(TargetSpec.FromPrefixes(new[] { "10.2.0" }).Expand(), cfg, CancellationToken.None);
 
-        // If the gate were still shared across engine instances, this would block behind
-        // engine1's 24 stuck permits instead of resolving within the wait below.
-        var d = engine2.Devices.First(x => x.Ip == "10.2.0.1");
-        Assert.True(SpinWait.SpinUntil(() => d.Hostname == "quick-name", 2000));
-
-        release.Set();
+            // If the gate were still shared across engine instances, this would block behind
+            // engine1's 24 stuck permits instead of resolving.
+            var d = engine2.Devices.First(x => x.Ip == "10.2.0.1");
+            Assert.True(SpinWait.SpinUntil(() => d.Hostname == "quick-name", 30_000));
+        }
+        finally { release.TrySetResult((null, "stuck")); }
     }
 
     [Fact]
