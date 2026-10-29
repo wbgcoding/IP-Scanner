@@ -563,12 +563,12 @@
                     <TextBlock x:Name="FirstRunConfigText" FontSize="11" Foreground="{DynamicResource Subtext}" Margin="0,4,0,0" TextWrapping="Wrap"/>
                     <TextBlock x:Name="FirstRunDatabaseText" FontSize="11" Foreground="{DynamicResource Subtext}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                     <TextBlock x:Name="FirstRunReportsText" FontSize="11" Foreground="{DynamicResource Subtext}" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                    <CheckBox x:Name="FirstRunUpdatesBox" ToolTip="{loc:L TipFirstRunUpdates}" IsChecked="True"
+                    <CheckBox x:Name="FirstRunUpdatesBox" ToolTip="{loc:L TipFirstRunUpdates}" IsChecked="False"
                               Foreground="{DynamicResource Text}" FontSize="12" Margin="0,10,0,0"
                               AutomationProperties.Name="{loc:L FirstRunCheckUpdates}">
                         <TextBlock Text="{loc:L FirstRunCheckUpdates}" TextWrapping="Wrap"/>
                     </CheckBox>
-                    <CheckBox x:Name="FirstRunInternetBox" ToolTip="{loc:L TipFirstRunInternet}" IsChecked="True"
+                    <CheckBox x:Name="FirstRunInternetBox" ToolTip="{loc:L TipFirstRunInternet}" IsChecked="False"
                               Foreground="{DynamicResource Text}" FontSize="12" Margin="0,6,0,0"
                               AutomationProperties.Name="{loc:L FirstRunMeasureInternet}">
                         <TextBlock Text="{loc:L FirstRunMeasureInternet}" TextWrapping="Wrap"/>
