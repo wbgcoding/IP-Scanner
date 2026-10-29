@@ -1249,5 +1249,7 @@
   "Adds the server you typed to the comparison. At most 6 are possible.": "लिखा हुआ सर्वर तुलना में जोड़ता है। अधिकतम 6 सर्वर संभव हैं।",
   "Takes this server out of the comparison.": "इस सर्वर को तुलना से हटाता है।",
   "Remove": "हटाएँ",
-  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "डिवाइस पर मिले खुले TCP पोर्ट दिखाता है। सेवाओं के नामों के साथ पूरी सूची देखने के लिए किसी सेल पर कर्सर ले जाएँ।"
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "डिवाइस पर मिले खुले TCP पोर्ट दिखाता है। सेवाओं के नामों के साथ पूरी सूची देखने के लिए किसी सेल पर कर्सर ले जाएँ।",
+  "Shows when the device was first seen online. Only remembered while the known devices database is on.": "दिखाता है कि डिवाइस पहली बार कब ऑनलाइन देखा गया था। यह तभी याद रखा जाता है जब ज्ञात डिवाइस का डेटाबेस चालू हो।",
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "दिखाता है कि डिवाइस आखिरी बार कब ऑनलाइन देखा गया था। यह तभी याद रखा जाता है जब ज्ञात डिवाइस का डेटाबेस चालू हो।"
 }

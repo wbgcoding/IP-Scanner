@@ -500,6 +500,8 @@ public partial class MainWindow : Window
         PortsColumn.Visibility = IsColumnHidden("ports") ? Visibility.Collapsed : Visibility.Visible;
         MethodColumn.Visibility = IsColumnHidden("method") ? Visibility.Collapsed : Visibility.Visible;
         OsColumn.Visibility = IsColumnHidden("os") ? Visibility.Collapsed : Visibility.Visible;
+        FirstSeenColumn.Visibility = IsColumnHidden("first_seen") ? Visibility.Collapsed : Visibility.Visible;
+        LastSeenColumn.Visibility = IsColumnHidden("last_seen") ? Visibility.Collapsed : Visibility.Visible;
     }
 
     /// <summary>Shows/hides the "skipped" pings legend square. Skipped
@@ -525,6 +527,8 @@ public partial class MainWindow : Window
         if (PortsColBox.IsChecked != true) hidden.Add("ports");
         if (MethodColBox.IsChecked != true) hidden.Add("method");
         if (OsColBox.IsChecked != true) hidden.Add("os");
+        if (FirstSeenColBox.IsChecked != true) hidden.Add("first_seen");
+        if (LastSeenColBox.IsChecked != true) hidden.Add("last_seen");
         _config.HiddenColumns = hidden;
         ApplyColumnVisibility();
         PersistConfigDebounced();
@@ -655,6 +659,7 @@ public partial class MainWindow : Window
         ["Max"] = MaxColumn, ["Last"] = LastColumn, ["Loss"] = LossColumn,
         ["Jitter"] = JitterColumn, ["Progress"] = ProgressColumn, ["Mac"] = MacColumn,
         ["Vendor"] = VendorColumn, ["Ports"] = PortsColumn, ["Method"] = MethodColumn, ["Os"] = OsColumn,
+        ["FirstSeen"] = FirstSeenColumn, ["LastSeen"] = LastSeenColumn,
     };
 
     private void RestoreTableSortAndWidths()

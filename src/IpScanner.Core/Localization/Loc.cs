@@ -2539,4 +2539,12 @@ public static class Loc
     public static string TipColPorts => S(
         "Zeigt die offenen TCP-Ports, die auf dem Gerät gefunden wurden. Fahre über eine Zelle, um die ganze Liste mit Dienstnamen zu sehen.",
         "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.");
+    public static string ColFirstSeen => S("Zuerst gesehen", "First seen");
+    public static string ColLastSeen => S("Zuletzt gesehen", "Last seen");
+    public static string TipColFirstSeen => S(
+        "Zeigt, wann das Gerät zum ersten Mal online gesehen wurde. Das merkt sich das Programm nur, solange die Datenbank bekannter Geräte aktiv ist.",
+        "Shows when the device was first seen online. Only remembered while the known devices database is on.");
+    public static string TipColLastSeen => S(
+        "Zeigt, wann das Gerät zuletzt online gesehen wurde. Das merkt sich das Programm nur, solange die Datenbank bekannter Geräte aktiv ist.",
+        "Shows when the device was last seen online. Only remembered while the known devices database is on.");
 }

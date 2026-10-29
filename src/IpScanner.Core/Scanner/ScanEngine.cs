@@ -139,6 +139,8 @@ public sealed class ScanEngine : IDisposable
                 { d.Hostname = h; d.HostnameRank = DbRank; }
                 if (d.Mac is null && k.Mac is { } m && m != Device.Unknown)
                 { d.Mac = m; d.MacRank = DbRank; macToTrack = m; }
+                d.FirstSeen ??= k.FirstSeen;
+                d.LastSeen ??= k.LastSeen;
             }
             if (macToTrack is not null) TrackMacOrEvict(d, macToTrack);
             DeviceUpdated?.Invoke(d);

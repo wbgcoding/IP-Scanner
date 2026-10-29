@@ -514,6 +514,8 @@ public partial class MainWindow : Window
         PortsColBox.IsChecked = !c.HiddenColumns.Contains("ports");
         MethodColBox.IsChecked = !c.HiddenColumns.Contains("method");
         OsColBox.IsChecked = !c.HiddenColumns.Contains("os");
+        FirstSeenColBox.IsChecked = !c.HiddenColumns.Contains("first_seen");
+        LastSeenColBox.IsChecked = !c.HiddenColumns.Contains("last_seen");
         TxtToggle.IsChecked = c.FileOutput;
         CsvToggle.IsChecked = c.ExportCsv;
         HeatMs1Box.Text = c.HeatMs1.ToString("0.#");

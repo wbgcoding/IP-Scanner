@@ -224,6 +224,7 @@ internal static class ReviewSurfaces
             new("main.discovery.driver", "g.settings", true, c => MainState(c, w => { w.ReviewSetDriver(new PacketDriverStatus(true, null, "1.0"), true); w.ReviewOpenSettings("Scan"); w.ReviewScrollToDiscovery(); })),
             new("main.ipv6", "g.main", true, c => MainState(c, w => w.ReviewShowIpv6Rows())),
             new("main.oscolumn", "g.main", true, c => MainState(c, w => w.ReviewShowOsColumn())),
+            new("main.seencolumns", "g.main", true, c => MainState(c, w => w.ReviewShowSeenColumns())),
             new("main.driver.help", "g.settings", true, c => MainState(c, w => { w.ReviewSetDriver(PacketDriverStatus.Missing); w.ReviewOpenSettings("Help"); w.ReviewScrollToDriver(); })),
             new("main.help.reference", "g.settings", true, c => MainState(c, w => { w.ReviewOpenSettings("Help"); w.ReviewScrollToReference(); })),
             new("main.help.options", "g.settings", true, c => MainState(c, w => { w.ReviewOpenSettings("Help"); w.ReviewScrollToReference("options"); })),

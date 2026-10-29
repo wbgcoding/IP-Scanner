@@ -15,7 +15,9 @@ public sealed class ForeignDatabaseException : Exception;
 /// column that carries device data (MAC/IP/hostname) is either a one-way lookup token or an
 /// AesGcm-sealed blob under a per-installation key (<see cref="LocalCrypto"/>) - opening
 /// scanner.db in a SQLite viewer shows no readable device data. <c>last_seen</c>/<c>ts</c>
-/// stay plain (needed for the retention cutoff comparison, not device data by themselves).</summary>
+/// stay plain (needed for the retention cutoff comparison, not device data by themselves).
+/// When a device was first and last seen online is part of the sealed payload (fields 5 and 6);
+/// a row written before that falls back to its plain <c>last_seen</c> for both.</summary>
 public sealed partial class KnownDevicesDb
 {
     internal const string KeyFileName = "scanner.key";
@@ -61,6 +63,7 @@ public sealed partial class KnownDevicesDb
             {
                 if (!known) CreateSchema(conn);
                 if (_crypto is not null) MigrateLegacyTables(conn);
+                if (_crypto is not null) AddSeenStamps(conn);
                 _initialized[path] = _crypto is not null;
             }
         }
@@ -187,11 +190,49 @@ public sealed partial class KnownDevicesDb
         }
     }
 
+    /// <summary>One-time migration: a device row sealed before first/last seen existed gets both stamps
+    /// added to its payload, copied from its plain last_seen. Rows that already carry them are left alone.</summary>
+    private void AddSeenStamps(SqliteConnection conn)
+    {
+        try
+        {
+            var todo = new List<(string Net, string Mac, byte[] Payload)>();
+            using (var read = conn.CreateCommand("SELECT network_tok, mac_tok, payload, last_seen FROM known_devices_v2"))
+            using (var r = read.ExecuteReader())
+                while (r.Read())
+                {
+                    if (r.IsDBNull(2)) continue;
+                    var parts = _crypto!.Open((byte[])r[2])?.Split('\t');
+                    if (parts is not { Length: >= 4 } || parts.Length >= 6) continue;
+                    var last = r.IsDBNull(3) ? "" : r.GetString(3);
+                    var upgraded = _crypto.Seal(string.Join('\t', parts.Take(4).Append(last).Append(last)));
+                    todo.Add((r.GetString(0), r.GetString(1), upgraded));
+                }
+            if (todo.Count == 0) return;
+            using var tx = conn.BeginTransaction();
+            foreach (var (net, mac, payload) in todo)
+            {
+                using var cmd = conn.CreateCommand("UPDATE known_devices_v2 SET payload=$p WHERE network_tok=$n AND mac_tok=$m");
+                cmd.Transaction = tx;
+                cmd.Parameters.AddWithValue("$p", payload);
+                cmd.Parameters.AddWithValue("$n", net);
+                cmd.Parameters.AddWithValue("$m", mac);
+                cmd.ExecuteNonQuery();
+            }
+            tx.Commit();
+        }
+        catch (Exception ex)
+        {
+            Log.Warn(LogArea.Db, "First-seen migration failed, rows keep their last seen time", ex);
+        }
+    }
+
     private void InsertSealedDeviceRow(SqliteConnection conn, SqliteTransaction tx,
-        string net, string mac, string ip, string? host, string lastSeen)
+        string net, string mac, string ip, string? host, string lastSeen,
+        string? firstSeen = null, string? lastOnline = null)
     {
         ip = StoredIp(ip);
-        var payload = _crypto!.Seal($"{net}\t{mac}\t{ip}\t{host ?? ""}");
+        var payload = _crypto!.Seal($"{net}\t{mac}\t{ip}\t{host ?? ""}\t{firstSeen ?? lastSeen}\t{lastOnline ?? lastSeen}");
         using var cmd = conn.CreateCommand(
             "INSERT OR REPLACE INTO known_devices_v2 (network_tok, mac_tok, ip_tok, payload, last_seen, family) VALUES ($n,$m,$i,$p,$t,$f)");
         cmd.Transaction = tx;
@@ -246,33 +287,46 @@ public sealed partial class KnownDevicesDb
             var mac = d.Mac.ToUpperInvariant();
             var macTok = _crypto.Token(mac);
             var hostname = string.IsNullOrEmpty(d.Hostname) || d.Hostname == Device.Unknown ? null : d.Hostname;
-            var existingHostname = FindExistingHostname(conn, tx, networkTok, macTok);
-            InsertSealedDeviceRow(conn, tx, net, mac, d.Ip, hostname ?? existingHostname, timestamp);
+            var existing = FindExistingRow(conn, tx, networkTok, macTok);
+            // A device that did not answer in this run keeps the times it had; one that did
+            // moves its last-seen time up. The first time is set once, on the first insert.
+            var online = d.IsOnline || (d.Seen && !d.IsListed);
+            var first = timestamp;
+            var lastOnline = timestamp;
+            if (existing is { } old)
+            {
+                first = online ? Earlier(old.First, timestamp) : old.First;
+                lastOnline = online ? timestamp : old.LastOnline;
+            }
+            InsertSealedDeviceRow(conn, tx, net, mac, d.Ip, hostname ?? existing?.Host, timestamp, first, lastOnline);
         }
         tx.Commit();
     }
 
-    private string? FindExistingHostname(SqliteConnection conn, SqliteTransaction tx, string networkTok, string macTok)
-    {
-        using var sel = conn.CreateCommand("SELECT payload FROM known_devices_v2 WHERE network_tok=$n AND mac_tok=$m");
-        sel.Transaction = tx;
-        sel.Parameters.AddWithValue("$n", networkTok);
-        sel.Parameters.AddWithValue("$m", macTok);
-        if (sel.ExecuteScalar() is byte[] oldPayload)
-        {
-            var unsealed = _crypto!.Open(oldPayload);
-            var parts = unsealed?.Split('\t');
-            if (parts is { Length: > 3 } && parts[3].Length > 0) return parts[3];
-        }
-        return null;
-    }
+    /// <summary>The earlier of two "yyyyMMdd_HHmmss" stamps; an empty one counts as unknown.</summary>
+    private static string Earlier(string a, string b)
+        => a.Length == 0 ? b : b.Length == 0 ? a : string.CompareOrdinal(a, b) <= 0 ? a : b;
+
+    /// <summary>The later of two "yyyyMMdd_HHmmss" stamps; an empty one counts as unknown.</summary>
+    private static string Later(string a, string b)
+        => string.CompareOrdinal(a, b) >= 0 ? a : b;
+
+    /// <summary>First-seen and last-seen-online stamps of a sealed payload; a row from before they
+    /// existed uses its plain last_seen column for both.</summary>
+    private static (string First, string LastOnline) StampsOf(string[] parts, string columnLastSeen) => (
+        parts.Length > 4 && parts[4].Length > 0 ? parts[4] : columnLastSeen,
+        parts.Length > 5 && parts[5].Length > 0 ? parts[5] : columnLastSeen);
+
+    private static DateTimeOffset? ParseStamp(string text) =>
+        DateTimeOffset.TryParseExact(text, LastSeenFormat, System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.AssumeLocal, out var when) ? when : null;
 
     public List<Device> Load(string networkMac)
     {
         var result = new List<Device>();
         if (_crypto is null) return result;
         using var conn = Open();
-        using var cmd = conn.CreateCommand("SELECT payload FROM known_devices_v2 WHERE network_tok = $n");
+        using var cmd = conn.CreateCommand("SELECT payload, last_seen FROM known_devices_v2 WHERE network_tok = $n");
         cmd.Parameters.AddWithValue("$n", _crypto.Token(networkMac.ToUpperInvariant()));
         using var r = cmd.ExecuteReader();
         while (r.Read())
@@ -280,11 +334,14 @@ public sealed partial class KnownDevicesDb
             if (r.IsDBNull(0)) continue;
             var parts = _crypto.Open((byte[])r[0])?.Split('\t');
             if (parts is not { Length: >= 3 } || parts[2].Length == 0) continue;   // no IP -> useless
+            var (first, lastOnline) = StampsOf(parts, r.IsDBNull(1) ? "" : r.GetString(1));
             result.Add(new Device(parts[2])
             {
                 Mac = parts[1].Length > 0 ? parts[1] : Device.Unknown,
                 Hostname = parts.Length > 3 && parts[3].Length > 0 ? parts[3] : Device.Unknown,
                 FromDb = true,
+                FirstSeen = ParseStamp(first),
+                LastSeen = ParseStamp(lastOnline),
             });
         }
         return result;
@@ -506,7 +563,7 @@ public sealed partial class KnownDevicesDb
         progress?.Report((0, total));
         cancellationToken.ThrowIfCancellationRequested();
 
-        List<(string Net, string Mac, string Ip, string? Host, string LastSeen)> rows;
+        List<(string Net, string Mac, string Ip, string? Host, string LastSeen, string First, string LastOnline)> rows;
         if (sealedSource)
         {
             var srcKeyPath = System.IO.Path.Combine(
@@ -514,7 +571,7 @@ public sealed partial class KnownDevicesDb
                 KeyFileName);
             var srcCrypto = LocalCrypto.TryLoadExisting(srcKeyPath)
                 ?? throw new ForeignDatabaseException();
-            rows = new List<(string, string, string, string?, string)>();
+            rows = new List<(string, string, string, string?, string, string, string)>();
             using var read = src.CreateCommand("SELECT payload, last_seen FROM known_devices_v2");
             using var r = read.ExecuteReader();
             while (r.Read())
@@ -523,21 +580,24 @@ public sealed partial class KnownDevicesDb
                 if (r.IsDBNull(0)) continue;
                 var parts = srcCrypto.Open((byte[])r[0])?.Split('\t');
                 if (parts is not { Length: >= 3 } || parts[0].Length == 0 || parts[2].Length == 0) continue;
+                var srcLast = r.IsDBNull(1) ? "" : r.GetString(1);
+                var (srcFirst, srcLastOnline) = StampsOf(parts, srcLast);
                 rows.Add((parts[0], parts[1], parts[2], parts.Length > 3 && parts[3].Length > 0 ? parts[3] : null,
-                    r.IsDBNull(1) ? "" : r.GetString(1)));
+                    srcLast, srcFirst, srcLastOnline));
             }
         }
         else
         {
-            rows = new List<(string, string, string, string?, string)>();
+            rows = new List<(string, string, string, string?, string, string, string)>();
             using var read = src.CreateCommand("SELECT network_mac, mac, ip, hostname, last_seen FROM known_devices");
             using var r = read.ExecuteReader();
             while (r.Read())
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (r.IsDBNull(2)) continue;
+                var plainLast = r.IsDBNull(4) ? "" : r.GetString(4);
                 rows.Add((r.GetString(0), r.GetString(1), r.GetString(2),
-                    r.IsDBNull(3) ? null : r.GetString(3), r.IsDBNull(4) ? "" : r.GetString(4)));
+                    r.IsDBNull(3) ? null : r.GetString(3), plainLast, plainLast, plainLast));
             }
         }
 
@@ -545,7 +605,7 @@ public sealed partial class KnownDevicesDb
         using var tx = dst.BeginTransaction();
         int count = 0;
         var latestAllowed = DateTimeOffset.Now.AddDays(1);
-        foreach (var (rawNet, rawMac, rawIp, rawHost, lastSeen) in rows)
+        foreach (var (rawNet, rawMac, rawIp, rawHost, lastSeen, rowFirst, rowLastOnline) in rows)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (!TryNormalizeRow(rawNet, rawMac, rawIp, lastSeen, latestAllowed, out var net, out var mac, out var ip)) continue;
@@ -555,6 +615,8 @@ public sealed partial class KnownDevicesDb
             var macTok = _crypto.Token(mac);
             var finalHost = host;
             var finalLastSeen = lastSeen;
+            var finalFirst = rowFirst;
+            var finalLastOnline = rowLastOnline;
             using (var sel = dst.CreateCommand("SELECT payload, last_seen FROM known_devices_v2 WHERE network_tok=$n AND mac_tok=$m"))
             {
                 sel.Transaction = tx;
@@ -570,12 +632,18 @@ public sealed partial class KnownDevicesDb
                     {
                         var p = _crypto.Open((byte[])er[0])?.Split('\t');
                         if (p is { Length: > 3 } && p[3].Length > 0) existingHost = p[3];
+                        if (p is not null)
+                        {
+                            var (existingFirst, existingLastOnline) = StampsOf(p, existingLastSeen);
+                            finalFirst = Earlier(existingFirst, rowFirst);
+                            finalLastOnline = Later(existingLastOnline, rowLastOnline);
+                        }
                     }
                     finalHost = newerWins ? (host ?? existingHost) : (existingHost ?? host);
                     finalLastSeen = newerWins ? lastSeen : existingLastSeen;
                 }
             }
-            InsertSealedDeviceRow(dst, tx, net, mac, ip, finalHost, finalLastSeen);
+            InsertSealedDeviceRow(dst, tx, net, mac, ip, finalHost, finalLastSeen, finalFirst, finalLastOnline);
             count++;
             if ((count & 63) == 0) progress?.Report((count, total));
         }
@@ -639,8 +707,12 @@ public sealed partial class KnownDevicesDb
             if (host is { Length: 0 }) host = null;
 
             var existing = FindExistingRow(conn, tx, _crypto.Token(net), _crypto.Token(mac));
+            var importedStamp = lastSeen;
+            string? firstSeen = null, lastOnline = null;
             if (existing is { } old)
             {
+                firstSeen = Earlier(old.First, importedStamp);
+                lastOnline = Later(old.LastOnline, importedStamp);
                 if (string.CompareOrdinal(lastSeen, old.LastSeen) < 0)
                 {
                     // Older than what is stored: keep the newer row, only fill a missing hostname.
@@ -650,7 +722,7 @@ public sealed partial class KnownDevicesDb
                 }
                 else host ??= old.Host;
             }
-            InsertSealedDeviceRow(conn, tx, net, mac, ip, host, lastSeen);
+            InsertSealedDeviceRow(conn, tx, net, mac, ip, host, lastSeen, firstSeen, lastOnline);
             imported++;
         }
         tx.Commit();
@@ -692,7 +764,7 @@ public sealed partial class KnownDevicesDb
         return NetworkText.Sanitize(text);
     }
 
-    private (string Ip, string? Host, string LastSeen)? FindExistingRow(
+    private (string Ip, string? Host, string LastSeen, string First, string LastOnline)? FindExistingRow(
         SqliteConnection conn, SqliteTransaction tx, string networkTok, string macTok)
     {
         using var sel = conn.CreateCommand(
@@ -704,8 +776,9 @@ public sealed partial class KnownDevicesDb
         if (!r.Read() || r.IsDBNull(0)) return null;
         var parts = _crypto!.Open((byte[])r[0])?.Split('\t');
         if (parts is not { Length: >= 3 }) return null;
-        return (parts[2], parts.Length > 3 && parts[3].Length > 0 ? parts[3] : null,
-            r.IsDBNull(1) ? "" : r.GetString(1));
+        var lastSeen = r.IsDBNull(1) ? "" : r.GetString(1);
+        var (first, lastOnline) = StampsOf(parts, lastSeen);
+        return (parts[2], parts.Length > 3 && parts[3].Length > 0 ? parts[3] : null, lastSeen, first, lastOnline);
     }
 
     /// <summary>Minimal RFC 4180 reader for <see cref="ImportCsv"/> - our own export's

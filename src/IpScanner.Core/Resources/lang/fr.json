@@ -1249,5 +1249,7 @@
   "Adds the server you typed to the comparison. At most 6 are possible.": "Ajoute le serveur saisi à la comparaison. Six serveurs au maximum.",
   "Takes this server out of the comparison.": "Retire ce serveur de la comparaison.",
   "Remove": "Retirer",
-  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "Affiche les ports TCP ouverts trouvés sur l'appareil. Survolez une cellule pour voir la liste complète avec les noms des services."
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "Affiche les ports TCP ouverts trouvés sur l'appareil. Survolez une cellule pour voir la liste complète avec les noms des services.",
+  "Shows when the device was first seen online. Only remembered while the known devices database is on.": "Indique quand l'appareil a été vu en ligne pour la première fois. Cette information n'est conservée que si la base des appareils connus est activée.",
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Indique quand l'appareil a été vu en ligne pour la dernière fois. Cette information n'est conservée que si la base des appareils connus est activée."
 }

@@ -1249,5 +1249,7 @@
   "Adds the server you typed to the comparison. At most 6 are possible.": "把输入的服务器加入比较。最多 6 台。",
   "Takes this server out of the comparison.": "把这台服务器从比较中移除。",
   "Remove": "移除",
-  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "显示在设备上找到的开放 TCP 端口。将鼠标悬停在单元格上可查看带服务名称的完整列表。"
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "显示在设备上找到的开放 TCP 端口。将鼠标悬停在单元格上可查看带服务名称的完整列表。",
+  "Shows when the device was first seen online. Only remembered while the known devices database is on.": "显示设备首次被发现在线的时间。仅在已知设备数据库开启时才会记录。",
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "显示设备最近一次被发现在线的时间。仅在已知设备数据库开启时才会记录。"
 }
