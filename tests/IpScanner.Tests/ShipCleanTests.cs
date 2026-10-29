@@ -16,6 +16,7 @@ public class ShipCleanTests
     private static readonly Regex BlockComment = new(@"/\*.*?\*/", RegexOptions.Singleline | RegexOptions.Compiled);
     private static readonly Regex XmlComment = new(@"<!--.*?-->", RegexOptions.Singleline | RegexOptions.Compiled);
     private static readonly string[] BannedTokens = { "Claude", "ClaudeLab", "vmctl", "WORK.md" };
+    private static readonly Regex OwnerName = new(@"\bben(jamin)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private static string RepoRoot()
     {
@@ -70,14 +71,13 @@ public class ShipCleanTests
     }
 
     [Fact]
-    public void Sources_UseNoEmOrEnDashes_ExceptTheEmptyValueLiteral()
+    public void Sources_UseNoEmOrEnDashes_ExceptTheEnDashEmptyValue()
     {
         var root = RepoRoot();
         var hits = new List<string>();
         foreach (var path in SourceFiles())
         {
-            var text = File.ReadAllText(path)
-                .Replace("\"—\"", "\"\"").Replace("\"–\"", "\"\"");
+            var text = File.ReadAllText(path).Replace("\"–\"", "\"\"");
             for (int i = 0; i < text.Length; i++)
                 if (text[i] == '–' || text[i] == '—')
                     hits.Add($"{Path.GetRelativePath(root, path)}:{LineOf(text, i)}");
@@ -118,6 +118,8 @@ public class ShipCleanTests
                 int at = text.IndexOf(token, StringComparison.Ordinal);
                 if (at >= 0) hits.Add($"{Path.GetRelativePath(root, path)}:{LineOf(text, at)} {token}");
             }
+            foreach (Match m in OwnerName.Matches(text))
+                hits.Add($"{Path.GetRelativePath(root, path)}:{LineOf(text, m.Index)} {m.Value}");
         }
         Assert.True(hits.Count == 0, "Banned tokens:\n" + string.Join("\n", hits));
     }
