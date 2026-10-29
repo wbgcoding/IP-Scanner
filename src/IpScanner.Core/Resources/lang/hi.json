@@ -1255,5 +1255,10 @@
   "Time range": "समय सीमा",
   "Outages: {0}": "रुकावटें: {0}",
   "How much of the ping session the graph shows. Saving always includes the whole session.": "ग्राफ़ पिंग सत्र का कितना हिस्सा दिखाए। सहेजने पर हमेशा पूरा सत्र सहेजा जाता है।",
-  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "इस सत्र की हर जाँच को CSV फ़ाइल में सहेजता है: समय, मिलीसेकंड में प्रतिक्रिया समय (खोने पर खाली) और स्थिति।"
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "इस सत्र की हर जाँच को CSV फ़ाइल में सहेजता है: समय, मिलीसेकंड में प्रतिक्रिया समय (खोने पर खाली) और स्थिति।",
+  "Continuous": "लगातार",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "पहले दौर के बाद हर पड़ाव को रोकें दबाने तक हर सेकंड फिर से जाँचता है, ताकि हर पड़ाव की हानि और विलंबता दिखे।",
+  "Loss %": "हानि %",
+  "Best": "सर्वश्रेष्ठ",
+  "Worst": "सबसे खराब"
 }

@@ -174,9 +174,12 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox AutomationProperties.Name="{loc:L PortCheckTargetLabel}" MinWidth="140" Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}" ToolTip="{loc:L TipToolRouteTarget}" Margin="0,0,8,0"/>
-                    <Grid Grid.Column="1">
+                    <CheckBox Grid.Column="1" Content="{loc:L RouteContinuousLabel}" IsChecked="{Binding Continuous}"
+                              VerticalAlignment="Center" Margin="0,0,12,0" ToolTip="{loc:L TipRouteContinuous}"/>
+                    <Grid Grid.Column="2">
                         <Button Content="{loc:L PingStartButton}" Click="OnRouteStartClick" ToolTip="{loc:L TipToolRouteStart}">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource ToolAccentButton}">
@@ -205,51 +208,57 @@
                 </Grid>
             </StackPanel>
 
-            <!-- Hops in fixed columns: hop, address, name, then the three probe times. The header and every row
-                 use the same column widths (name takes the rest), so the values line up under each other. -->
+            <!-- Hops in fixed columns: hop, address, name, then loss, last, average, best, worst and the probe count.
+                 The header and every row use the same column widths (name takes the rest), so the values line up. -->
             <ScrollViewer Grid.Row="2" Margin="0,8,0,0" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="56"/>
-                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="48"/>
+                            <ColumnDefinition Width="124"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="76"/>
                             <ColumnDefinition Width="72"/>
                             <ColumnDefinition Width="72"/>
+                            <ColumnDefinition Width="72"/>
+                            <ColumnDefinition Width="90"/>
                             <ColumnDefinition Width="72"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{loc:L RouteHopLabel}" Foreground="{DynamicResource Subtext}" FontSize="11"/>
+                        <TextBlock Grid.Column="0" Text="{loc:L RouteHopLabel}" Foreground="{DynamicResource Subtext}" FontSize="11" TextTrimming="CharacterEllipsis"/>
                         <TextBlock Grid.Column="1" Text="{loc:L RouteAddressLabel}" Foreground="{DynamicResource Subtext}" FontSize="11"/>
                         <TextBlock Grid.Column="2" Text="{loc:L RouteNameLabel}" Foreground="{DynamicResource Subtext}" FontSize="11"/>
-                        <TextBlock Grid.Column="3" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0">
-                            <Run Text="{loc:L RoutePingLabel}"/><Run Text=" 1"/>
-                        </TextBlock>
-                        <TextBlock Grid.Column="4" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0">
-                            <Run Text="{loc:L RoutePingLabel}"/><Run Text=" 2"/>
-                        </TextBlock>
-                        <TextBlock Grid.Column="5" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0">
-                            <Run Text="{loc:L RoutePingLabel}"/><Run Text=" 3"/>
-                        </TextBlock>
+                        <TextBlock Grid.Column="3" Text="{loc:L RouteLossColumn}" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="4" Text="{loc:L RouteLastLabel}" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="5" Text="{loc:L RouteAvgLabel}" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="6" Text="{loc:L RouteBestLabel}" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="7" Text="{loc:L RouteWorstLabel}" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="8" Text="{loc:L PingSentLabel}" Foreground="{DynamicResource Subtext}" FontSize="11" TextAlignment="Right" Margin="0,0,10,0" TextTrimming="CharacterEllipsis"/>
                     </Grid>
                     <ItemsControl ItemsSource="{Binding Hops}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="0,0,0,3">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="56"/>
-                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="48"/>
+                                        <ColumnDefinition Width="124"/>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="76"/>
                                         <ColumnDefinition Width="72"/>
                                         <ColumnDefinition Width="72"/>
+                                        <ColumnDefinition Width="72"/>
+                                        <ColumnDefinition Width="90"/>
                                         <ColumnDefinition Width="72"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding Number}" FontFamily="Consolas" FontSize="12"/>
                                     <TextBlock Grid.Column="1" Text="{Binding Address, TargetNullValue=*}" FontFamily="Consolas" FontSize="12"/>
                                     <TextBlock Grid.Column="2" Text="{Binding Name}" FontFamily="Consolas" FontSize="12"
                                                TextTrimming="CharacterEllipsis" Margin="0,0,8,0" ToolTip="{Binding Name}"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding Time1}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
-                                    <TextBlock Grid.Column="4" Text="{Binding Time2}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
-                                    <TextBlock Grid.Column="5" Text="{Binding Time3}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding LossText, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding LastText, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Column="5" Text="{Binding AvgText, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Column="6" Text="{Binding BestText, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Column="7" Text="{Binding WorstText, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Column="8" Text="{Binding Sent, Mode=OneWay}" FontFamily="Consolas" FontSize="12" TextAlignment="Right" Margin="0,0,10,0"/>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

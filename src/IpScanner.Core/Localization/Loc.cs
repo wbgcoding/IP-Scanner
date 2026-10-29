@@ -620,7 +620,6 @@ public static class Loc
     public static string RouteHopLabel => S("Station", "Hop");
     public static string RouteAddressLabel => S("Adresse", "Address");
     public static string RouteNameLabel => S("Name", "Name");
-    public static string RoutePingLabel => S("Ping", "Ping");
     public static string PingCopyButton => S("Kopieren", "Copy");
     public static string RouteCopyButton => S("Kopieren", "Copy");
 
@@ -2542,4 +2541,11 @@ public static class Loc
     public static string PingOutagesFmt => S("Ausfälle: {0}", "Outages: {0}");
     public static string TipPingZoom => S("Wie viel der Ping-Sitzung das Diagramm zeigt. Gespeichert wird immer die ganze Sitzung.", "How much of the ping session the graph shows. Saving always includes the whole session.");
     public static string TipPingSave => S("Speichert alle Pings dieser Sitzung als CSV-Datei: Zeit, Laufzeit in ms (leer bei Verlust) und Status.", "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.");
+    public static string RouteContinuousLabel => S("Fortlaufend", "Continuous");
+    public static string TipRouteContinuous => S("Prüft nach dem ersten Durchlauf jede Station jede Sekunde erneut, bis du auf Stopp klickst. So siehst du Verlust und Laufzeit je Station.", "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.");
+    public static string RouteLossColumn => S("Verlust %", "Loss %");
+    public static string RouteLastLabel => S("Letzte", "Last");
+    public static string RouteAvgLabel => S("Mittel", "Avg");
+    public static string RouteBestLabel => S("Beste", "Best");
+    public static string RouteWorstLabel => S("Schlechteste", "Worst");
 }

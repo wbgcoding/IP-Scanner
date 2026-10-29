@@ -1255,5 +1255,10 @@
   "Time range": "النطاق الزمني",
   "Outages: {0}": "الانقطاعات: {0}",
   "How much of the ping session the graph shows. Saving always includes the whole session.": "مقدار جلسة البينغ الذي يعرضه الرسم البياني. تُحفظ الجلسة كاملة دائماً عند الحفظ.",
-  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "يحفظ كل فحص في هذه الجلسة كملف CSV: الوقت وزمن الاستجابة بالميلي ثانية (فارغ عند الفقد) والحالة."
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "يحفظ كل فحص في هذه الجلسة كملف CSV: الوقت وزمن الاستجابة بالميلي ثانية (فارغ عند الفقد) والحالة.",
+  "Continuous": "مستمر",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "بعد المرور الأول يفحص كل محطة مرة أخرى كل ثانية حتى تضغط على إيقاف، فترى الفقد وزمن الاستجابة لكل محطة.",
+  "Loss %": "الفقد %",
+  "Best": "الأفضل",
+  "Worst": "الأسوأ"
 }

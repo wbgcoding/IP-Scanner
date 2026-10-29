@@ -1,5 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+using IpScanner.Core;
+using IpScanner.Core.Localization;
 using IpScanner.ViewModels.Tools;
 using Xunit;
 
@@ -103,34 +109,207 @@ public class PingRouteToolViewModelTests
     }
 
     [Fact]
-    public void Hop_DisplayLine_ShowsAddressNameAndTimes()
+    public void Hop_DisplayLine_ShowsAddressNameAndStatistics()
     {
         var hop = new RouteToolViewModel.Hop { Number = 3, Address = "10.0.0.1", Name = "gateway.local" };
-        hop.Times.Add("2 ms");
-        hop.Times.Add("3 ms");
+        hop.Record(2);
+        hop.Record(3);
         Assert.Contains("10.0.0.1", hop.DisplayLine);
         Assert.Contains("gateway.local", hop.DisplayLine);
-        Assert.Contains("2 ms", hop.DisplayLine);
+        Assert.Contains(NumberFormat.Ms(2), hop.DisplayLine);
+        Assert.Contains(NumberFormat.Ms(2.5), hop.DisplayLine);
     }
 
     [Fact]
     public void Hop_DisplayLine_ShowsAsteriskWhenUnanswered()
     {
         var hop = new RouteToolViewModel.Hop { Number = 5 };
-        hop.Times.Add("*");
+        hop.Record(null);
         Assert.Contains("*", hop.DisplayLine);
+        Assert.Equal(NumberFormat.Ms(null), hop.LastText);
+        Assert.Equal(NumberFormat.Ms(null), hop.WorstText);
+        Assert.Equal("100%", hop.LossText);
     }
 
     [Fact]
-    public void Hop_RaisesDisplayLineWhenAddressNameOrTimesChange()
+    public void Hop_RaisesDisplayLineWhenAddressNameOrProbeChange()
     {
         var hop = new RouteToolViewModel.Hop { Number = 1 };
         var raised = new List<string?>();
         hop.PropertyChanged += (_, e) => raised.Add(e.PropertyName);
         hop.Address = "10.0.0.1";
         hop.Name = "router";
-        hop.Times.Add("3 ms");
+        hop.Record(3);
         Assert.Equal(3, raised.Count(n => n == "DisplayLine"));
+    }
+
+    [Fact]
+    public void Hop_Record_KeepsLossLastAverageBestAndWorst()
+    {
+        var hop = new RouteToolViewModel.Hop { Number = 2 };
+        hop.Record(10, "10.0.0.2");
+        hop.Record(null, "10.0.0.99");   // a lost probe never changes the address or the times
+        hop.Record(30, "10.0.0.77");     // the address stays the first one seen
+        hop.Record(20);
+        Assert.Equal("10.0.0.2", hop.Address);
+        Assert.Equal(4, hop.Sent);
+        Assert.Equal(3, hop.Received);
+        Assert.Equal("25%", hop.LossText);
+        Assert.Equal(NumberFormat.Ms(20), hop.LastText);
+        Assert.Equal(NumberFormat.Ms(20), hop.AvgText);
+        Assert.Equal(NumberFormat.Ms(10), hop.BestText);
+        Assert.Equal(NumberFormat.Ms(30), hop.WorstText);
+    }
+
+    /// <summary>A scripted route: ttl 1 and 2 answer as routers, ttl 3 is the target; a script can override any probe.</summary>
+    private sealed class FakeProber : IHopProber
+    {
+        public static readonly IPAddress Target = IPAddress.Parse("10.0.0.9");
+        private readonly object _gate = new();
+        private readonly Dictionary<int, int> _calls = new();
+        private readonly Dictionary<string, int> _names = new();
+
+        public IPAddress? Resolved { get; set; } = Target;
+        public Func<int, int, HopProbe>? Script { get; set; }
+        public Action<int, int>? OnProbe { get; set; }
+
+        public int Calls(int ttl) { lock (_gate) return _calls.GetValueOrDefault(ttl); }
+        public int TotalCalls { get { lock (_gate) return _calls.Values.Sum(); } }
+        public int NameLookups(string address) { lock (_gate) return _names.GetValueOrDefault(address); }
+
+        public Task<IPAddress?> ResolveAsync(string target, CancellationToken ct) => Task.FromResult(Resolved);
+
+        public Task<HopProbe> ProbeAsync(IPAddress target, int ttl, int timeoutMs, CancellationToken ct)
+        {
+            int n;
+            lock (_gate) { n = _calls[ttl] = _calls.GetValueOrDefault(ttl) + 1; }
+            OnProbe?.Invoke(ttl, n);
+            ct.ThrowIfCancellationRequested();
+            var result = Script?.Invoke(ttl, n) ?? Default(ttl);
+            return Task.FromResult(result);
+        }
+
+        private static HopProbe Default(int ttl)
+            => ttl < 3 ? new HopProbe(true, "10.0.0." + ttl, ttl * 10) : new HopProbe(true, Target.ToString(), 30);
+
+        public Task<string?> ReverseNameAsync(string address, CancellationToken ct)
+        {
+            lock (_gate) _names[address] = _names.GetValueOrDefault(address) + 1;
+            return Task.FromResult<string?>("host-" + address);
+        }
+    }
+
+    private static RouteToolViewModel NewRoute(FakeProber prober, bool continuous = false)
+    {
+        Loc.SetLanguage("en");
+        return new RouteToolViewModel(prober, TimeSpan.Zero) { Target = "example.test", Continuous = continuous };
+    }
+
+    [Fact]
+    public async Task Route_SinglePass_ProbesEachHopThreeTimesAndStopsAtTheTarget()
+    {
+        var fake = new FakeProber();
+        var vm = NewRoute(fake);
+        await vm.StartAsync();
+
+        Assert.False(vm.IsRunning);
+        Assert.Equal(3, vm.Hops.Count);
+        Assert.All(vm.Hops, h => Assert.Equal(3, h.Sent));
+        Assert.Equal(9, fake.TotalCalls);
+        Assert.Equal(new[] { "10.0.0.1", "10.0.0.2", "10.0.0.9" }, vm.Hops.Select(h => h.Address).ToArray());
+        Assert.Equal("host-10.0.0.1", vm.Hops[0].Name);
+        Assert.Equal(1, fake.NameLookups("10.0.0.1"));
+        Assert.Equal(NumberFormat.Ms(20), vm.Hops[1].AvgText);
+        Assert.Equal("0%", vm.Hops[0].LossText);
+    }
+
+    [Fact]
+    public async Task Route_Continuous_ReprobesEveryKnownHopAndKeepsTheStatistics()
+    {
+        var fake = new FakeProber();
+        const int rounds = 4;
+        var vm = NewRoute(fake, continuous: true);
+        fake.Script = (ttl, n) =>
+        {
+            if (ttl == 1 && n > 3)
+                return n == 5 ? HopProbe.Lost : new HopProbe(true, "10.0.0.1", n switch { 4 => 20, 6 => 30, _ => 10 });
+            return new HopProbe(true, ttl < 3 ? "10.0.0." + ttl : "10.0.0.9", ttl == 1 ? 10 : ttl * 10);
+        };
+        // The last probe of the last round switches the option off; that round still completes.
+        fake.OnProbe = (ttl, n) => { if (ttl == 3 && n == 3 + rounds) vm.Continuous = false; };
+
+        await vm.StartAsync();
+
+        Assert.False(vm.IsRunning);
+        Assert.Equal(3, vm.Hops.Count);
+        Assert.Equal(0, fake.Calls(4));
+        Assert.Equal(3 * (3 + rounds), fake.TotalCalls);
+        var first = vm.Hops[0];
+        Assert.Equal(7, first.Sent);
+        Assert.Equal(6, first.Received);
+        Assert.Equal(PingToolViewModel.FormatLoss(7, 6), first.LossText);
+        Assert.Equal(NumberFormat.Ms(10), first.LastText);
+        Assert.Equal(NumberFormat.Ms(15), first.AvgText);
+        Assert.Equal(NumberFormat.Ms(10), first.BestText);
+        Assert.Equal(NumberFormat.Ms(30), first.WorstText);
+        Assert.All(vm.Hops, h => Assert.Equal(1, fake.NameLookups(h.Address!)));
+    }
+
+    [Fact]
+    public async Task Route_Stop_EndsTheRunInTheMiddleOfARound()
+    {
+        var fake = new FakeProber();
+        var vm = NewRoute(fake, continuous: true);
+        fake.OnProbe = (ttl, n) => { if (ttl == 2 && n == 5) vm.Stop(); };
+
+        await vm.StartAsync();
+
+        Assert.False(vm.IsRunning);
+        Assert.True(vm.CanStart);
+        Assert.Equal(4, vm.Hops[0].Sent);   // the first pass plus one finished round; the interrupted round counts nothing
+        Assert.Equal(4, vm.Hops[1].Sent);
+    }
+
+    [Fact]
+    public async Task Route_UnansweredHop_ShowsAsteriskAndFullLossButIsStillReprobed()
+    {
+        var fake = new FakeProber();
+        var vm = NewRoute(fake, continuous: true);
+        fake.Script = (ttl, _) => ttl == 2 ? HopProbe.Lost : new HopProbe(true, ttl == 1 ? "10.0.0.1" : "10.0.0.9", 5);
+        fake.OnProbe = (ttl, n) => { if (ttl == 3 && n == 5) vm.Continuous = false; };
+
+        await vm.StartAsync();
+
+        var silent = vm.Hops[1];
+        Assert.Null(silent.Address);
+        Assert.Equal(5, silent.Sent);
+        Assert.Equal(0, silent.Received);
+        Assert.Equal("100%", silent.LossText);
+        Assert.Equal(NumberFormat.Ms(null), silent.BestText);
+        Assert.Equal(0, fake.NameLookups(""));
+        Assert.Equal(5, fake.Calls(2));
+    }
+
+    [Fact]
+    public async Task Route_TargetThatNeverAnswers_StopsAtThirtyHops()
+    {
+        var fake = new FakeProber { Script = (_, _) => HopProbe.Lost };
+        var vm = NewRoute(fake);
+        await vm.StartAsync();
+        Assert.Equal(30, vm.Hops.Count);
+        Assert.All(vm.Hops, h => Assert.Equal(3, h.Sent));
+    }
+
+    [Fact]
+    public async Task Route_UnresolvableTarget_SetsTheStatusAndTracesNothing()
+    {
+        var fake = new FakeProber { Resolved = null };
+        var vm = NewRoute(fake);
+        await vm.StartAsync();
+        Assert.Equal(Loc.DnsNotFound, vm.Status);
+        Assert.Empty(vm.Hops);
+        Assert.Equal(0, fake.TotalCalls);
+        Assert.False(vm.IsRunning);
     }
 
     [Fact]

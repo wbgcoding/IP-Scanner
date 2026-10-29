@@ -1255,5 +1255,10 @@
   "Time range": "Период",
   "Outages: {0}": "Сбои: {0}",
   "How much of the ping session the graph shows. Saving always includes the whole session.": "Какая часть сеанса пинга показана на графике. При сохранении всегда записывается весь сеанс.",
-  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "Сохраняет все пробы сеанса в файл CSV: время, время отклика в мс (пусто при потере) и состояние."
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "Сохраняет все пробы сеанса в файл CSV: время, время отклика в мс (пусто при потере) и состояние.",
+  "Continuous": "Непрерывно",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "После первого прохода каждую секунду повторно проверяет каждый узел, пока вы не нажмёте «Стоп», и показывает потери и задержку по узлам.",
+  "Loss %": "Потери %",
+  "Best": "Лучший",
+  "Worst": "Худший"
 }
