@@ -1,0 +1,35 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/src/IpScanner"
+    schedule:
+      interval: "weekly"
+    groups:
+      nuget-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "nuget"
+    directory: "/tests/IpScanner.Tests"
+    schedule:
+      interval: "weekly"
+    groups:
+      nuget-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
