@@ -66,7 +66,7 @@ public static class GraphSeries
         }
         double stepX = samples.Count > 1 ? width / (samples.Count - 1) : 0;
 
-        if (width > 0 && height > 0 && present > 1)
+        if (width > 0 && height > 0 && (present > 1 || (markLoss && present == 1)))
         {
             if (max - min < 0.5) { max += 0.5; min = Math.Max(0, min - 0.5); }   // flat-line guard
             List<Point>? segment = null;

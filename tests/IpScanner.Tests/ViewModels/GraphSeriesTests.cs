@@ -174,4 +174,13 @@ public class GraphSeriesTests
         Assert.Equal(baseline, r.LossGeometry.Bounds.Bottom, 6);
         Assert.Equal(baseline - GraphSeries.LossTickHeight, r.LossGeometry.Bounds.Top, 6);
     }
+
+    [Fact]
+    public void Compute_OneAnsweredSampleBetweenLosses_StillDrawsItsPoint()
+    {
+        var r = GraphSeries.Compute(new double?[] { null, null, 5, null }, 100, 50, 0, markLoss: true);
+        Assert.Single(r.Segments);
+        Assert.Single(r.Segments[0]);
+        Assert.Equal(3, r.LossMarks.Count);
+    }
 }
