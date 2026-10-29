@@ -395,11 +395,14 @@ public sealed class DeviceViewModel : ObservableObject
     private bool _servicesScanned;
     private bool _scanningServices;
 
+    /// <summary>Where refusals are read from; a test brings its own so parallel scans cannot leak in.</summary>
+    internal SessionPortFacts PortFacts { get; set; } = SessionPortFacts.Shared;
+
     /// <summary>True only when a port scan of this app session got a refusal (reset) for the TCP port
     /// and the port is not listed as open. Filtered or dropped probes and results stored by an older
     /// session never count.</summary>
     internal bool IsPortKnownClosed(int port)
-        => SessionPortFacts.IsClosed(_device.Ip, port) && !Services.Any(s => s.Protocol == NetProtocol.Tcp && s.Port == port);
+        => PortFacts.IsClosed(_device.Ip, port) && !Services.Any(s => s.Protocol == NetProtocol.Tcp && s.Port == port);
     public bool IsScanningServices => _scanningServices;
     /// <summary>True whenever the "nothing to show" placeholder text should be
     /// visible - an empty result, a scan in progress covers itself separately.</summary>
