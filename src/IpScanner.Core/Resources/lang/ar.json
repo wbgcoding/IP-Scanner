@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "كتابة تقرير قابل للبحث بـ grep إلى ملف (- للخرج القياسي).",
   "Show why each port got its state.": "عرض سبب حصول كل منفذ على حالته.",
   "Report only open (and open|filtered) ports.": "الإبلاغ عن المنافذ المفتوحة فقط (و open|filtered).",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "السماح بفحص محدد لأكثر من 100 منفذ (-p و --top-ports)، حتى جميع المنافذ الـ 65535.",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "السماح بفحص محدد لأكثر من 100 منفذ (-p) أو لعدد --top-ports يزيد على 1000، حتى جميع المنافذ الـ 65535.",
   "Allow more than 65536 targets.": "السماح بأكثر من 65536 هدفًا.",
   "Allow the intrusive check category.": "السماح بفئة الفحوصات intrusive.",
   "Allow the FIN, Null, Xmas and Maimon scans.": "السماح بفحوصات FIN وNull وXmas وMaimon.",
@@ -1248,5 +1248,17 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "عنوان IPv4 أو IPv6 لخادم إضافي يُدرج في المقارنة.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "يضيف الخادم الذي كتبته إلى المقارنة. الحد الأقصى 6 خوادم.",
   "Takes this server out of the comparison.": "يزيل هذا الخادم من المقارنة.",
-  "Remove": "إزالة"
+  "Remove": "إزالة",
+  "1 min": "دقيقة واحدة",
+  "5 min": "5 دقائق",
+  "1 h": "ساعة واحدة",
+  "Time range": "النطاق الزمني",
+  "Outages: {0}": "الانقطاعات: {0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "مقدار جلسة البينغ الذي يعرضه الرسم البياني. تُحفظ الجلسة كاملة دائماً عند الحفظ.",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "يحفظ كل فحص في هذه الجلسة كملف CSV: الوقت وزمن الاستجابة بالميلي ثانية (فارغ عند الفقد) والحالة.",
+  "Continuous": "مستمر",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "بعد المرور الأول يفحص كل محطة مرة أخرى كل ثانية حتى تضغط على إيقاف، فترى الفقد وزمن الاستجابة لكل محطة.",
+  "Loss %": "الفقد %",
+  "Best": "الأفضل",
+  "Worst": "الأسوأ"
 }

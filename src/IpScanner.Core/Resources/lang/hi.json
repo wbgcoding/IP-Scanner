@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "grep योग्य रिपोर्ट को फ़ाइल में लिखें (stdout के लिए -)।",
   "Show why each port got its state.": "दिखाएँ कि हर पोर्ट को उसकी स्थिति क्यों मिली।",
   "Report only open (and open|filtered) ports.": "केवल खुले (और open|filtered) पोर्ट की रिपोर्ट करें।",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "100 से अधिक पोर्ट (-p, --top-ports) के चुने हुए स्कैन की अनुमति दें, सभी 65535 तक।",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "100 से अधिक पोर्ट (-p) या 1000 से ऊपर की --top-ports संख्या के चुने हुए स्कैन की अनुमति दें, सभी 65535 तक।",
   "Allow more than 65536 targets.": "65536 से अधिक लक्ष्यों की अनुमति दें।",
   "Allow the intrusive check category.": "intrusive जाँच श्रेणी की अनुमति दें।",
   "Allow the FIN, Null, Xmas and Maimon scans.": "FIN, Null, Xmas और Maimon स्कैन की अनुमति दें।",
@@ -1248,5 +1248,17 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "तुलना में जोड़ने के लिए किसी और सर्वर का IPv4 या IPv6 पता।",
   "Adds the server you typed to the comparison. At most 6 are possible.": "लिखा हुआ सर्वर तुलना में जोड़ता है। अधिकतम 6 सर्वर संभव हैं।",
   "Takes this server out of the comparison.": "इस सर्वर को तुलना से हटाता है।",
-  "Remove": "हटाएँ"
+  "Remove": "हटाएँ",
+  "1 min": "1 मिनट",
+  "5 min": "5 मिनट",
+  "1 h": "1 घंटा",
+  "Time range": "समय सीमा",
+  "Outages: {0}": "रुकावटें: {0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "ग्राफ़ पिंग सत्र का कितना हिस्सा दिखाए। सहेजने पर हमेशा पूरा सत्र सहेजा जाता है।",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "इस सत्र की हर जाँच को CSV फ़ाइल में सहेजता है: समय, मिलीसेकंड में प्रतिक्रिया समय (खोने पर खाली) और स्थिति।",
+  "Continuous": "लगातार",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "पहले दौर के बाद हर पड़ाव को रोकें दबाने तक हर सेकंड फिर से जाँचता है, ताकि हर पड़ाव की हानि और विलंबता दिखे।",
+  "Loss %": "हानि %",
+  "Best": "सर्वश्रेष्ठ",
+  "Worst": "सबसे खराब"
 }

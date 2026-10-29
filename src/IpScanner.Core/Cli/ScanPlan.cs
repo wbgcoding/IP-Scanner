@@ -104,6 +104,9 @@ public sealed record ScanPlan(int Timing, bool SkipDiscovery, bool PingOnly, str
     {
         // Same rule as the command line: only a chosen list or top-N count is gated, never the standard or fast set.
         if (p.Ports == PortsStandard || p.Ports == PortsFast) return false;
+        if (p.Ports.StartsWith(TopPrefix, StringComparison.Ordinal)
+            && int.TryParse(p.Ports.AsSpan(TopPrefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out var top))
+            return PortScanGate.NeedsTopConfirmation(top);
         var spec = p.ResolvePorts();
         return PortScanGate.NeedsConfirmation(spec.Tcp.Count + spec.Udp.Count);
     }

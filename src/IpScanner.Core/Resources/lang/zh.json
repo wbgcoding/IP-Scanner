@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "将 grep 友好报告写入文件(- 表示标准输出)。",
   "Show why each port got its state.": "显示每个端口处于该状态的原因。",
   "Report only open (and open|filtered) ports.": "仅报告开放端口(以及 open|filtered 端口)。",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "允许扫描超过 100 个端口的选定范围(-p、--top-ports),最多全部 65535 个。",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "允许扫描超过 100 个端口的选定范围(-p),或 --top-ports 数量超过 1000 的扫描,最多全部 65535 个。",
   "Allow more than 65536 targets.": "允许超过 65536 个目标。",
   "Allow the intrusive check category.": "允许 intrusive 检查类别。",
   "Allow the FIN, Null, Xmas and Maimon scans.": "允许 FIN、Null、Xmas 和 Maimon 扫描。",
@@ -1248,5 +1248,17 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "要加入比较的另一台服务器的 IPv4 或 IPv6 地址。",
   "Adds the server you typed to the comparison. At most 6 are possible.": "把输入的服务器加入比较。最多 6 台。",
   "Takes this server out of the comparison.": "把这台服务器从比较中移除。",
-  "Remove": "移除"
+  "Remove": "移除",
+  "1 min": "1 分钟",
+  "5 min": "5 分钟",
+  "1 h": "1 小时",
+  "Time range": "时间范围",
+  "Outages: {0}": "中断次数:{0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "图表显示 Ping 会话的多长时间范围。保存时始终包含整个会话。",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "将本次会话的每次探测保存为 CSV 文件:时间、往返时间(毫秒,丢失时为空)和状态。",
+  "Continuous": "持续",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "首轮完成后,每秒重新探测每一跳,直到你点击停止,从而看到每一跳的丢包率和延迟。",
+  "Loss %": "丢包 %",
+  "Best": "最佳",
+  "Worst": "最差"
 }
