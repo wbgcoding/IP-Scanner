@@ -76,4 +76,15 @@ public class SessionPortFactsTests
         vm.Services.ReplaceAll(new[] { new NetService("HTTPS", 443, NetProtocol.Tcp) });
         Assert.False(vm.IsPortKnownClosed(443));
     }
+
+    [Fact]
+    public void OnlyPortsTheOpenWithMenuUses_AreRemembered()
+    {
+        const string ip = "192.0.2.204";
+        _facts.Record(new PortResult(1234, NetProtocol.Tcp, PortState.Closed, PortReason.Rst) { Ip = ip });
+        _facts.Record(new PortResult(443, NetProtocol.Tcp, PortState.Closed, PortReason.Rst) { Ip = ip });
+        Assert.False(_facts.IsClosed(ip, 1234));
+        Assert.True(_facts.IsClosed(ip, 443));
+        Assert.Equal(1, _facts.Count);
+    }
 }

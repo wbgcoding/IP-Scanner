@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using IpScanner.Core.Net;
 
 namespace IpScanner.Core.Scanner;
 
@@ -13,10 +14,15 @@ public sealed class SessionPortFacts
 
     private readonly ConcurrentDictionary<(string Ip, int Port), byte> Closed = new();
 
-    /// <summary>Notes the outcome of one probe; UDP results are ignored.</summary>
+    /// <summary>Number of facts held right now.</summary>
+    internal int Count => Closed.Count;
+
+    /// <summary>Notes the outcome of one probe; UDP results and ports the open-with menu never asks about
+    /// are ignored, so a wide scan cannot grow the table.</summary>
     public void Record(PortResult result)
     {
         if (result.Protocol != NetProtocol.Tcp || result.Ip.Length == 0) return;
+        if (!OpenWithBuilder.MenuPorts.Contains(result.Port)) return;
         var key = (result.Ip, result.Port);
         if (IsRefusal(result)) Closed[key] = 0;
         else Closed.TryRemove(key, out _);
