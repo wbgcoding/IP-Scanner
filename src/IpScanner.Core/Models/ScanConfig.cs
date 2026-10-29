@@ -27,7 +27,7 @@ public sealed class ScanConfig
     public bool KnownDevicesDb { get; set; } = true;
     /// <summary>Store each completed scan in the encrypted local archive.</summary>
     public bool ScanHistory { get; set; } = true;
-    /// <summary>Known-devices database file (lives in the scans folder by default).</summary>
+    /// <summary>Known-devices database file (by default scanner.db next to the exe).</summary>
     public string DatabasePath { get; set; } = DefaultDatabasePath;
     public string OutputDirectory { get; set; } = DefaultOutputDirectory;
     public bool FileOutput { get; set; }          // TXT report off by default
@@ -36,7 +36,7 @@ public sealed class ScanConfig
     public int ScanThreads { get; set; } = 100;
     /// <summary>UI/text scale in percent (100 = default).</summary>
     public int UiScalePercent { get; set; } = 100;
-    /// <summary>UI language: "auto" (system, EN fallback), "de" or "en".</summary>
+    /// <summary>UI language: "auto" (system, EN fallback) or the code of a shipped language, e.g. "de" or "en".</summary>
     public string Language { get; set; } = "auto";
     /// <summary>Folder where ip_scanner.conf is stored.</summary>
     public string ConfigDirectory { get; set; } = DefaultConfigDirectory;

@@ -27,10 +27,10 @@ self-contained exe.
   totals and graph - all with time markers and a configurable window
 - Smooth under load: the logo animation has its own render thread and the
   graph math runs on a worker thread
-- Pin IPs from the table or the settings - pinned entries carry an optional
+- Pin IPs from the table or the sidebar - pinned entries carry an optional
   name and color that show up everywhere
-- Subnets, pinned IPs and internet hosts managed as colored bubbles in the
-  settings
+- Subnets, pinned IPs and internet hosts managed in the sidebar, each with an
+  optional name and color
 - Device grouping by MAC vendor and hostname prefix, gateway highlighted
 - Device detail view lists every open TCP/UDP port with name and version;
   an optional full 1-65535 port scan (with progress and cancel) goes beyond
@@ -50,8 +50,8 @@ self-contained exe.
 - Service and version detection on open ports, plus an OS estimate per device
 - Tools window (non-modal) with the individual scan tools, each on its own page
   and running in the background while you switch
-- Scan archive: every scan is kept, can be compared with another one and
-  exported
+- Scan archive: every scan is kept and can be compared with another one; the
+  comparison can be copied or saved as a file
 - Full backup and restore as one ZIP, optionally protected with a password
   (AES); scan profiles for quick switching between setups
 - Notes and mute per device, and a log page inside the app
