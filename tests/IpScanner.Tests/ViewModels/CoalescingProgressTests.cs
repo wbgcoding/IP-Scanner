@@ -51,11 +51,22 @@ public class CoalescingProgressTests
         var progress = new CoalescingProgress<int>(v => { lock (seen) seen.Add(v); }, TimeSpan.FromMilliseconds(20));
 
         progress.Report(1);
-        await Task.Delay(150);
+        await WaitForCount(seen, 1);
         progress.Report(2);
-        await Task.Delay(150);
+        await WaitForCount(seen, 2);
 
         lock (seen) Assert.Equal(new[] { 1, 2 }, seen);
+    }
+
+    // Waits for the delivery itself, not a fixed time: a loaded machine can run the timer late.
+    private static async Task WaitForCount(List<int> seen, int count)
+    {
+        var until = DateTime.UtcNow.AddSeconds(10);
+        while (DateTime.UtcNow < until)
+        {
+            lock (seen) if (seen.Count >= count) return;
+            await Task.Delay(10);
+        }
     }
 }
 
