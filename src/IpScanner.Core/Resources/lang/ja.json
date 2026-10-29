@@ -1259,5 +1259,7 @@
   "Private address": "プライベートアドレス",
   "Random MAC address the device picked itself (privacy feature of phones and laptops).": "デバイス自身が選んだランダムな MAC アドレスです(スマートフォンやノートパソコンのプライバシー機能)。",
   "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "デバイスごとの ping 回数です。右上の ping ドロップダウンで設定します。-1 にすると停止するまで ping を続けます。",
-  "1 device online.": "1 台のデバイスがオンラインです。"
+  "1 device online.": "1 台のデバイスがオンラインです。",
+  "Continuous ping": "連続 Ping",
+  "Trace route": "経路を追跡"
 }

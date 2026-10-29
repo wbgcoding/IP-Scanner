@@ -1259,5 +1259,7 @@
   "Private address": "Endereço privado",
   "Random MAC address the device picked itself (privacy feature of phones and laptops).": "Endereço MAC aleatório que o próprio dispositivo escolheu (recurso de privacidade de celulares e notebooks).",
   "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "Número de pings por dispositivo. É definido na lista de ping no canto superior direito; -1 continua enviando pings até parar.",
-  "1 device online.": "1 dispositivo online."
+  "1 device online.": "1 dispositivo online.",
+  "Continuous ping": "Ping contínuo",
+  "Trace route": "Rastrear rota"
 }

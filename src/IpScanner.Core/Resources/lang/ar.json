@@ -1259,5 +1259,7 @@
   "Private address": "عنوان خاص",
   "Random MAC address the device picked itself (privacy feature of phones and laptops).": "عنوان MAC عشوائي اختاره الجهاز بنفسه (ميزة خصوصية في الهواتف والحواسيب المحمولة).",
   "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "عدد الاختبارات (ping) لكل جهاز. يُضبط من القائمة المنسدلة أعلى اليمين؛ القيمة -1 تواصل الاختبار حتى الإيقاف.",
-  "1 device online.": "جهاز واحد متصل."
+  "1 device online.": "جهاز واحد متصل.",
+  "Continuous ping": "ping مستمر",
+  "Trace route": "تتبع المسار"
 }

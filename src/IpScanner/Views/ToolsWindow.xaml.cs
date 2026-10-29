@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -18,6 +19,7 @@ public partial class ToolsWindow : Window
     private readonly MainWindow _owner;
     private readonly ToolsViewModel _vm = new();
     private readonly Dictionary<string, FrameworkElement> _pages = new();
+    private readonly ToolsPrefill _prefill = new();
 
     public ToolsWindow(MainWindow owner)
     {
@@ -32,6 +34,29 @@ public partial class ToolsWindow : Window
             if (Equals(item.Tag, last)) { item.IsSelected = true; break; }
         }
         if (ToolsNavList.SelectedItem is null) ToolsNavList.SelectedIndex = 0;
+    }
+
+    /// <summary>Fills the target of every target-taking page with a device, except where the user typed one.</summary>
+    internal void PrefillDevice(string? ip, string? mac) => _prefill.Apply(_vm, ip, mac);
+
+    /// <summary>Shows the ping page, points its ping at <paramref name="ip"/> and starts it.</summary>
+    internal Task StartPingForAsync(string ip)
+    {
+        SelectPage("PingRoute");
+        return ToolsPrefill.StartPingAsync(_vm.PingRoute.Ping, ip);
+    }
+
+    /// <summary>Shows the ping page, points its route trace at <paramref name="ip"/> and starts it.</summary>
+    internal Task StartRouteForAsync(string ip)
+    {
+        SelectPage("PingRoute");
+        return ToolsPrefill.StartRouteAsync(_vm.PingRoute.Route, ip);
+    }
+
+    private void SelectPage(string tag)
+    {
+        foreach (ListBoxItem item in ToolsNavList.Items)
+            if (Equals(item.Tag, tag)) { item.IsSelected = true; return; }
     }
 
     /// <summary>Re-applies the DWM dark/light title-bar frame after a live theme

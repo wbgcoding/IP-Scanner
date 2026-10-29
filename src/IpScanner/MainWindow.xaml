@@ -31,7 +31,10 @@
             <MenuItem Name="MuteDeviceItem" Header="{loc:L MuteDevice}" IsCheckable="True" Click="OnToggleMuteDevice"/>
             <MenuItem Name="MarkAsKnownItem" Header="{loc:L MarkAsKnown}" Click="OnMarkAsKnown"/>
             <Separator/>
-            <MenuItem Header="{loc:L WakeDevice}" Click="OnWake"/>
+            <MenuItem Header="{loc:L DevicePingContinuous}" Click="OnDeviceContinuousPing"/>
+            <MenuItem Header="{loc:L DeviceTraceRoute}" Click="OnDeviceTraceRoute"/>
+            <Separator/>
+            <MenuItem Name="WakeDeviceItem" Header="{loc:L WakeDevice}" Click="OnWake"/>
         </ContextMenu>
 
         <!-- The expanded row-detail content, kept out of RowDetailsTemplate itself:

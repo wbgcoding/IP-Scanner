@@ -173,7 +173,7 @@ public partial class MainWindow : Window
     private void OnDeviceRowMenuOpened(object sender, RoutedEventArgs e)
     {
         if (sender is not ContextMenu menu) return;
-        if (menu.Items.OfType<MenuItem>().LastOrDefault() is not { } wakeItem) return;
+        if (menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "WakeDeviceItem") is not { } wakeItem) return;
         if ((menu.PlacementTarget as FrameworkElement)?.DataContext is not DeviceViewModel vm) return;
         var targets = TargetDevices(menu.PlacementTarget);
         bool hasMac = vm.HasMac;
