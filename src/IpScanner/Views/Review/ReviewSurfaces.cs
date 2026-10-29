@@ -241,6 +241,7 @@ internal static class ReviewSurfaces
             new("main.help.exit", "g.settings", true, c => MainState(c, w => { w.ReviewOpenSettings("Help"); w.ReviewScrollToReference("exit"); })),
             new("main.devicedetail", "g.main", true, c => MainState(c, w => w.ReviewShowDeviceDetail(false, "Rack 2, top shelf"))),
             new("main.devicedetail.ports", "g.main", true, c => MainState(c, w => w.ReviewShowDeviceDetail(true, ""))),
+            new("main.devicedetail.outage", "g.main", true, c => MainState(c, w => w.ReviewShowGraphOutage())),
             new("main.undo", "g.main", true, c => MainState(c, w => w.ReviewShowUndo())),
             new("archive.empty", "g.archive", true, async c =>
             {
@@ -540,6 +541,26 @@ internal static class ReviewSurfaces
             }
             var shown = new Shown { Primary = w };
             shown.Popup = () => (openWith?.Template.FindName("PART_Popup", openWith) as Popup)?.Child as FrameworkElement;
+            return shown;
+        }));
+        all.Add(new Surface("main.tip.ports", "g.popups", true, async c =>
+        {
+            var w = await NewMainAsync(c);
+            w.ReviewShowDeviceDetail(false, "");
+            var grid = w.ReviewElement("DeviceGrid") as DataGrid;
+            var row = grid is null ? null : FirstRow(grid);
+            var col = grid?.Columns.FirstOrDefault(x => x.SortMemberPath == "PortsSortKey");
+            var cell = row is null || col is null ? null : col.GetCellContent(row);
+            ToolTip? tip = null;
+            if (cell is not null && ToolTipService.GetToolTip(cell) is { } content)
+            {
+                // The cell's own tooltip text in a real ToolTip, placed the way a hover would place it.
+                tip = new ToolTip { Content = content, PlacementTarget = cell, Placement = PlacementMode.Bottom };
+                tip.IsOpen = true;
+                await Settle();
+            }
+            var shown = new Shown { Primary = w };
+            shown.Popup = () => tip;
             return shown;
         }));
         return all;

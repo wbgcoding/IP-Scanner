@@ -230,6 +230,21 @@ public partial class MainWindow
         grid.UpdateLayout();
     }
 
+    /// <summary>Opens the first row's graph over a fixed minute of samples with single lost pings and one
+    /// longer outage, so the breaks, loss marks and band show.</summary>
+    internal void ReviewShowGraphOutage()
+    {
+        ReviewShowDeviceDetail(false, "");
+        if (ReviewElement("DeviceGrid") is not DataGrid grid || grid.Items.Count == 0
+            || grid.Items[0] is not DeviceViewModel dvm) return;
+        var rnd = new Random(3);
+        var samples = new List<double?>();
+        for (int i = 0; i < 60; i++)
+            samples.Add(i is 12 or 31 || (i >= 40 && i < 47) ? null : 4 + rnd.NextDouble() * 8);
+        dvm.ReviewFeedRowSamples(samples, 60);
+        grid.UpdateLayout();
+    }
+
     internal void ReviewShowUndo()
         => ShowNotice(Loc.EntryRemoved("Lab"), Loc.UndoLabel, null, sticky: true);
 

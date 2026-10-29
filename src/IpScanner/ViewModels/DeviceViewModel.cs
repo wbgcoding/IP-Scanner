@@ -325,6 +325,17 @@ public sealed class DeviceViewModel : ObservableObject
         NoteDraft = note;
         ShowGraph = true;
     }
+
+    /// <summary>Surface tool: fills the minute graph with fixed samples (null = lost ping) and redraws it.</summary>
+    internal void ReviewFeedRowSamples(IEnumerable<double?> samples, int capacity)
+    {
+        lock (_rowLock)
+        {
+            foreach (var v in samples) _rowSamples.Add(v, capacity);
+            _rowTick = 10;
+        }
+        BuildRowGraph();
+    }
 #endif
 
     /// <summary>Open TCP/UDP services on this device (filled when the detail opens).</summary>
