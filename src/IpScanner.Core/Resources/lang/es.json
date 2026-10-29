@@ -1,6 +1,4 @@
 {
-  "Endless": "Sin fin",
-  "Discovery only": "Solo detección",
   "Ctrl": "Ctrl",
   "Del": "Supr",
   "Service": "Servicio",
@@ -453,11 +451,8 @@
   "Database (*.db)|*.db|All files (*.*)|*.*": "Base de datos (*.db)|*.db|Todos los archivos (*.*)|*.*",
   "CSV file (*.csv)|*.csv|All files (*.*)|*.*": "Archivo CSV (*.csv)|*.csv|Todos los archivos (*.*)|*.*",
   "Database file": "Archivo de base de datos",
-  "Default pings": "Pings predeterminados",
   "Reset all settings?": "¿Restablecer todos los ajustes?",
   "Devices": "Dispositivos",
-  "Discovery attempts per IP (stops at the first reply). Higher = more reliable for slow devices, but slower.": "Intentos de detección por IP (se detiene en la primera respuesta). Mayor = más confiable para dispositivos lentos, pero más lento.",
-  "Discovery pings per IP": "Pings de detección por IP",
   "Double-click to edit. Changes are stored permanently.": "Doble clic para editar. Los cambios se guardan permanentemente.",
   "Enable internet ping": "Habilitar ping de Internet",
   "Enable known-devices database": "Habilitar base de datos de dispositivos conocidos",
@@ -528,14 +523,11 @@
   "Pause in milliseconds between two pings to the same device. Lower = faster, more network load.": "Pausa en milisegundos entre dos pings al mismo dispositivo. Menor = más rápido, más carga de red.",
   "Pick a color": "Elegir un color",
   "Pick another instance's scanner.db and merge its devices into this database (newer entries win).": "Elegir el archivo scanner.db de otra instancia y combinar sus dispositivos en esta base de datos (ganan las entradas más recientes).",
-  "Ping count per device for the automatic scan right after startup. Tick Discovery only to just look for devices.": "Número de pings por dispositivo para el escaneo automático justo después del inicio. Marca Solo detección para solo buscar dispositivos.",
   "Ping interval": "Intervalo de ping",
   "Ping timeout": "Tiempo de espera de ping",
   "Pings": "Pings",
-  "Pings at startup": "Pings al inicio",
   "Pings:": "Pings:",
   "Pinned IPs": "IPs fijadas",
-  "Preset for the ping dropdown at the top right when the app starts. Tick Endless to keep pinging until stopped.": "Preajuste para el desplegable de pings arriba a la derecha al iniciar la aplicación. Marca Sin fin para seguir hasta detener.",
   "Progress": "Progreso",
   "Remembers discovered devices per network in scanner.db so known devices are recognized on the next scan.": "Recuerda los dispositivos detectados por red en scanner.db para que se reconozcan los dispositivos conocidos en el próximo escaneo.",
   "Remove entry": "Quitar entrada",
@@ -1253,5 +1245,6 @@
   "Shows when the device was first seen online. Only remembered while the known devices database is on.": "Muestra cuándo se vio el dispositivo en línea por primera vez. Solo se recuerda mientras la base de datos de dispositivos conocidos esté activada.",
   "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Muestra cuándo se vio el dispositivo en línea por última vez. Solo se recuerda mientras la base de datos de dispositivos conocidos esté activada.",
   "Private address": "Dirección privada",
-  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "Dirección MAC aleatoria que el propio dispositivo eligió (función de privacidad de móviles y portátiles)."
+  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "Dirección MAC aleatoria que el propio dispositivo eligió (función de privacidad de móviles y portátiles).",
+  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "Número de pings por dispositivo. Se ajusta en el menú de ping de arriba a la derecha; -1 sigue haciendo ping hasta que se detenga."
 }

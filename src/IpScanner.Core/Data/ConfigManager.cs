@@ -16,8 +16,8 @@ public static class ConfigManager
     // If any are absent the file is from an older version and gets rewritten.
     private static readonly HashSet<string> RequiredKeys = new(StringComparer.OrdinalIgnoreCase)
     {
-        "ping_count", "ping_interval_ms", "offline_after_failed_pings", "init_ping_count",
-        "startup_ping_count", "offline_recheck_seconds", "hostname_retry_minutes", "enable_internet_ping",
+        "ping_count", "ping_interval_ms", "offline_after_failed_pings",
+        "offline_recheck_seconds", "hostname_retry_minutes", "enable_internet_ping",
         "internet_timeout_ms", "internet_hosts", "known_devices_db", "scan_history", "database_path",
         "config_directory", "network_interface_ip", "graphs_enabled", "network_graphs_enabled", "graph_max_seconds", "output_directory",
         "file_output", "export_csv", "scan_threads", "ui_scale", "language", "check_for_updates", "verbose_log",
@@ -80,8 +80,10 @@ public static class ConfigManager
                 case "ping_count":                  cfg.PingCount = ParseInt(value, ScanConfig.InfinitePingCount, ScanConfig.Bounds.PingCountMax, ScanConfig.Bounds.PingCountDefault); break;
                 case "ping_interval_ms":            cfg.PingIntervalMs = ParseInt(value, ScanConfig.Bounds.PingIntervalMsMin, ScanConfig.Bounds.PingIntervalMsMax, ScanConfig.Bounds.PingIntervalMsDefault); break;
                 case "offline_after_failed_pings":  cfg.OfflineAfterFailedPings = ParseInt(value, ScanConfig.Bounds.OfflineAfterFailedPingsMin, ScanConfig.Bounds.OfflineAfterFailedPingsMax, ScanConfig.Bounds.OfflineAfterFailedPingsDefault); break;
-                case "init_ping_count":             cfg.InitPingCount = ParseInt(value, ScanConfig.Bounds.InitPingCountMin, ScanConfig.Bounds.InitPingCountMax, ScanConfig.Bounds.InitPingCountDefault); break;
-                case "startup_ping_count":          cfg.StartupPingCount = ParseInt(value, ScanConfig.Bounds.StartupPingCountMin, ScanConfig.Bounds.StartupPingCountMax, ScanConfig.Bounds.StartupPingCountDefault); break;
+                // Old files may still carry these two: the first pass is fixed at 1 and the startup
+                // sweep uses ping_count, so the values are read past without effect.
+                case "init_ping_count":
+                case "startup_ping_count":          break;
                 case "offline_recheck_seconds":     cfg.OfflineRecheckSeconds = ParseInt(value, ScanConfig.Bounds.OfflineRecheckSecondsMin, ScanConfig.Bounds.OfflineRecheckSecondsMax, ScanConfig.Bounds.OfflineRecheckSecondsDefault); break;
                 case "hostname_retry_minutes":      cfg.HostnameRetryMinutes = ParseInt(value, ScanConfig.Bounds.HostnameRetryMinutesMin, ScanConfig.Bounds.HostnameRetryMinutesMax, ScanConfig.Bounds.HostnameRetryMinutesDefault); break;
                 case "enable_internet_ping":        cfg.EnableInternetPing = ParseBool(value); break;
@@ -268,10 +270,6 @@ public static class ConfigManager
         sb.AppendLine($"ping_interval_ms = {c.PingIntervalMs}");
         sb.AppendLine("# offline_after_failed_pings  Mark offline after N failed pings (1-100). Default 5.");
         sb.AppendLine($"offline_after_failed_pings = {c.OfflineAfterFailedPings}");
-        sb.AppendLine("# init_ping_count  Pings per IP during discovery (1-100). Default 1.");
-        sb.AppendLine($"init_ping_count = {c.InitPingCount}");
-        sb.AppendLine("# startup_ping_count  Pings per device for the auto-scan after launch (0-10000). Default 10.");
-        sb.AppendLine($"startup_ping_count = {c.StartupPingCount}");
         sb.AppendLine("# offline_recheck_seconds  Re-check offline IPs every N seconds (0 = off). Default 5.");
         sb.AppendLine($"offline_recheck_seconds = {c.OfflineRecheckSeconds}");
         sb.AppendLine("# hostname_retry_minutes  Retry hostname lookup for nameless devices every N minutes, independent of any active scan (0 = off). Default 10.");

@@ -1570,8 +1570,6 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <!-- Right-aligned numbers with a fixed (read-only) unit suffix. -->
                                         <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipScanThreads}">
@@ -1589,21 +1587,9 @@
                                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><TextBox x:Name="OfflineAfterBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
                                             <TextBlock Text="{loc:L OfflineAfter}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
                                         </DockPanel>
-                                        <DockPanel Grid.Row="3" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipDefaultPings}">
-                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><CheckBox x:Name="DefaultPingsEndlessBox" Content="{loc:L EndlessLabel}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0" Checked="OnDefaultPingsEndlessChanged" Unchecked="OnDefaultPingsEndlessChanged"/><TextBox x:Name="DefaultPingsBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
-                                            <TextBlock Text="{loc:L DefaultPings}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
-                                        </DockPanel>
-                                        <DockPanel Grid.Row="4" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipStartupPings}">
-                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><CheckBox x:Name="StartupPingsDiscoveryBox" Content="{loc:L DiscoveryOnlyLabel}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0" Checked="OnStartupPingsDiscoveryChanged" Unchecked="OnStartupPingsDiscoveryChanged"/><TextBox x:Name="StartupPingsBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
-                                            <TextBlock Text="{loc:L StartupPings}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
-                                        </DockPanel>
-                                        <DockPanel Grid.Row="5" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipOfflineRecheck}">
+                                        <DockPanel Grid.Row="3" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipOfflineRecheck}">
                                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><CheckBox x:Name="OfflineRecheckOffBox" Content="{loc:L OffLabel}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0" Checked="OnOfflineRecheckOffChanged" Unchecked="OnOfflineRecheckOffChanged"/><TextBox x:Name="OfflineRecheckBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
                                             <TextBlock Text="{loc:L OfflineRecheck}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
-                                        </DockPanel>
-                                        <DockPanel Grid.Row="6" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipInitPings}">
-                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><TextBox x:Name="InitPingCountBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
-                                            <TextBlock Text="{loc:L InitPings}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
                                         </DockPanel>
                                     </Grid>
                                     <TextBlock Text="{loc:L ScanComfortLabel}" Foreground="{DynamicResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,17,0,8"/>

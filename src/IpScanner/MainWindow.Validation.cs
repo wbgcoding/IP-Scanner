@@ -60,15 +60,6 @@ public partial class MainWindow : Window
         }
     }
 
-    /// <summary>The default ping count: the Endless checkbox alone yields the endless sentinel; a typed
-    /// number is held to the normal range, so a typed -1 cannot switch endless on behind the checkbox.</summary>
-    internal static int ResolveDefaultPings(bool endless, string text)
-    {
-        if (endless) return ScanConfig.InfinitePingCount;
-        int v = int.TryParse(text.Trim(), out var n) ? n : ScanConfig.Bounds.PingCountDefault;
-        return Math.Clamp(v, ScanConfig.Bounds.PingCountMin, ScanConfig.Bounds.PingCountMax);
-    }
-
     /// <summary>Holds a typed number to its range; unparsable text yields the fallback and counts as unchanged.</summary>
     internal static (int value, bool changed) Clamp(string text, int min, int max, int fallback = 0)
     {
@@ -114,7 +105,6 @@ public partial class MainWindow : Window
         var sortedHeat = heat.OrderBy(v => v).ToArray();
         HeatOrderHint.Visibility = sortedHeat.SequenceEqual(heat) ? Visibility.Collapsed : Visibility.Visible;
 
-        int defaultPings = ResolveDefaultPings(DefaultPingsEndlessBox.IsChecked == true, DefaultPingsBox.Text);
         // Start from a copy of the live config so every setting without a control in this
         // overlay (sidebar state, colors, sort, widths, profiles, ...) survives an edit.
         var c = _config.Clone();
@@ -126,7 +116,6 @@ public partial class MainWindow : Window
         c.MinimizeToTray = MinimizeTrayBox.IsChecked == true;
         c.CheckForUpdates = CheckForUpdatesBox.IsChecked == true;
         c.GraphMaxSeconds = Bounded(GraphMaxBox, ScanConfig.Bounds.GraphMaxSecondsMin, ScanConfig.Bounds.GraphMaxSecondsMax, ScanConfig.Bounds.GraphMaxSecondsDefault);
-        c.PingCount = defaultPings;
         // The "unlimited" checkbox forces 0 (one thread per device) regardless of whatever
         // is left in the (now-disabled) number field.
         c.ScanThreads = UnlimitedThreadsBox.IsChecked == true ? 0
@@ -134,9 +123,6 @@ public partial class MainWindow : Window
         c.UiScalePercent = Bounded(UiScaleBox, ScanConfig.Bounds.UiScalePercentMin, ScanConfig.Bounds.UiScalePercentMax, ScanConfig.Bounds.UiScalePercentDefault);
         c.PingIntervalMs = Bounded(IntervalBox, ScanConfig.Bounds.PingIntervalMsMin, ScanConfig.Bounds.PingIntervalMsMax, ScanConfig.Bounds.PingIntervalMsDefault);
         c.OfflineAfterFailedPings = Bounded(OfflineAfterBox, ScanConfig.Bounds.OfflineAfterFailedPingsMin, ScanConfig.Bounds.OfflineAfterFailedPingsMax, ScanConfig.Bounds.OfflineAfterFailedPingsDefault);
-        c.InitPingCount = Bounded(InitPingCountBox, ScanConfig.Bounds.InitPingCountMin, ScanConfig.Bounds.InitPingCountMax, ScanConfig.Bounds.InitPingCountDefault);
-        c.StartupPingCount = StartupPingsDiscoveryBox.IsChecked == true ? 0
-            : Bounded(StartupPingsBox, Math.Max(1, ScanConfig.Bounds.StartupPingCountMin), ScanConfig.Bounds.StartupPingCountMax, ScanConfig.Bounds.StartupPingCountDefault);
         c.OfflineRecheckSeconds = OfflineRecheckOffBox.IsChecked == true ? 0
             : Bounded(OfflineRecheckBox, Math.Max(1, ScanConfig.Bounds.OfflineRecheckSecondsMin), ScanConfig.Bounds.OfflineRecheckSecondsMax, ScanConfig.Bounds.OfflineRecheckSecondsDefault);
         c.EnableInternetPing = EnableInternetBox.IsChecked == true;
@@ -268,14 +254,18 @@ public partial class MainWindow : Window
         return r == MessageDialogResult.Yes;
     }
 
+    /// <summary>Takes the header ping count (the only ping-count setting) into the config and
+    /// saves it when it changed, so the next start begins with the same value.</summary>
     private void ApplySelectedPingCount()
     {
         // Editable dropdown: free text wins, fall back to the selected item.
         var text = string.IsNullOrWhiteSpace(PingCountBox.Text)
             ? PingCountBox.SelectedItem?.ToString()
             : PingCountBox.Text.Trim();
+        var before = _config.PingCount;
         _config.PingCount = text == "∞" || text == "-1" ? ScanConfig.InfinitePingCount
             : int.TryParse(text, out var n) && n > 0 ? n : 10;
         UpdateOfflineRecheckEnabled();
+        if (_config.PingCount != before) PersistConfigDebounced();
     }
 }

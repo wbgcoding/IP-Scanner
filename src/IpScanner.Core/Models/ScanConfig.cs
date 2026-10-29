@@ -10,9 +10,9 @@ public sealed class ScanConfig
     public int PingCount { get; set; } = 10;                  // -1 = infinite
     public int PingIntervalMs { get; set; } = 100;
     public int OfflineAfterFailedPings { get; set; } = 5;
+    /// <summary>Discovery attempts per IP in the first pass. Fixed at 1 in the app and in the config
+    /// file; only the engine tests and the CLI set it.</summary>
     public int InitPingCount { get; set; } = 1;
-    /// <summary>Ping count for the automatic sweep right after the app starts.</summary>
-    public int StartupPingCount { get; set; } = 10;
     /// <summary>Recheck offline IPs every N seconds during a run (0 = off).</summary>
     public int OfflineRecheckSeconds { get; set; } = 5;
     /// <summary>Retry hostname lookup for devices with no name every N
@@ -223,8 +223,6 @@ public sealed class ScanConfig
         public const int PingCountMin = 1, PingCountMax = 10_000_000, PingCountDefault = 10;
         public const int PingIntervalMsMin = 0, PingIntervalMsMax = 10_000, PingIntervalMsDefault = 100;
         public const int OfflineAfterFailedPingsMin = 1, OfflineAfterFailedPingsMax = 100, OfflineAfterFailedPingsDefault = 5;
-        public const int InitPingCountMin = 1, InitPingCountMax = 100, InitPingCountDefault = 1;
-        public const int StartupPingCountMin = 0, StartupPingCountMax = 10_000, StartupPingCountDefault = 10;
         public const int OfflineRecheckSecondsMin = 0, OfflineRecheckSecondsMax = 3600, OfflineRecheckSecondsDefault = 5;
         public const int HostnameRetryMinutesMin = 0, HostnameRetryMinutesMax = 1440, HostnameRetryMinutesDefault = 10;
         public const int InternetTimeoutMsMin = 100, InternetTimeoutMsMax = 10_000, InternetTimeoutMsDefault = 1000;
@@ -295,7 +293,7 @@ public sealed class ScanConfig
     {
         Subnets = Subnets, PinnedIps = PinnedIps, PingCount = pingCount,
         PingIntervalMs = PingIntervalMs, OfflineAfterFailedPings = OfflineAfterFailedPings,
-        InitPingCount = InitPingCount, StartupPingCount = StartupPingCount,
+        InitPingCount = InitPingCount,
         OfflineRecheckSeconds = OfflineRecheckSeconds, HostnameRetryMinutes = HostnameRetryMinutes,
         EnableInternetPing = EnableInternetPing, InternetTimeoutMs = InternetTimeoutMs,
         InternetHosts = InternetHosts, KnownDevicesDb = KnownDevicesDb, ScanHistory = ScanHistory,

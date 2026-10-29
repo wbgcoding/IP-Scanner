@@ -1,6 +1,4 @@
 {
-  "Endless": "無限",
-  "Discovery only": "検出のみ",
   "Ctrl": "Ctrl",
   "Del": "Del",
   "Service": "サービス",
@@ -452,11 +450,8 @@
   "Database (*.db)|*.db|All files (*.*)|*.*": "データベースファイル (*.db)|*.db|すべてのファイル (*.*)|*.*",
   "CSV file (*.csv)|*.csv|All files (*.*)|*.*": "CSVファイル (*.csv)|*.csv|すべてのファイル (*.*)|*.*",
   "Database file": "データベースファイル",
-  "Default pings": "デフォルトPing回数",
   "Reset all settings?": "すべての設定をリセットしますか？",
   "Devices": "デバイス",
-  "Discovery attempts per IP (stops at the first reply). Higher = more reliable for slow devices, but slower.": "IPごとの検出試行回数（最初の応答で停止）。値を大きくすると応答の遅いデバイスでの信頼性が上がりますが、速度は低下します。",
-  "Discovery pings per IP": "IPごとの検出用Ping送信",
   "Double-click to edit. Changes are stored permanently.": "ダブルクリックして編集します。変更は永続的に保存されます。",
   "Enable internet ping": "インターネットPingを有効化",
   "Enable known-devices database": "既知のデバイスデータベースを有効化",
@@ -528,14 +523,11 @@
   "Pause in milliseconds between two pings to the same device. Lower = faster, more network load.": "同一デバイスへの2回のPing送信間の休止時間（ミリ秒）。値を小さくすると高速になりますが、ネットワーク負荷が高くなります。",
   "Pick a color": "色を選択",
   "Pick another instance's scanner.db and merge its devices into this database (newer entries win).": "別のインスタンスのscanner.dbを選択し、そのデバイスをこのデータベースにマージします（新しいエントリが優先されます）。",
-  "Ping count per device for the automatic scan right after startup. Tick Discovery only to just look for devices.": "起動直後の自動スキャンでのデバイスごとのPing送信回数。「検出のみ」にするとデバイスの検索だけを行います。",
   "Ping interval": "Ping間隔",
   "Ping timeout": "Pingタイムアウト",
   "Pings": "Ping",
-  "Pings at startup": "起動時のPing",
   "Pings:": "Ping送信数:",
   "Pinned IPs": "ピン留めされたIP",
-  "Preset for the ping dropdown at the top right when the app starts. Tick Endless to keep pinging until stopped.": "アプリ起動時の右上のPingドロップダウンのプリセット。「無限」にすると停止するまでPingを続けます。",
   "Progress": "進行状況",
   "Remembers discovered devices per network in scanner.db so known devices are recognized on the next scan.": "ネットワークごとに検出されたデバイスをscanner.dbに記憶し、次回のスキャン時に既知のデバイスとして認識できるようにします。",
   "Remove entry": "エントリを削除",
@@ -1253,5 +1245,6 @@
   "Shows when the device was first seen online. Only remembered while the known devices database is on.": "デバイスが初めてオンラインで確認された日時を表示します。既知デバイスのデータベースが有効な間だけ記憶されます。",
   "Shows when the device was last seen online. Only remembered while the known devices database is on.": "デバイスが最後にオンラインで確認された日時を表示します。既知デバイスのデータベースが有効な間だけ記憶されます。",
   "Private address": "プライベートアドレス",
-  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "デバイス自身が選んだランダムな MAC アドレスです(スマートフォンやノートパソコンのプライバシー機能)。"
+  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "デバイス自身が選んだランダムな MAC アドレスです(スマートフォンやノートパソコンのプライバシー機能)。",
+  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "デバイスごとの ping 回数です。右上の ping ドロップダウンで設定します。-1 にすると停止するまで ping を続けます。"
 }

@@ -458,14 +458,7 @@ public partial class MainWindow : Window
         UiScaleBox.Text = c.UiScalePercent.ToString();
         IntervalBox.Text = c.PingIntervalMs.ToString();
         OfflineAfterBox.Text = c.OfflineAfterFailedPings.ToString();
-        InitPingCountBox.Text = c.InitPingCount.ToString();
-        // Endless / discovery only / off are checkboxes; the number boxes always show a real value.
-        DefaultPingsEndlessBox.IsChecked = c.PingCount == ScanConfig.InfinitePingCount;
-        DefaultPingsBox.IsEnabled = c.PingCount != ScanConfig.InfinitePingCount;
-        DefaultPingsBox.Text = (c.PingCount > 0 ? c.PingCount : ScanConfig.Bounds.PingCountDefault).ToString();
-        StartupPingsDiscoveryBox.IsChecked = c.StartupPingCount == 0;
-        StartupPingsBox.IsEnabled = c.StartupPingCount != 0;
-        StartupPingsBox.Text = (c.StartupPingCount > 0 ? c.StartupPingCount : ScanConfig.Bounds.StartupPingCountDefault).ToString();
+        // Off is a checkbox; the number box always shows a real value.
         OfflineRecheckOffBox.IsChecked = c.OfflineRecheckSeconds == 0;
         OfflineRecheckBox.Text = (c.OfflineRecheckSeconds > 0 ? c.OfflineRecheckSeconds : ScanConfig.Bounds.OfflineRecheckSecondsDefault).ToString();
         UpdateOfflineRecheckEnabled();
