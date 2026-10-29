@@ -1,0 +1,59 @@
+<UserControl x:Class="IpScanner.Views.Tools.MacTool"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:IpScanner.Core.Localization">
+    <!-- Two independent blocks stacked on one page: vendor lookup and address table lookup. -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+
+            <!-- Vendor lookup -->
+            <TextBlock Text="{loc:L CalcVendorTitle}" FontWeight="SemiBold" Margin="0,0,0,6"/>
+            <TextBox ToolTip="{loc:L CalcMacHint}" AutomationProperties.Name="{loc:L CalcVendorTitle}" Width="260" HorizontalAlignment="Left"
+                     Text="{Binding VendorMac, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Margin="0,6,0,0" FontFamily="Consolas">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasVendorResult}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+                <Run Text="{Binding VendorResult, Mode=OneWay}"/>
+            </TextBlock>
+            <TextBlock Text="{Binding VendorFooter}" Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,6,0,0"/>
+
+            <Border Height="1" Background="{DynamicResource Surface2}" Margin="0,16,0,14"/>
+
+            <!-- ARP address table lookup -->
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{loc:L CalcArpTitle}" FontWeight="SemiBold"/>
+                <TextBlock Text="{loc:L CalcArpLocalOnly}" Foreground="{DynamicResource Subtext}" FontSize="11"
+                           VerticalAlignment="Bottom" Margin="8,0,0,1"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <TextBox AutomationProperties.Name="{loc:L CalcArpTitle}" Width="260" Margin="0,0,8,0" Text="{Binding ArpIp, UpdateSourceTrigger=PropertyChanged}" ToolTip="{loc:L TipCalcArp}"/>
+                <Button Content="{loc:L CalcLookupButton}" Click="OnArpLookupClick" ToolTip="{loc:L TipCalcLookup}"
+                        Style="{StaticResource ToolAccentButton}" IsEnabled="{Binding CanLookupArp}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasArpResult}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Text="{Binding ArpMac}" FontFamily="Consolas" Margin="0,0,10,0"/>
+                <TextBlock Text="{Binding ArpVendor}" Foreground="{DynamicResource Subtext}"/>
+            </StackPanel>
+
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

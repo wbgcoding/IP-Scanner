@@ -1421,14 +1421,14 @@ public static class Loc
         "Prüft, welche TCP- und UDP-Ports eines Geräts Verbindungen annehmen, und zeigt den Dienst hinter jedem offenen Port. Nutze es, wenn du wissen willst, was ein Gerät im Netzwerk anbietet oder ob ein Dienst erreichbar ist.",
         "Checks which TCP and UDP ports on a device accept connections and shows the service behind each open port. Use it to see what a device offers on the network or whether a service is reachable.");
     public static string ToolDnsLookupDesc => S(
-        "Sucht die IP-Adressen zu einem Namen oder den Namen zu einer IP-Adresse, über die DNS-Server dieses Rechners. Nutze es, wenn ein Name nicht wie erwartet aufgelöst wird oder du eine unbekannte Adresse zuordnen willst.",
-        "Looks up the IP addresses behind a name, or the name behind an IP address, using the DNS servers of this computer. Use it when a name does not resolve as expected or you want to identify an unknown address.");
+        "Sucht die IP-Adressen zu einem Namen, den Namen zu einer IP-Adresse oder andere DNS-Einträge wie MX, TXT und NS, über die DNS-Server dieses Rechners oder einen Server deiner Wahl. Du kannst auch mehrere Server vergleichen. Nutze es, wenn ein Name nicht wie erwartet aufgelöst wird.",
+        "Looks up the IP addresses of a name, the name of an IP address or other DNS records such as MX, TXT and NS, using the DNS servers of this computer or a server of your choice. You can also compare several servers. Use it when a name does not resolve as expected.");
     public static string ToolPingRouteDesc => S(
         "Pingt ein Ziel dauerhaft mit Live-Diagramm oder zeigt die Router auf dem Weg von diesem Rechner zum Ziel. Nutze es, um die Stabilität einer Verbindung zu beurteilen oder die Stelle zu finden, an der Pakete verloren gehen.",
         "Pings a target continuously with a live graph, or traces the routers between this computer and the target. Use it to judge how stable a connection is or to find where packets get lost.");
     public static string ToolCalculatorDesc => S(
-        "Berechnet Netz, Rundsendeadresse, Rechnerbereich und Maske für jede Adresse, sucht den Hersteller zu einer MAC-Adresse und die MAC zu einer IP in der Adresstabelle. Nutze es beim Planen von Netzen oder um ein Gerät zu identifizieren.",
-        "Works out network, broadcast, host range and mask for any address, looks up the vendor of a MAC address and finds the MAC for an IP in the address table. Use it when planning networks or identifying a device.");
+        "Berechnet Netz, Rundsendeadresse, Rechnerbereich und Maske für jede Adresse, prüft, ob eine Adresse zum Netz gehört, und teilt ein Netz in kleinere Teilnetze auf. Nutze es beim Planen von Netzen.",
+        "Works out network, broadcast, host range and mask for any address, checks whether an address belongs to the network and splits a network into smaller subnets. Use it when planning networks.");
     public static string ToolCertificateDesc => S(
         "Verbindet sich per TLS mit einem Server und zeigt dessen Zertifikat mit Inhaber, Aussteller, Gültigkeit, Fingerabdruck und Kette. Nutze es, um das Ablaufdatum zu prüfen oder ob ein Dienst das richtige Zertifikat vorlegt.",
         "Connects to a server over TLS and shows its certificate: owner, issuer, validity, fingerprint and chain. Use it to check when a certificate expires or whether a service presents the right one.");
@@ -1490,8 +1490,8 @@ public static class Loc
         "Sucht den Namen, der zu einer IP-Adresse gehört, samt weiteren Namen.",
         "Finds the name that belongs to an IP address, plus any aliases.");
     public static string TipDnsStart => S(
-        "Schickt die Anfrage an die DNS-Server dieses Rechners und zeigt die Antwort.",
-        "Sends the query to this computer's DNS servers and shows the answer.");
+        "Schickt die Anfrage an den gewählten DNS-Server und zeigt die Antwort.",
+        "Sends the query to the chosen DNS server and shows the answer.");
     public static string TipDnsCopy => S(
         "Kopiert die angezeigten Adressen oder Namen zeilenweise in die Zwischenablage.",
         "Copies the addresses or names shown above to the clipboard, one per line.");
@@ -2489,4 +2489,48 @@ public static class Loc
     public static string Ipv6PrefixTooLarge => S(
         "Ein IPv6-Netz mit mehr als 65.536 Adressen (zum Beispiel /64) wird nicht Adresse für Adresse durchsucht. Gib einen kleineren Bereich an (/112 oder länger).",
         "An IPv6 network with more than 65,536 addresses (for example a /64) is not scanned address by address. Enter a smaller range (/112 or longer).");
+
+    // Tool pages (round 2026-10-24)
+    public static string PortCheckSplitterTip => S("Ziehen, um die Höhe der beiden Tabellen zu ändern.", "Drag to change the height of the two tables.");
+    public static string PingRepliesLabel => S("Letzte Antworten", "Last replies");
+    public static string PingTimedOut => S("Zeitüberschreitung", "Timed out");
+    public static string ToolMacTool => S("MAC-Adresse", "MAC address");
+    public static string ToolMacToolDesc => S("Sucht den Hersteller zu einer MAC-Adresse und die MAC-Adresse zu einer IP in der Adresstabelle dieses Rechners. Nutze es, um ein unbekanntes Gerät im Netz zu identifizieren.", "Looks up the vendor of a MAC address and finds the MAC address for an IP in the address table of this computer. Use it to identify an unknown device on your network.");
+    public static string CalcSplitTitle => S("Teilnetze aufteilen", "Split subnet");
+    public static string CalcSplitPrefixLabel => S("Neues Präfix", "New prefix");
+    public static string CalcSplitInvalid => S("Das neue Präfix muss größer sein als das Präfix des Netzes und darf höchstens 32 sein.", "The new prefix must be larger than the network prefix and at most 32.");
+    public static string CalcSplitCountFmt => S("{0} Teilnetze", "{0} subnets");
+    public static string CalcSplitCappedFmt => S("Es werden nur die ersten {0} von {1} Teilnetzen angezeigt.", "Showing only the first {0} of {1} subnets.");
+    public static string CalcSplitCountMsg(long count) => string.Format(CalcSplitCountFmt, count);
+    public static string CalcSplitCappedMsg(int shown, long total) => string.Format(CalcSplitCappedFmt, shown, total);
+    public static string TipCalcSplitPrefix => S("Länge des Präfixes der neuen Teilnetze, zum Beispiel /26. Muss größer sein als das Präfix des Netzes.", "Prefix length of the new subnets, for example /26. Must be larger than the prefix of the network.");
+    public static string DnsServerLabel => S("DNS-Server", "DNS server");
+    public static string DnsServerSystem => S("System (Standard)", "System (default)");
+    public static string DnsTypeLabel => S("Typ", "Type");
+    public static string DnsCompareToggle => S("Server vergleichen", "Compare servers");
+    public static string DnsCompareServersLabel => S("Zu vergleichende Server", "Servers to compare");
+    public static string DnsAddServerButton => S("Hinzufügen", "Add");
+    public static string DnsServerInvalid => S("Das ist keine gültige IPv4- oder IPv6-Adresse.", "That is not a valid IPv4 or IPv6 address.");
+    public static string DnsCompareMax => S("Du kannst höchstens 6 Server vergleichen.", "You can compare at most 6 servers.");
+    public static string DnsAnswerDiffers => S("Antwort weicht ab", "Answer differs");
+    public static string DnsReplyFmt => S("Antwort von {0} in {1} ms ({2})", "Reply from {0} in {1} ms ({2})");
+    public static string DnsNoReplyFmt => S("Keine Antwort von {0} innerhalb von {1} s", "No reply from {0} within {1} s");
+    public static string DnsBadReplyFmt => S("Ungültige Antwort von {0}.", "Invalid reply from {0}.");
+    public static string DnsFailedFmt => S("{0} ist nicht erreichbar.", "Could not reach {0}.");
+    public static string DnsNoSystemServer => S("Auf diesem Rechner ist kein DNS-Server eingestellt.", "No DNS server is configured on this computer.");
+    public static string DnsBadName => S("Dieser Name ist für eine DNS-Anfrage nicht gültig.", "That name is not valid for a DNS query.");
+    public static string DnsCodeTimeout => S("Zeitüberschreitung", "Timeout");
+    public static string DnsCodeError => S("Fehler", "Error");
+    public static string DnsColValue => S("Wert", "Value");
+    public static string DnsColTtl => S("TTL", "TTL");
+    public static string DnsColTime => S("Zeit (ms)", "Time (ms)");
+    public static string DnsColCode => S("Code", "Code");
+    public static string DnsColAnswers => S("Antworten", "Answers");
+    public static string TipDnsServer => S("Der DNS-Server, der die Anfrage beantwortet. Wähle einen Server aus der Liste oder tippe eine IPv4- oder IPv6-Adresse ein.", "The DNS server that answers the query. Pick one from the list or type an IPv4 or IPv6 address.");
+    public static string TipDnsType => S("Der Eintragstyp, nach dem gefragt wird. Automatisch sucht die Adressen zu einem Namen oder den Namen zu einer Adresse.", "The record type to ask for. Automatic looks up the addresses of a name or the name of an address.");
+    public static string TipDnsCompare => S("Schickt dieselbe Anfrage gleichzeitig an mehrere Server und zeigt Zeit und Antwort jedes Servers nebeneinander.", "Sends the same query to several servers at once and shows each server's time and answer side by side.");
+    public static string TipDnsCompareNew => S("IPv4- oder IPv6-Adresse eines weiteren Servers für den Vergleich.", "IPv4 or IPv6 address of another server to include in the comparison.");
+    public static string TipDnsCompareAdd => S("Nimmt den eingegebenen Server in den Vergleich auf. Es sind höchstens 6 möglich.", "Adds the server you typed to the comparison. At most 6 are possible.");
+    public static string TipDnsCompareRemove => S("Nimmt diesen Server aus dem Vergleich.", "Takes this server out of the comparison.");
+    public static string DnsRemoveServerButton => S("Entfernen", "Remove");
 }
