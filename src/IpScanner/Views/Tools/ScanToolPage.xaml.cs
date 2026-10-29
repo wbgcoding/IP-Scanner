@@ -31,7 +31,7 @@ public partial class ScanToolPage : UserControl
         if (vm is ScanExportToolViewModel)
         {
             PresetCombo.SetBinding(System.Windows.Controls.Primitives.Selector.SelectedIndexProperty, new Binding(nameof(ScanExportToolViewModel.PresetIndex)));
-            ArrangeAsSteps();
+            FooterFormat.Visibility = Visibility.Collapsed;
         }
         if (vm is OsEstimateToolViewModel { Note: { } note })
         {
@@ -47,28 +47,6 @@ public partial class ScanToolPage : UserControl
     }
 
     private static Visibility Show(bool on) => on ? Visibility.Visible : Visibility.Collapsed;
-
-    /// <summary>The export page reads top to bottom as numbered steps: target, preset, save, run.
-    /// The format moves next to the path, the run buttons into their own step.</summary>
-    private void ArrangeAsSteps()
-    {
-        StepTarget.Visibility = Visibility.Visible;
-        StepPreset.Visibility = Visibility.Visible;
-        StepSave.Visibility = Visibility.Visible;
-        StepRun.Visibility = Visibility.Visible;
-        RunHost.Visibility = Visibility.Visible;
-        if (RunButtons.Parent is Grid host)
-        {
-            host.Children.Remove(RunButtons);
-            Grid.SetColumn(RunButtons, 0);
-            RunHost.Child = RunButtons;
-        }
-        // The numbered headings stand in for the captions of target, preset and path; the format moved up.
-        TargetCaption.Visibility = Visibility.Collapsed;
-        PresetCaption.Visibility = Visibility.Collapsed;
-        SavePathCaption.Visibility = Visibility.Collapsed;
-        FooterFormat.Visibility = Visibility.Collapsed;
-    }
 
     private void UpdateTexts()
         => StartButton.Content = _vm.Kind == ScanToolKind.Export ? Loc.ScanToolExportRun : Loc.ScanToolStartButton;

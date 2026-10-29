@@ -10,6 +10,7 @@ public sealed class ToolsViewModel
     public DnsLookupToolViewModel DnsLookup { get; } = new();
     public PingRouteToolViewModel PingRoute { get; } = new();
     public CalculatorToolViewModel Calculator { get; } = new();
+    public MacToolViewModel Mac { get; } = new();
     public CertificateToolViewModel Certificate { get; } = new();
     public HostDiscoveryToolViewModel HostDiscovery { get; } = new();
     public ServiceDetectionToolViewModel ServiceDetection { get; } = new();

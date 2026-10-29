@@ -1,7 +1,7 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using IpScanner.Core.Export;
 using IpScanner.ViewModels.Tools;
 using Xunit;
 
@@ -58,52 +58,6 @@ public class CalculatorToolViewModelTests
     public void Calculate_InvalidInputReturnsNull(string address, string mask)
         => Assert.Null(CalculatorToolViewModel.Calculate(address, mask));
 
-    [Fact]
-    public void VendorLookup_FindsAKnownPrefix()
-        => Assert.Equal("XEROX CORPORATION", MacVendorLookup.Instance.Lookup("00:00:00:11:22:33"));
-
-    [Fact]
-    public void VendorLookup_UnknownPrefixReturnsNullCleanly()
-        => Assert.Null(MacVendorLookup.Instance.Lookup("FF:FF:FF:FF:FF:FF"));
-
-    [Fact]
-    public void ArpLookup_InvalidIp_CanLookupArpIsFalse()
-    {
-        var vm = new CalculatorToolViewModel { ArpIp = "not-an-ip" };
-        Assert.False(vm.CanLookupArp);
-    }
-
-    [Fact]
-    public void ArpLookup_ValidIp_CanLookupArpIsTrue()
-    {
-        var vm = new CalculatorToolViewModel { ArpIp = "192.168.1.1" };
-        Assert.True(vm.CanLookupArp);
-    }
-    [Fact]
-    public async Task ArpLookup_RunsOffTheCallingThread_AndBlocksASecondLookupMeanwhile()
-    {
-        using var release = new ManualResetEventSlim();
-        int? resolverThread = null;
-        var vm = new CalculatorToolViewModel(ip =>
-        {
-            resolverThread = Environment.CurrentManagedThreadId;
-            release.Wait(TimeSpan.FromSeconds(10));
-            return "AA:BB:CC:00:11:22";
-        }) { ArpIp = "192.168.1.1" };
-
-        var lookup = vm.LookupArpAsync();
-
-        Assert.False(vm.CanLookupArp);
-        Assert.False(lookup.IsCompleted);
-        release.Set();
-        await lookup;
-
-        Assert.NotEqual(Environment.CurrentManagedThreadId, resolverThread);
-        Assert.True(vm.HasArpResult);
-        Assert.Equal("AA:BB:CC:00:11:22", vm.ArpMac);
-        Assert.True(vm.CanLookupArp);
-    }
-
     [Theory]
     [InlineData("2001:db8:abcd:12::5", "/64", "2001:db8:abcd:12::", "2001:db8:abcd:12:ffff:ffff:ffff:ffff", "2^64", 64)]
     [InlineData("2001:db8::1/48", "", "2001:db8::", "2001:db8:0:ffff:ffff:ffff:ffff:ffff", "2^80", 48)]
@@ -159,5 +113,113 @@ public class CalculatorToolViewModelTests
         vm.SubnetAddress = "192.168.1.0"; vm.SubnetMask = "/24";
         Assert.False(vm.IsIpv6Result);
         Assert.Equal("192.168.1.1", vm.FirstHostResult);
+    }
+
+    [Fact]
+    public void Split_Slash24IntoFour26s_ListsEachSubnet()
+    {
+        var (rows, total) = CalculatorToolViewModel.Split("192.168.1.77", "/24", 26)!.Value;
+        Assert.Equal(4, total);
+        Assert.Equal(4, rows.Count);
+        Assert.Equal(new CalculatorToolViewModel.SubnetRow("192.168.1.0", "192.168.1.1", "192.168.1.62", "192.168.1.63", "62"), rows[0]);
+        Assert.Equal(new CalculatorToolViewModel.SubnetRow("192.168.1.64", "192.168.1.65", "192.168.1.126", "192.168.1.127", "62"), rows[1]);
+        Assert.Equal("192.168.1.192", rows[3].Network);
+        Assert.Equal("192.168.1.255", rows[3].Broadcast);
+    }
+
+    [Fact]
+    public void Split_AcceptsDottedMask()
+    {
+        var (rows, total) = CalculatorToolViewModel.Split("10.0.0.0", "255.255.255.0", 25)!.Value;
+        Assert.Equal(2, total);
+        Assert.Equal(new[] { "10.0.0.0", "10.0.0.128" }, rows.Select(r => r.Network));
+    }
+
+    [Fact]
+    public void Split_HostPrefixes_HandleTheSpecialCases()
+    {
+        var p31 = CalculatorToolViewModel.Split("10.0.0.0", "/30", 31)!.Value;
+        Assert.Equal(2, p31.Total);
+        Assert.Equal(new CalculatorToolViewModel.SubnetRow("10.0.0.0", "10.0.0.0", "10.0.0.1", "10.0.0.1", "2"), p31.Rows[0]);
+        var p32 = CalculatorToolViewModel.Split("10.0.0.0", "/31", 32)!.Value;
+        Assert.Equal(new CalculatorToolViewModel.SubnetRow("10.0.0.0", "10.0.0.0", "10.0.0.0", "10.0.0.0", "1"), p32.Rows[0]);
+    }
+
+    [Fact]
+    public void Split_CapsTheRowsButReportsTheFullCount()
+    {
+        var (rows, total) = CalculatorToolViewModel.Split("10.0.0.0", "/8", 24)!.Value;
+        Assert.Equal(65536, total);
+        Assert.Equal(CalculatorToolViewModel.SplitRowCap, rows.Count);
+        Assert.Equal("10.0.255.0", rows[255].Network);
+        var widest = CalculatorToolViewModel.Split("0.0.0.0", "/1", 32)!.Value;
+        Assert.Equal(1L << 31, widest.Total);
+        Assert.Equal(CalculatorToolViewModel.SplitRowCap, widest.Rows.Count);
+    }
+
+    [Theory]
+    [InlineData("192.168.1.0", "/24", 24)]
+    [InlineData("192.168.1.0", "/24", 20)]
+    [InlineData("192.168.1.0", "/24", 33)]
+    [InlineData("nonsense", "/24", 26)]
+    [InlineData("192.168.1.0", "", 26)]
+    public void Split_InvalidInputReturnsNull(string address, string mask, int newPrefix)
+        => Assert.Null(CalculatorToolViewModel.Split(address, mask, newPrefix));
+
+    [Fact]
+    public void SplitSection_FollowsTheSubnetAndThePrefixInput()
+    {
+        var vm = new CalculatorToolViewModel();
+        Assert.False(vm.ShowSplit);
+        vm.SubnetAddress = "192.168.1.0";
+        vm.SubnetMask = "/24";
+        Assert.True(vm.ShowSplit);
+        Assert.False(vm.HasSplitRows);
+
+        vm.SplitPrefix = "/26";
+        Assert.True(vm.HasSplitRows);
+        Assert.Equal(4, vm.SplitRows.Count);
+        Assert.Equal("", vm.SplitError);
+        Assert.Contains("4", vm.SplitSummary);
+
+        vm.SplitPrefix = "26";
+        Assert.Equal(4, vm.SplitRows.Count);
+
+        vm.SplitPrefix = "24";
+        Assert.False(vm.HasSplitRows);
+        Assert.NotEqual("", vm.SplitError);
+        Assert.Equal("", vm.SplitSummary);
+
+        vm.SplitPrefix = "";
+        Assert.Equal("", vm.SplitError);
+
+        vm.SplitPrefix = "/27";
+        vm.SubnetMask = "/23";
+        Assert.Equal(16, vm.SplitRows.Count);
+        Assert.Equal("192.168.0.0", vm.SplitRows[0].Network);
+    }
+
+    [Fact]
+    public void SplitSection_ShowsAHintWhenTheTableIsCapped()
+    {
+        var vm = new CalculatorToolViewModel { SubnetAddress = "10.0.0.0", SubnetMask = "/8", SplitPrefix = "/24" };
+        Assert.Equal(CalculatorToolViewModel.SplitRowCap, vm.SplitRows.Count);
+        Assert.Contains("65536", vm.SplitSummary.Replace(".", "").Replace(",", ""));
+    }
+
+    [Fact]
+    public void SplitSection_IsHiddenForIpv6AndInvalidNetworks()
+    {
+        var vm = new CalculatorToolViewModel { SubnetAddress = "192.168.1.0", SubnetMask = "/24", SplitPrefix = "/26" };
+        Assert.Equal(4, vm.SplitRows.Count);
+
+        vm.SubnetAddress = "2001:db8::";
+        vm.SubnetMask = "/64";
+        Assert.False(vm.ShowSplit);
+        Assert.Empty(vm.SplitRows);
+
+        vm.SubnetAddress = "garbage";
+        Assert.False(vm.ShowSplit);
+        Assert.Empty(vm.SplitRows);
     }
 }
