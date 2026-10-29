@@ -76,26 +76,76 @@
                 </StackPanel>
             </Grid>
 
-            <Canvas x:Name="PingGraphCanvas" Height="60" Margin="0,8,0,0" ClipToBounds="True"
-                    SizeChanged="OnPingGraphSizeChanged" FlowDirection="LeftToRight">
-                <Polyline Points="{Binding GraphPoints}" Stroke="{DynamicResource Green}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
-                <TextBlock Text="{Binding GraphMax}" Canvas.Left="4" Canvas.Top="1" FontSize="9" Foreground="{DynamicResource MidGray}"/>
-                <TextBlock Text="{Binding GraphMin}" Canvas.Left="4" Canvas.Bottom="0" FontSize="9" Foreground="{DynamicResource MidGray}"/>
-            </Canvas>
+            <Grid Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <Canvas x:Name="PingGraphCanvas" Height="60" ClipToBounds="True"
+                            SizeChanged="OnPingGraphSizeChanged" FlowDirection="LeftToRight">
+                        <Polyline Points="{Binding GraphPoints}" Stroke="{DynamicResource Green}" StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                        <TextBlock Text="{Binding GraphMax}" Canvas.Left="4" Canvas.Top="1" FontSize="9" Foreground="{DynamicResource MidGray}"/>
+                        <TextBlock Text="{Binding GraphMin}" Canvas.Left="4" Canvas.Bottom="0" FontSize="9" Foreground="{DynamicResource MidGray}"/>
+                    </Canvas>
+                    <ItemsControl x:Name="PingGraphTicks" ItemsSource="{Binding GraphTicks}" Height="14" FlowDirection="LeftToRight">
+                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter"><Setter Property="Canvas.Left" Value="{Binding X}"/></Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Label}" FontSize="8" Foreground="{DynamicResource MidGray}" Width="28" TextAlignment="Center"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-            <WrapPanel Orientation="Horizontal" Margin="0,6,0,0">
-                <TextBlock Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,16,0">
-                    <Run Text="{loc:L PingSentLabel}"/><Run Text=": "/><Run Text="{Binding Sent, Mode=OneWay}"/>
-                </TextBlock>
-                <TextBlock Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,16,0">
-                    <Run Text="{loc:L PingReceivedLabel}"/><Run Text=": "/><Run Text="{Binding Received, Mode=OneWay}"/>
-                </TextBlock>
-                <TextBlock Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,16,0">
-                    <Run Text="{loc:L PingLossLabel}"/><Run Text=": "/><Run Text="{Binding LossText, Mode=OneWay}"/>
-                </TextBlock>
-                <TextBlock Text="{Binding StatsText}" Foreground="{DynamicResource Text}" FontSize="11"/>
-            </WrapPanel>
-            <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Peach}" FontSize="11" Margin="0,4,0,0"/>
+                    <WrapPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBlock Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,16,0">
+                            <Run Text="{loc:L PingSentLabel}"/><Run Text=": "/><Run Text="{Binding Sent, Mode=OneWay}"/>
+                        </TextBlock>
+                        <TextBlock Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,16,0">
+                            <Run Text="{loc:L PingReceivedLabel}"/><Run Text=": "/><Run Text="{Binding Received, Mode=OneWay}"/>
+                        </TextBlock>
+                        <TextBlock Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,16,0">
+                            <Run Text="{loc:L PingLossLabel}"/><Run Text=": "/><Run Text="{Binding LossText, Mode=OneWay}"/>
+                        </TextBlock>
+                        <TextBlock Text="{Binding StatsText}" Foreground="{DynamicResource Text}" FontSize="11"/>
+                    </WrapPanel>
+                    <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Peach}" FontSize="11" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Width="170" Margin="12,0,0,0">
+                    <TextBlock Text="{loc:L PingRepliesLabel}" Foreground="{DynamicResource Subtext}" FontSize="11" Margin="0,0,0,2"/>
+                    <ScrollViewer x:Name="PingRepliesScroll" Height="96" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="PingReplies" ItemsSource="{Binding Replies}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,6,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Time}" FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource Subtext}" Margin="0,0,8,0"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Result}" FontFamily="Consolas" FontSize="11" TextAlignment="Right" TextTrimming="CharacterEllipsis">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding TimedOut}" Value="True">
+                                                            <Setter Property="Foreground" Value="{DynamicResource Peach}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Grid>
         </StackPanel>
 
         <Border Grid.Row="1" Height="1" Background="{DynamicResource Surface2}" Margin="0,14,0,10"/>

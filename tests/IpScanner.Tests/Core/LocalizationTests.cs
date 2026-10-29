@@ -176,7 +176,7 @@ public class LocalizationTests
     // Product names, protocol and format names, key caps and operating systems that read the same in every language.
     private static readonly HashSet<string> KeptInEnglish = new(StringComparer.Ordinal)
     {
-        "Ctrl", "Del", "Ping", "DNS", "MAC", "N/A", "OK", "Windows", "Linux/Unix", "ULA", "DHCP discover",
+        "Ctrl", "Del", "Ping", "DNS", "MAC", "N/A", "OK", "Windows", "Linux/Unix", "ULA", "DHCP discover", "TTL",
     };
 
     // Words a Latin-script language spells exactly like English (or borrows as is), per language.
@@ -187,7 +187,7 @@ public class LocalizationTests
     {
         ["es"] = SameInSpanishFrenchPortuguese.Concat(new[] { "Pings:", "Offline", "Online", "Error", "General", "Global", "No" }).ToArray(),
         ["fr"] = SameInSpanishFrenchPortuguese.Concat(new[]
-            { "Action", "Date", "Format", "Interface", "Max", "Min", "Mode", "Note", "Port", "Ports", "Route", "Service", "Services", "Threads", "Version", "max" }).ToArray(),
+            { "Action", "Code", "Date", "Format", "Interface", "Max", "Min", "Mode", "Note", "Port", "Ports", "Route", "Service", "Services", "Threads", "Type", "Version", "max" }).ToArray(),
         ["pt"] = SameInSpanishFrenchPortuguese.Concat(new[]
             { "Backup (*.zip)|*.zip", "Broadcast", "Gateway", "Interface", "Link-local", "Online/Offline", "Status", "Threads", "Offline", "Online", "Global", "Pings:" }).ToArray(),
     };

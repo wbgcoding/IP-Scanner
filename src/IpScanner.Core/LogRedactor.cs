@@ -22,7 +22,7 @@ public static class LogRedactor
     private static readonly Regex PrivateHost = new(
         @"(?<![\w.\-])(?:[A-Za-z0-9](?:[A-Za-z0-9\-]*[A-Za-z0-9])?\.)+(?<tld>home\.arpa|localdomain|local|box|lan|home|internal|intranet|corp|private)(?![\w\-])",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    // "(nas-ben:443)": the target a failed connect reports. A bare host name, not a number or a dotted address.
+    // "(nas-home:443)": the target a failed connect reports. A bare host name, not a number or a dotted address.
     private static readonly Regex HostPort = new(@"\((?<host>[A-Za-z][A-Za-z0-9\-]*(?:\.[A-Za-z0-9\-]+)*):(?<port>\d{1,5})\)", RegexOptions.Compiled);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]

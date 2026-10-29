@@ -16,8 +16,19 @@ public partial class MainWindow
             LogScroll.Visibility = Visibility.Visible;
             LogOverlay.CloseRequested -= OnLogCloseRequested;
             LogOverlay.CloseRequested += OnLogCloseRequested;
+            LogOverlay.VerboseChanged -= OnLogVerboseChanged;
+            LogOverlay.VerboseChanged += OnLogVerboseChanged;
+            LogOverlay.SetVerbose(_config.VerboseLog);
             await LogOverlay.OpenAsync();
         }, Loc.LogTitle);
+    }
+
+    /// <summary>The page switch is the only place the setting lives; it is saved like any other setting.</summary>
+    private void OnLogVerboseChanged(object? sender, bool on)
+    {
+        _config.VerboseLog = on;
+        if (on) Core.Log.Info(Core.LogArea.App, "Verbose logging on");
+        PersistConfigDebounced();
     }
 
     private void OnLogCloseRequested(object? sender, EventArgs e)

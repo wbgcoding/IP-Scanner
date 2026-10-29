@@ -78,6 +78,8 @@ public partial class ToolsWindow : Window
     {
         FlowDirection = Loc.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
         _vm.Calculator.RefreshLanguage();
+        _vm.Mac.RefreshLanguage();
+        _vm.DnsLookup.RefreshLanguage();
         foreach (var page in _pages.Values)
             if (page is ScanToolPage scan) scan.RefreshLanguage();
         if (ToolsNavList.SelectedItem is ListBoxItem { Tag: string tag }) ToolDescription.Text = DescFor(tag);
@@ -94,6 +96,7 @@ public partial class ToolsWindow : Window
         "DnsLookup" => Loc.ToolDnsLookupDesc,
         "PingRoute" => Loc.ToolPingRouteDesc,
         "Calculator" => Loc.ToolCalculatorDesc,
+        "MacTool" => Loc.ToolMacToolDesc,
         "Certificate" => Loc.ToolCertificateDesc,
         "HostDiscovery" => Loc.ToolHostDiscoveryDesc,
         "ServiceDetection" => Loc.ToolServiceDetectionDesc,
@@ -110,6 +113,7 @@ public partial class ToolsWindow : Window
         "DnsLookup" => new DnsLookupTool(_vm.DnsLookup),
         "PingRoute" => new PingRouteTool(_vm.PingRoute),
         "Calculator" => new CalculatorTool(_vm.Calculator),
+        "MacTool" => new MacTool(_vm.Mac),
         "Certificate" => new CertificateTool(_vm.Certificate),
         "HostDiscovery" => new ScanToolPage(_owner, _vm.HostDiscovery),
         "ServiceDetection" => new ScanToolPage(_owner, _vm.ServiceDetection),

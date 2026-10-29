@@ -932,6 +932,7 @@ public sealed class MainViewModel : ObservableObject
         _totalPings = Math.Max(1L, (long)_plannedDevices * perIp);
         Progress.StartScan();   // Remaining-time estimate measures from here
         var scanStartedAt = DateTimeOffset.UtcNow;
+        Core.Log.Info(Core.LogArea.Scan, $"Scan started: {scannedList.Count} targets, {(infinite ? "endless" : perIp.ToString())} pings each");
 
         _dispatch(() =>
         {
@@ -997,6 +998,7 @@ public sealed class MainViewModel : ObservableObject
 
         var devices = engine.Devices.ToList();
         var scanFinishedAt = DateTimeOffset.UtcNow;
+        Core.Log.Info(Core.LogArea.Scan, $"Scan ended: {devices.Count} devices, {devices.Count(d => d.IsOnline)} online, {(scanFinishedAt - scanStartedAt).TotalSeconds:0.#} s, cancelled: {(scanCancelled ? "yes" : "no")}");
 
         // Previous MAC-per-IP snapshot, read before the known-devices
         // DB below overwrites it with this run's result - an empty dictionary
@@ -1131,6 +1133,7 @@ public sealed class MainViewModel : ObservableObject
                 }
                 return w;
             });
+            Core.Log.Debug(Core.LogArea.Scan, $"Export and archive phase took {(DateTimeOffset.UtcNow - scanFinishedAt).TotalMilliseconds:0} ms, {written.Count} report files");
 
             // TXT and CSV export independently; the sidebar shows name + size.
             if (written.Count > 0)
@@ -1723,10 +1726,10 @@ public sealed class MainViewModel : ObservableObject
     }
 
     // ── Totals row (average of each ping column across all rows, heat-colored) ──
-    public string TotalAvg { get; private set; } = "—";
-    public string TotalMin { get; private set; } = "—";
-    public string TotalMax { get; private set; } = "—";
-    public string TotalLast { get; private set; } = "—";
+    public string TotalAvg { get; private set; } = "–";
+    public string TotalMin { get; private set; } = "–";
+    public string TotalMax { get; private set; } = "–";
+    public string TotalLast { get; private set; } = "–";
     public string TotalAvgColor { get; private set; } = Core.Palette.MidGray;
     public string TotalMinColor { get; private set; } = Core.Palette.MidGray;
     public string TotalMaxColor { get; private set; } = Core.Palette.MidGray;
@@ -1811,10 +1814,10 @@ public sealed class MainViewModel : ObservableObject
 
     // ── Internet totals row (after the last host): Ø/Letzter = averages,
     //    Min/Max = the extreme values across all hosts ──
-    public string InternetTotalAvg { get; private set; } = "—";
-    public string InternetTotalMin { get; private set; } = "—";
-    public string InternetTotalMax { get; private set; } = "—";
-    public string InternetTotalLast { get; private set; } = "—";
+    public string InternetTotalAvg { get; private set; } = "–";
+    public string InternetTotalMin { get; private set; } = "–";
+    public string InternetTotalMax { get; private set; } = "–";
+    public string InternetTotalLast { get; private set; } = "–";
     public string InternetTotalAvgColor { get; private set; } = Core.Palette.MidGray;
     public string InternetTotalMinColor { get; private set; } = Core.Palette.MidGray;
     public string InternetTotalMaxColor { get; private set; } = Core.Palette.MidGray;

@@ -141,6 +141,7 @@ public partial class MainWindow
             _repeatScanTimer?.Stop();
             _persistDebounce?.Stop();
             DisposeTray();
+            Core.Log.Info(Core.LogArea.Db, "Backup restored, app closing");
             MessageDialog.Show(this, Loc.RestoreDone(safety ?? "-"), Loc.RestoreConfirmTitle);
             Environment.Exit(0);
         }

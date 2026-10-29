@@ -431,7 +431,7 @@ public class CheckTests
         var runner = RunnerWithFakes(new FakeCheckIo());
         var services = new[] { Udp("NETBIOS", 137), Tcp("SMB", 139) };
         var plan = runner.Plan(services, CheckSelection.Default);
-        Assert.Single(plan.Where(e => e.Check.Id == "netbios-names"));
+        Assert.Single(plan, e => e.Check.Id == "netbios-names");
     }
 
     [Fact]

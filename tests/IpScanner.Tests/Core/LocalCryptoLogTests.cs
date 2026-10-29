@@ -22,6 +22,6 @@ public class LocalCryptoLogTests
             Assert.Null(LocalCrypto.TryLoad(keyPath));
         }
 
-        Assert.Single(Log.Snapshot().Where(e => e.Area == LogArea.Config && e.Message == "Decrypting stored data failed"));
+        Assert.Single(Log.Snapshot(), e => e.Area == LogArea.Config && e.Message == "Decrypting stored data failed");
     }
 }

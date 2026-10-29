@@ -121,6 +121,8 @@
             <TextBox x:Name="SearchBox" MinWidth="240" Height="30" VerticalContentAlignment="Center"
                      TextChanged="OnFilterChanged" AutomationProperties.Name="{loc:L LogSearchLabel}"
                      ToolTip="{loc:L TipLogSearch}"/>
+            <CheckBox x:Name="VerboseBox" Content="{loc:L LogVerboseLabel}" Foreground="{DynamicResource Text}" Margin="14,0,0,0"
+                      VerticalAlignment="Center" ToolTip="{loc:L TipVerboseLog}" Checked="OnVerboseToggled" Unchecked="OnVerboseToggled"/>
         </WrapPanel>
         <Grid Grid.Row="2">
             <ListBox x:Name="RowsList" BorderThickness="0" Background="Transparent"
