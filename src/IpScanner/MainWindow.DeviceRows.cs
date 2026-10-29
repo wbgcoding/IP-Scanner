@@ -96,6 +96,14 @@ public partial class MainWindow : Window
         foreach (var vm in TargetDevices(sender)) _vm.SetMuted(vm, item.IsChecked);
     }
 
+    // Tray notification when a device stops answering (3 lost pings in a row) and when it is back.
+    // The same state is applied to every selected device.
+    private void OnToggleAlertOffline(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem item) return;
+        foreach (var vm in TargetDevices(sender)) _vm.SetAlertOffline(vm, item.IsChecked);
+    }
+
     // Accept a rogue device into the known-devices DB - removes the
     // orange highlight immediately (menu entry itself only shows for rogue rows).
     // Mark every rogue device in the selection and leave known devices unchanged.
@@ -186,6 +194,9 @@ public partial class MainWindow : Window
             stopItem.IsChecked = _vm.IsNoHostnameRetry(vm);
         if (menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "MuteDeviceItem") is { } muteItem)
             muteItem.IsChecked = targets.All(_vm.IsMuted);
+
+        if (menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "AlertOfflineItem") is { } alertItem)
+            alertItem.IsChecked = targets.All(_vm.IsAlertOffline);
 
         // Mark-as-known is offered when at least one targeted device is rogue.
         if (menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "MarkAsKnownItem") is { } markItem)

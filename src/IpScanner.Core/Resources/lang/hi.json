@@ -1261,5 +1261,10 @@
   "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "प्रति डिवाइस पिंग की संख्या। इसे ऊपर दाईं ओर के पिंग ड्रॉपडाउन से सेट किया जाता है; -1 रोकने तक पिंग करता रहता है।",
   "1 device online.": "1 डिवाइस ऑनलाइन है।",
   "Continuous ping": "लगातार पिंग",
-  "Trace route": "रूट ट्रेस करें"
+  "Trace route": "रूट ट्रेस करें",
+  "Alert when offline": "ऑफ़लाइन होने पर सूचित करें",
+  "Device unreachable": "डिवाइस उपलब्ध नहीं",
+  "Device reachable again": "डिवाइस फिर से उपलब्ध",
+  "{0} is no longer reachable.": "{0} अब उपलब्ध नहीं है।",
+  "{0} is reachable again (after {1}).": "{0} फिर से उपलब्ध है ({1} के बाद)।"
 }

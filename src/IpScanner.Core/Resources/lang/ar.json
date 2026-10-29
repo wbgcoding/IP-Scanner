@@ -1261,5 +1261,10 @@
   "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "عدد الاختبارات (ping) لكل جهاز. يُضبط من القائمة المنسدلة أعلى اليمين؛ القيمة -1 تواصل الاختبار حتى الإيقاف.",
   "1 device online.": "جهاز واحد متصل.",
   "Continuous ping": "ping مستمر",
-  "Trace route": "تتبع المسار"
+  "Trace route": "تتبع المسار",
+  "Alert when offline": "التنبيه عند انقطاع الاتصال",
+  "Device unreachable": "الجهاز غير متاح",
+  "Device reachable again": "الجهاز متاح مرة أخرى",
+  "{0} is no longer reachable.": "لم يعد {0} متاحًا.",
+  "{0} is reachable again (after {1}).": "{0} متاح مرة أخرى (بعد {1})."
 }

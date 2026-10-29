@@ -1261,5 +1261,10 @@
   "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "Número de pings por dispositivo. Se ajusta en el menú de ping de arriba a la derecha; -1 sigue haciendo ping hasta que se detenga.",
   "1 device online.": "1 dispositivo en línea.",
   "Continuous ping": "Ping continuo",
-  "Trace route": "Rastrear ruta"
+  "Trace route": "Rastrear ruta",
+  "Alert when offline": "Avisar si se desconecta",
+  "Device unreachable": "Dispositivo inaccesible",
+  "Device reachable again": "Dispositivo accesible de nuevo",
+  "{0} is no longer reachable.": "{0} ya no es accesible.",
+  "{0} is reachable again (after {1}).": "{0} vuelve a ser accesible (tras {1})."
 }

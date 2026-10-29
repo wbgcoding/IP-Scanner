@@ -1261,5 +1261,10 @@
   "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "每台设备的 ping 次数。通过右上角的 ping 下拉框设置;-1 表示持续 ping 直到停止。",
   "1 device online.": "1 台设备在线。",
   "Continuous ping": "持续 Ping",
-  "Trace route": "路由追踪"
+  "Trace route": "路由追踪",
+  "Alert when offline": "离线时提醒",
+  "Device unreachable": "设备无法访问",
+  "Device reachable again": "设备已恢复访问",
+  "{0} is no longer reachable.": "{0} 已无法访问。",
+  "{0} is reachable again (after {1}).": "{0} 已恢复访问（{1} 后）。"
 }

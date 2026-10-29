@@ -29,6 +29,7 @@
             <MenuItem Name="ResolveHostnameAgainItem" Header="{loc:L ResolveHostnameAgain}" Click="OnResolveHostnameAgain"/>
             <MenuItem Name="StopHostnameRetryItem" Header="{loc:L StopHostnameRetry}" IsCheckable="True" Click="OnToggleHostnameRetry"/>
             <MenuItem Name="MuteDeviceItem" Header="{loc:L MuteDevice}" IsCheckable="True" Click="OnToggleMuteDevice"/>
+            <MenuItem Name="AlertOfflineItem" Header="{loc:L DeviceAlertOffline}" IsCheckable="True" Click="OnToggleAlertOffline"/>
             <MenuItem Name="MarkAsKnownItem" Header="{loc:L MarkAsKnown}" Click="OnMarkAsKnown"/>
             <Separator/>
             <MenuItem Header="{loc:L DevicePingContinuous}" Click="OnDeviceContinuousPing"/>

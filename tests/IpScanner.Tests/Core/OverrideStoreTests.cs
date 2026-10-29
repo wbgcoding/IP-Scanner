@@ -111,6 +111,35 @@ public class OverrideStoreTests
     }
 
     [Fact]
+    public void SetAlertOffline_RoundTripsThroughLoad_AndKeepsTheNote()
+    {
+        var path = TempPath();
+        var a = new OverrideStore();
+        a.Load(path);
+        a.SetNote("AA:BB:CC:00:11:66", "192.168.1.15", "printer");
+        a.SetAlertOffline("AA:BB:CC:00:11:66", "192.168.1.15", true);
+
+        var b = new OverrideStore();
+        b.Load(path);
+        var e = b.Get("AA:BB:CC:00:11:66", "192.168.1.15");
+        Assert.True(e?.AlertOffline);
+        Assert.Equal("printer", e?.Note);
+        Assert.False(e?.Muted);
+    }
+
+    [Fact]
+    public void SetAlertOffline_False_RemovesEntry_WhenNoOtherDataSet()
+    {
+        var s = new OverrideStore();
+        s.Load(TempPath());
+        s.SetAlertOffline(null, "192.168.1.16", true);
+        Assert.True(s.Get(null, "192.168.1.16")?.AlertOffline);
+
+        s.SetAlertOffline(null, "192.168.1.16", false);
+        Assert.Null(s.Get(null, "192.168.1.16"));
+    }
+
+    [Fact]
     public void SetNote_RoundTripsByMacAcrossIpChange_AndSanitizesControls()
     {
         var path = TempPath();
