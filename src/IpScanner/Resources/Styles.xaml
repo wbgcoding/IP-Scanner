@@ -701,6 +701,8 @@
                         </ToggleButton>
                         <ContentPresenter x:Name="contentSite" Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                          ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
                                           IsHitTestVisible="False" Margin="10,0,28,0"
                                           VerticalAlignment="Center" HorizontalAlignment="Left"/>
                         <!-- Editable mode: WPF requires this exact part name. -->

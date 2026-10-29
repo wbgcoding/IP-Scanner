@@ -84,4 +84,14 @@ public class ToolPageLayoutTests
         Assert.Equal("{Binding Replies}", (string?)list.Attribute("ItemsSource"));
         Assert.True(double.Parse((string)Named(doc, "PingRepliesScroll").Attribute("Height")!) <= 120);
     }
+
+    [Fact]
+    public void ComboBoxStyle_SelectionBoxHonoursDisplayMemberPath()
+    {
+        var doc = Load(Path.Combine("..", "..", "Resources", "Styles.xaml"));
+        var style = doc.Descendants(Wpf + "Style").First(s => (string?)s.Attribute("TargetType") == "ComboBox" && s.Attribute(X + "Key") is null);
+        var site = style.Descendants(Wpf + "ContentPresenter").First(e => (string?)e.Attribute(X + "Name") == "contentSite");
+        Assert.Equal("{TemplateBinding ItemTemplateSelector}", (string?)site.Attribute("ContentTemplateSelector"));
+        Assert.Equal("{TemplateBinding SelectionBoxItemStringFormat}", (string?)site.Attribute("ContentStringFormat"));
+    }
 }
