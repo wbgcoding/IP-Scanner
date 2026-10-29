@@ -34,7 +34,9 @@ public static class CsvExporter
         foreach (var d in devices.OrderBy(d => d.Ip, Net.IpAddressKey.TextComparer))
         {
             if (!d.IsOnline && !d.FromDb && !d.Seen) continue;
-            string Num(double? v) => v?.ToString("F2", CultureInfo.InvariantCulture) ?? "";
+            // A spreadsheet that splits on ";" also expects the decimal comma of that culture.
+            var numCulture = sep == ',' ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture;
+            string Num(double? v) => v?.ToString("F2", numCulture) ?? "";
             var target = d.TargetPings == ScanConfig.InfinitePingCount ? "∞" : d.TargetPings.ToString();
             // "80/TCP HTTP; 443/TCP HTTPS": Esc quotes the cell when ';' is the delimiter.
             var openPorts = ports is not null && ports.TryGetValue(d.Ip, out var found) && found.Count > 0
