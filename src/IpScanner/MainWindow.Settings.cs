@@ -559,20 +559,6 @@ public partial class MainWindow : Window
     // keystroke would zoom wildly while typing.
     private void OnUiScaleCommit(object sender, RoutedEventArgs e) => ApplyUiScale();
 
-    private void OnDefaultPingsEndlessChanged(object sender, RoutedEventArgs e)
-    {
-        DefaultPingsBox.IsEnabled = DefaultPingsEndlessBox.IsChecked != true;
-        if (_loadingSettings) return;
-        ApplyInstant();
-    }
-
-    private void OnStartupPingsDiscoveryChanged(object sender, RoutedEventArgs e)
-    {
-        StartupPingsBox.IsEnabled = StartupPingsDiscoveryBox.IsChecked != true;
-        if (_loadingSettings) return;
-        ApplyInstant();
-    }
-
     private void OnOfflineRecheckOffChanged(object sender, RoutedEventArgs e)
     {
         UpdateOfflineRecheckEnabled();

@@ -1,6 +1,4 @@
 {
-  "Endless": "مستمر",
-  "Discovery only": "اكتشاف فقط",
   "Ctrl": "Ctrl",
   "Del": "Del",
   "Service": "الخدمة",
@@ -452,11 +450,8 @@
   "Database (*.db)|*.db|All files (*.*)|*.*": "قاعدة البيانات (*.db)|*.db|جميع الملفات (*.*)|*.*",
   "CSV file (*.csv)|*.csv|All files (*.*)|*.*": "ملف CSV (*.csv)|*.csv|جميع الملفات (*.*)|*.*",
   "Database file": "ملف قاعدة البيانات",
-  "Default pings": "عدد الـ pings الافتراضي",
   "Reset all settings?": "هل تريد إعادة تعيين جميع الإعدادات؟",
   "Devices": "الأجهزة",
-  "Discovery attempts per IP (stops at the first reply). Higher = more reliable for slow devices, but slower.": "محاولات الاكتشاف لكل IP (تتوقف عند الاستجابة الأولى). قيمة أعلى = موثوقية أكبر للأجهزة البطيئة، ولكن أبطأ.",
-  "Discovery pings per IP": "عمليات Ping للاكتشاف لكل IP",
   "Double-click to edit. Changes are stored permanently.": "انقر نقراً مزدوجاً للتعديل. يتم حفظ التغييرات بشكل دائم.",
   "Enable internet ping": "تمكين الـ Ping للإنترنت",
   "Enable known-devices database": "تمكين قاعدة بيانات الأجهزة المعروفة",
@@ -528,14 +523,11 @@
   "Pause in milliseconds between two pings to the same device. Lower = faster, more network load.": "الفترة الانتقالية بالملي ثانية بين عمليتي Ping لنفس الجهاز. قيمة أقل = أسرع، حمل شبكة أكبر.",
   "Pick a color": "اختر لوناً",
   "Pick another instance's scanner.db and merge its devices into this database (newer entries win).": "اختر ملف scanner.db الخاص بنسخة أخرى وادمجه في قاعدة البيانات هذه (الإدخالات الأحدث تفوز).",
-  "Ping count per device for the automatic scan right after startup. Tick Discovery only to just look for devices.": "عدد عمليات Ping لكل جهاز للفحص التلقائي بعد بدء التشغيل مباشرة. فعّل «اكتشاف فقط» للبحث عن الأجهزة فقط.",
   "Ping interval": "فاصل Ping",
   "Ping timeout": "مهلة Ping",
   "Pings": "عمليات Ping",
-  "Pings at startup": "عمليات Ping عند بدء التشغيل",
   "Pings:": "عمليات Ping:",
   "Pinned IPs": "عناوين IP المثبتة",
-  "Preset for the ping dropdown at the top right when the app starts. Tick Endless to keep pinging until stopped.": "الإعداد المسبق لقائمة Ping المنسدلة في أعلى اليمين عند بدء التطبيق. فعّل «مستمر» لمواصلة الاختبار حتى الإيقاف.",
   "Progress": "التقدم",
   "Remembers discovered devices per network in scanner.db so known devices are recognized on the next scan.": "يتذكر الأجهزة المكتشفة لكل شبكة في scanner.db حتى يتم التعرف على الأجهزة المعروفة في الفحص التالي.",
   "Remove entry": "إزالة الإدخال",
@@ -1253,5 +1245,6 @@
   "Shows when the device was first seen online. Only remembered while the known devices database is on.": "يعرض وقت رصد الجهاز متصلاً للمرة الأولى. لا يُحفظ ذلك إلا ما دامت قاعدة بيانات الأجهزة المعروفة مفعّلة.",
   "Shows when the device was last seen online. Only remembered while the known devices database is on.": "يعرض وقت رصد الجهاز متصلاً آخر مرة. لا يُحفظ ذلك إلا ما دامت قاعدة بيانات الأجهزة المعروفة مفعّلة.",
   "Private address": "عنوان خاص",
-  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "عنوان MAC عشوائي اختاره الجهاز بنفسه (ميزة خصوصية في الهواتف والحواسيب المحمولة)."
+  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "عنوان MAC عشوائي اختاره الجهاز بنفسه (ميزة خصوصية في الهواتف والحواسيب المحمولة).",
+  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "عدد الاختبارات (ping) لكل جهاز. يُضبط من القائمة المنسدلة أعلى اليمين؛ القيمة -1 تواصل الاختبار حتى الإيقاف."
 }

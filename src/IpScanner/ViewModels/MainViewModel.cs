@@ -817,10 +817,10 @@ public sealed class MainViewModel : ObservableObject
                              IReadOnlyList<(uint First, uint Last)>? rangeOverride = null)
         => RunScanInternal(null, persist: true, subnetOverride, rangeOverride);
 
-    /// <summary>Automatic sweep right after startup: StartupPingCount pings per
+    /// <summary>Automatic sweep right after startup: the header ping count per
     /// device, using the configured worker count like every other scan.</summary>
     public Task RunInitScanAsync()
-        => RunScanInternal(Math.Max(0, Config.StartupPingCount), persist: false, null, null);
+        => RunScanInternal(null, persist: false, null, null);
 
     // Serializes scan starts: a second start requested while one is already
     // spinning up (e.g. a double Enter-press racing the async startup sweep)
