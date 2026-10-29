@@ -188,14 +188,23 @@ internal static class ReviewSurfaces
         }
         Device[] Net(string net, int count, int run, int seed) => Enumerable.Range(0, count).Select(i => Host(net, i, run, seed)).ToArray();
         var now = DateTimeOffset.Now;
-        void Save(TimeSpan ago, TimeSpan took, string network, string[] subnets, Device[] devices, bool stopped = false) =>
-            db.SaveScanArchive(now - ago, now - ago + took, network, subnets, "{}", devices, [], stopped);
+        const string settings = "{\"PingCount\":3,\"PingIntervalMs\":200,\"ScanThreads\":64}";
+        void Save(TimeSpan ago, TimeSpan took, string network, string[] subnets, Device[] devices, bool stopped = false,
+            IReadOnlyDictionary<string, IReadOnlyList<NetService>>? ports = null) =>
+            db.SaveScanArchive(now - ago, now - ago + took, network, subnets, settings, devices, [], stopped, ports);
+        // A few hosts expose services, the set shifting a little from run to run.
+        IReadOnlyDictionary<string, IReadOnlyList<NetService>> Ports(int run) => new Dictionary<string, IReadOnlyList<NetService>>
+        {
+            ["192.168.20.2"] = new[] { new NetService("HTTP", 80, NetProtocol.Tcp), new NetService("HTTPS", 443, NetProtocol.Tcp) },
+            ["192.168.20.3"] = new[] { new NetService("SMB", 445, NetProtocol.Tcp), new NetService("SSH", 22, NetProtocol.Tcp) },
+            ["192.168.20.8"] = run % 2 == 0 ? new[] { new NetService("HTTP", 80, NetProtocol.Tcp) } : new[] { new NetService("HTTP", 80, NetProtocol.Tcp), new NetService("RTSP", 554, NetProtocol.Tcp) }
+        };
 
         var home = new[] { "192.168.20.0/24" };
         int[] homeCounts = [38, 37, 36, 38, 35, 34, 30];
         TimeSpan[] homeAgo = [TimeSpan.FromHours(2), TimeSpan.FromHours(26), TimeSpan.FromDays(3), TimeSpan.FromDays(5), TimeSpan.FromDays(8), TimeSpan.FromDays(13), TimeSpan.FromDays(21)];
         for (var r = 0; r < homeCounts.Length; r++)
-            Save(homeAgo[r], TimeSpan.FromSeconds(95 + r * 11), "192.168.20.0/24", home, Net("192.168.20", homeCounts[r], r, 0x20));
+            Save(homeAgo[r], TimeSpan.FromSeconds(95 + r * 11), "192.168.20.0/24", home, Net("192.168.20", homeCounts[r], r, 0x20), ports: Ports(r));
         var wide = new[] { "10.20.0.0/16", "172.16.8.0/24", "192.168.178.0/24" };
         Save(TimeSpan.FromDays(2) + TimeSpan.FromHours(3), TimeSpan.FromMinutes(14) + TimeSpan.FromSeconds(8), string.Join(", ", wide), wide, Net("172.16.8", 52, 1, 0x30));
         Save(TimeSpan.FromDays(6), TimeSpan.FromMinutes(12) + TimeSpan.FromSeconds(41), string.Join(", ", wide), wide, Net("172.16.8", 49, 2, 0x30));
@@ -248,6 +257,26 @@ internal static class ReviewSurfaces
                 return new Shown { Primary = w };
             }),
             new("archive.detail", "g.archive", true, async c =>
+            {
+                var w = await NewMainAsync(c);
+                SeedRealisticArchive(Path.Combine(c.TempDir, "scanner.db"));
+                await w.ReviewOpenArchiveAsync();
+                await Settle(500);
+                await w.ReviewSelectArchiveRunAsync(0, 3, 0);
+                await Settle(500);
+                return new Shown { Primary = w };
+            }),
+            new("archive.ports", "g.archive", true, async c =>
+            {
+                var w = await NewMainAsync(c);
+                SeedRealisticArchive(Path.Combine(c.TempDir, "scanner.db"));
+                await w.ReviewOpenArchiveAsync();
+                await Settle(500);
+                await w.ReviewSelectArchiveRunAsync(0, -1, 1);
+                await Settle(500);
+                return new Shown { Primary = w };
+            }),
+            new("archive.history", "g.archive", true, async c =>
             {
                 var w = await NewMainAsync(c);
                 SeedRealisticArchive(Path.Combine(c.TempDir, "scanner.db"));
