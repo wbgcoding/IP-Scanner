@@ -2533,4 +2533,10 @@ public static class Loc
     public static string TipDnsCompareAdd => S("Nimmt den eingegebenen Server in den Vergleich auf. Es sind höchstens 6 möglich.", "Adds the server you typed to the comparison. At most 6 are possible.");
     public static string TipDnsCompareRemove => S("Nimmt diesen Server aus dem Vergleich.", "Takes this server out of the comparison.");
     public static string DnsRemoveServerButton => S("Entfernen", "Remove");
+
+    // Batch Y1
+    public static string ColPorts => S("Ports", "Ports");
+    public static string TipColPorts => S(
+        "Zeigt die offenen TCP-Ports, die auf dem Gerät gefunden wurden. Fahre über eine Zelle, um die ganze Liste mit Dienstnamen zu sehen.",
+        "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.");
 }

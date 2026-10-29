@@ -1248,5 +1248,6 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "要加入比较的另一台服务器的 IPv4 或 IPv6 地址。",
   "Adds the server you typed to the comparison. At most 6 are possible.": "把输入的服务器加入比较。最多 6 台。",
   "Takes this server out of the comparison.": "把这台服务器从比较中移除。",
-  "Remove": "移除"
+  "Remove": "移除",
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "显示在设备上找到的开放 TCP 端口。将鼠标悬停在单元格上可查看带服务名称的完整列表。"
 }

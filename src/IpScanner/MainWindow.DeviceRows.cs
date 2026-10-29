@@ -511,6 +511,7 @@ public partial class MainWindow : Window
         ProgressColBox.IsChecked = !c.HiddenColumns.Contains("progress");
         MacColBox.IsChecked = !c.HiddenColumns.Contains("mac");
         VendorColBox.IsChecked = !c.HiddenColumns.Contains("vendor");
+        PortsColBox.IsChecked = !c.HiddenColumns.Contains("ports");
         MethodColBox.IsChecked = !c.HiddenColumns.Contains("method");
         OsColBox.IsChecked = !c.HiddenColumns.Contains("os");
         TxtToggle.IsChecked = c.FileOutput;

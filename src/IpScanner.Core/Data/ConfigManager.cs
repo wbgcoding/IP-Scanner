@@ -49,7 +49,7 @@ public static class ConfigManager
     // Table columns that can be hidden - IP/status/hostname stay mandatory.
     // "jitter", "method" and "os" are hidden by default (see ScanConfig.HiddenColumns).
     private static readonly string[] OptionalColumnKeys =
-        { "group", "avg", "min", "max", "last", "loss", "jitter", "progress", "mac", "vendor", "method" };
+        { "group", "avg", "min", "max", "last", "loss", "jitter", "progress", "mac", "vendor", "ports", "method", "os", "first_seen", "last_seen" };
 
     /// <summary>If the conf file is missing keys from the current version, rewrite it
     /// with defaults filled in while keeping all existing values. No-op if up to date.</summary>

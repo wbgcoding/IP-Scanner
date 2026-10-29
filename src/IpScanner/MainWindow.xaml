@@ -824,6 +824,19 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
+                    <DataGridTextColumn x:Name="PortsColumn" Header="{loc:L ColPorts}" Binding="{Binding Ports}" SortMemberPath="PortsSortKey" Width="Auto" MinWidth="90" MaxWidth="200">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="ToolTip" Value="{loc:L TipColPorts}"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource CenterCell}">
+                                <Setter Property="ToolTip" Value="{Binding PortsTip}"/>
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
                     <DataGridTextColumn x:Name="MethodColumn" Header="{loc:L FoundBy}" Binding="{Binding Method}" Width="Auto" MinWidth="90" MaxWidth="180">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock" BasedOn="{StaticResource CenterCell}">
@@ -1732,6 +1745,7 @@
                                         <CheckBox x:Name="ProgressColBox" ToolTip="{loc:L TipColProgress}" Content="{loc:L Progress}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="MacColBox" ToolTip="{loc:L TipColMac}" Content="{loc:L Mac}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="VendorColBox" ToolTip="{loc:L TipColVendor}" Content="{loc:L Vendor}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
+                                        <CheckBox x:Name="PortsColBox" ToolTip="{loc:L TipColPorts}" Content="{loc:L ColPorts}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="MethodColBox" ToolTip="{loc:L TipColMethod}" Content="{loc:L FoundBy}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="OsColBox" ToolTip="{loc:L TipColOs}" Content="{loc:L OsColumnHeader}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                     </UniformGrid>

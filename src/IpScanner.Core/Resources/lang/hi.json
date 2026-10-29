@@ -1248,5 +1248,6 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "तुलना में जोड़ने के लिए किसी और सर्वर का IPv4 या IPv6 पता।",
   "Adds the server you typed to the comparison. At most 6 are possible.": "लिखा हुआ सर्वर तुलना में जोड़ता है। अधिकतम 6 सर्वर संभव हैं।",
   "Takes this server out of the comparison.": "इस सर्वर को तुलना से हटाता है।",
-  "Remove": "हटाएँ"
+  "Remove": "हटाएँ",
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "डिवाइस पर मिले खुले TCP पोर्ट दिखाता है। सेवाओं के नामों के साथ पूरी सूची देखने के लिए किसी सेल पर कर्सर ले जाएँ।"
 }

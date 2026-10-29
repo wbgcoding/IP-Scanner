@@ -497,6 +497,7 @@ public partial class MainWindow : Window
         ProgressColumn.Visibility = IsColumnHidden("progress") ? Visibility.Collapsed : Visibility.Visible;
         MacColumn.Visibility = IsColumnHidden("mac") ? Visibility.Collapsed : Visibility.Visible;
         VendorColumn.Visibility = IsColumnHidden("vendor") ? Visibility.Collapsed : Visibility.Visible;
+        PortsColumn.Visibility = IsColumnHidden("ports") ? Visibility.Collapsed : Visibility.Visible;
         MethodColumn.Visibility = IsColumnHidden("method") ? Visibility.Collapsed : Visibility.Visible;
         OsColumn.Visibility = IsColumnHidden("os") ? Visibility.Collapsed : Visibility.Visible;
     }
@@ -521,6 +522,7 @@ public partial class MainWindow : Window
         if (ProgressColBox.IsChecked != true) hidden.Add("progress");
         if (MacColBox.IsChecked != true) hidden.Add("mac");
         if (VendorColBox.IsChecked != true) hidden.Add("vendor");
+        if (PortsColBox.IsChecked != true) hidden.Add("ports");
         if (MethodColBox.IsChecked != true) hidden.Add("method");
         if (OsColBox.IsChecked != true) hidden.Add("os");
         _config.HiddenColumns = hidden;
@@ -652,7 +654,7 @@ public partial class MainWindow : Window
         ["Hostname"] = HostnameColumn, ["Avg"] = AvgColumn, ["Min"] = MinColumn,
         ["Max"] = MaxColumn, ["Last"] = LastColumn, ["Loss"] = LossColumn,
         ["Jitter"] = JitterColumn, ["Progress"] = ProgressColumn, ["Mac"] = MacColumn,
-        ["Vendor"] = VendorColumn, ["Method"] = MethodColumn, ["Os"] = OsColumn,
+        ["Vendor"] = VendorColumn, ["Ports"] = PortsColumn, ["Method"] = MethodColumn, ["Os"] = OsColumn,
     };
 
     private void RestoreTableSortAndWidths()
