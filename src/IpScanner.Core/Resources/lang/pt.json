@@ -1251,5 +1251,7 @@
   "Remove": "Remover",
   "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "Mostra as portas TCP abertas encontradas no dispositivo. Passe o cursor sobre uma célula para ver a lista completa com os nomes dos serviços.",
   "Shows when the device was first seen online. Only remembered while the known devices database is on.": "Mostra quando o dispositivo foi visto online pela primeira vez. Só é lembrado enquanto o banco de dados de dispositivos conhecidos estiver ativado.",
-  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Mostra quando o dispositivo foi visto online pela última vez. Só é lembrado enquanto o banco de dados de dispositivos conhecidos estiver ativado."
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Mostra quando o dispositivo foi visto online pela última vez. Só é lembrado enquanto o banco de dados de dispositivos conhecidos estiver ativado.",
+  "Private address": "Endereço privado",
+  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "Endereço MAC aleatório que o próprio dispositivo escolheu (recurso de privacidade de celulares e notebooks)."
 }

@@ -1251,5 +1251,7 @@
   "Remove": "हटाएँ",
   "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "डिवाइस पर मिले खुले TCP पोर्ट दिखाता है। सेवाओं के नामों के साथ पूरी सूची देखने के लिए किसी सेल पर कर्सर ले जाएँ।",
   "Shows when the device was first seen online. Only remembered while the known devices database is on.": "दिखाता है कि डिवाइस पहली बार कब ऑनलाइन देखा गया था। यह तभी याद रखा जाता है जब ज्ञात डिवाइस का डेटाबेस चालू हो।",
-  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "दिखाता है कि डिवाइस आखिरी बार कब ऑनलाइन देखा गया था। यह तभी याद रखा जाता है जब ज्ञात डिवाइस का डेटाबेस चालू हो।"
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "दिखाता है कि डिवाइस आखिरी बार कब ऑनलाइन देखा गया था। यह तभी याद रखा जाता है जब ज्ञात डिवाइस का डेटाबेस चालू हो।",
+  "Private address": "निजी पता",
+  "Random MAC address the device picked itself (privacy feature of phones and laptops).": "डिवाइस द्वारा खुद चुना गया रैंडम MAC पता (फ़ोन और लैपटॉप की गोपनीयता सुविधा)।"
 }

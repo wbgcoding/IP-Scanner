@@ -2547,4 +2547,8 @@ public static class Loc
     public static string TipColLastSeen => S(
         "Zeigt, wann das Gerät zuletzt online gesehen wurde. Das merkt sich das Programm nur, solange die Datenbank bekannter Geräte aktiv ist.",
         "Shows when the device was last seen online. Only remembered while the known devices database is on.");
+    public static string PrivateAddress => S("Private Adresse", "Private address");
+    public static string PrivateAddressTip => S(
+        "Zufällige, vom Gerät selbst vergebene MAC-Adresse (Datenschutzfunktion von Handys und Laptops).",
+        "Random MAC address the device picked itself (privacy feature of phones and laptops).");
 }
