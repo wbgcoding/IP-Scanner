@@ -7,10 +7,38 @@ namespace IpScanner.Tests.Core;
 
 public class OfflineAlertTrackerTests
 {
+    /// <summary>A tracker that already saw its first reply, as every watched device does once it is online.</summary>
+    private static OfflineAlertTracker Armed()
+    {
+        var t = new OfflineAlertTracker();
+        t.Observe(true, 0);
+        return t;
+    }
+
+    [Fact]
+    public void LossesBeforeTheFirstReply_RaiseNothing_ThenTheNormalCycleStarts()
+    {
+        var t = new OfflineAlertTracker();
+        for (int i = 0; i < 10; i++) Assert.Null(t.Observe(false, i * 1000));
+        Assert.False(t.IsDown);
+        Assert.Null(t.Observe(true, 11_000));
+        Assert.Null(t.Observe(false, 12_000));
+        Assert.Null(t.Observe(false, 13_000));
+        Assert.Equal(OfflineAlertKind.Lost, t.Observe(false, 14_000)!.Value.Kind);
+    }
+
+    [Fact]
+    public void Device_OfflineAtWatchStart_RaisesNoAlert()
+    {
+        var d = new Device("192.168.1.9") { AlertOffline = true };
+        for (int i = 0; i < 6; i++) d.RecordPing(new PingResult(false, null, null));
+        Assert.False(d.TryTakeAlert(out _));
+    }
+
     [Fact]
     public void ThreeLostPingsInARow_RaiseOneLostAlert()
     {
-        var t = new OfflineAlertTracker();
+        var t = Armed();
         Assert.Null(t.Observe(false, 0));
         Assert.Null(t.Observe(false, 1000));
         var alert = t.Observe(false, 2000);
@@ -21,7 +49,7 @@ public class OfflineAlertTrackerTests
     [Fact]
     public void FurtherLostPings_DoNotRepeatTheAlert()
     {
-        var t = new OfflineAlertTracker();
+        var t = Armed();
         for (int i = 0; i < 3; i++) t.Observe(false, i * 1000);
         for (int i = 3; i < 20; i++) Assert.Null(t.Observe(false, i * 1000));
     }
@@ -29,7 +57,7 @@ public class OfflineAlertTrackerTests
     [Fact]
     public void AReplyBetweenLosses_RestartsTheCount()
     {
-        var t = new OfflineAlertTracker();
+        var t = Armed();
         t.Observe(false, 0);
         t.Observe(false, 1000);
         Assert.Null(t.Observe(true, 2000));
@@ -42,7 +70,7 @@ public class OfflineAlertTrackerTests
     [Fact]
     public void FirstReplyAfterTheAlert_RaisesBackWithTheTimeSinceTheFirstLoss()
     {
-        var t = new OfflineAlertTracker();
+        var t = Armed();
         t.Observe(false, 10_000);
         t.Observe(false, 11_000);
         t.Observe(false, 12_000);
@@ -56,7 +84,7 @@ public class OfflineAlertTrackerTests
     [Fact]
     public void ReplyWithoutAnEarlierAlert_RaisesNothing()
     {
-        var t = new OfflineAlertTracker();
+        var t = Armed();
         Assert.Null(t.Observe(true, 0));
         t.Observe(false, 1000);
         Assert.Null(t.Observe(true, 2000));
@@ -65,7 +93,7 @@ public class OfflineAlertTrackerTests
     [Fact]
     public void ASecondOutage_AlertsAgain()
     {
-        var t = new OfflineAlertTracker();
+        var t = Armed();
         for (int i = 0; i < 3; i++) t.Observe(false, i * 1000);
         t.Observe(true, 5000);
         t.Observe(false, 6000);
@@ -76,7 +104,7 @@ public class OfflineAlertTrackerTests
     [Fact]
     public void Reset_DropsARunningOutageWithoutABackAlert()
     {
-        var t = new OfflineAlertTracker();
+        var t = Armed();
         for (int i = 0; i < 3; i++) t.Observe(false, i * 1000);
         t.Reset();
         Assert.False(t.IsDown);
@@ -99,6 +127,7 @@ public class OfflineAlertTrackerTests
         Assert.False(d.TryTakeAlert(out _));
 
         d.AlertOffline = true;
+        d.RecordPing(new PingResult(true, 3, 64));
         for (int i = 0; i < 3; i++) d.RecordPing(new PingResult(false, null, null));
         Assert.True(d.TryTakeAlert(out var lost));
         Assert.Equal(OfflineAlertKind.Lost, lost.Kind);
@@ -113,6 +142,7 @@ public class OfflineAlertTrackerTests
     public void Device_SwitchingTheToggleOffForgetsTheOutage()
     {
         var d = new Device("192.168.1.9") { AlertOffline = true };
+        d.RecordPing(new PingResult(true, 3, 64));
         for (int i = 0; i < 3; i++) d.RecordPing(new PingResult(false, null, null));
         d.TryTakeAlert(out _);
         d.AlertOffline = false;
