@@ -9,6 +9,8 @@ public partial class MainWindow : Window
 {
     // ── System tray (optional; toggled in settings) ──
     private System.Windows.Forms.NotifyIcon? _tray;
+    // Maximized or normal before the last minimize, so a tray restore keeps it.
+    private readonly TrayWindowState _trayState = new();
     // Auto-repeat scan timer, rebuilt whenever RepeatScanMinutes changes.
     private System.Windows.Threading.DispatcherTimer? _repeatScanTimer;
 
@@ -28,6 +30,7 @@ public partial class MainWindow : Window
         _tray.ContextMenuStrip = menu;
         StateChanged += (_, _) =>
         {
+            _trayState.Observe(WindowState);
             if (WindowState == WindowState.Minimized && _config.MinimizeToTray) Hide();
             UpdateTrayVisibility();
         };
@@ -119,7 +122,7 @@ public partial class MainWindow : Window
     private void RestoreFromTray()
     {
         Show();
-        WindowState = WindowState.Normal;
+        WindowState = _trayState.RestoreTarget;
         Activate();
         UpdateTrayVisibility();
     }

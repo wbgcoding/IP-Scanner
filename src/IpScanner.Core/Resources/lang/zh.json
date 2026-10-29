@@ -1258,5 +1258,6 @@
   "Shows when the device was last seen online. Only remembered while the known devices database is on.": "显示设备最近一次被发现在线的时间。仅在已知设备数据库开启时才会记录。",
   "Private address": "私有地址",
   "Random MAC address the device picked itself (privacy feature of phones and laptops).": "设备自行选择的随机 MAC 地址(手机和笔记本电脑的隐私功能)。",
-  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "每台设备的 ping 次数。通过右上角的 ping 下拉框设置;-1 表示持续 ping 直到停止。"
+  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "每台设备的 ping 次数。通过右上角的 ping 下拉框设置;-1 表示持续 ping 直到停止。",
+  "1 device online.": "1 台设备在线。"
 }

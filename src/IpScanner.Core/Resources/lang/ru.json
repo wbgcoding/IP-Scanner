@@ -1258,5 +1258,6 @@
   "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Показывает, когда устройство в последний раз заметили в сети. Запоминается, только пока включена база известных устройств.",
   "Private address": "Приватный адрес",
   "Random MAC address the device picked itself (privacy feature of phones and laptops).": "Случайный MAC-адрес, который устройство выбрало само (функция конфиденциальности телефонов и ноутбуков).",
-  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "Количество пингов на устройство. Задаётся в выпадающем списке пинга справа вверху; -1 пингует до остановки."
+  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "Количество пингов на устройство. Задаётся в выпадающем списке пинга справа вверху; -1 пингует до остановки.",
+  "1 device online.": "В сети 1 устройство."
 }

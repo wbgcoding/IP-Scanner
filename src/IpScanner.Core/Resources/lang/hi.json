@@ -1258,5 +1258,6 @@
   "Shows when the device was last seen online. Only remembered while the known devices database is on.": "दिखाता है कि डिवाइस आखिरी बार कब ऑनलाइन देखा गया था। यह तभी याद रखा जाता है जब ज्ञात डिवाइस का डेटाबेस चालू हो।",
   "Private address": "निजी पता",
   "Random MAC address the device picked itself (privacy feature of phones and laptops).": "डिवाइस द्वारा खुद चुना गया रैंडम MAC पता (फ़ोन और लैपटॉप की गोपनीयता सुविधा)।",
-  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "प्रति डिवाइस पिंग की संख्या। इसे ऊपर दाईं ओर के पिंग ड्रॉपडाउन से सेट किया जाता है; -1 रोकने तक पिंग करता रहता है।"
+  "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.": "प्रति डिवाइस पिंग की संख्या। इसे ऊपर दाईं ओर के पिंग ड्रॉपडाउन से सेट किया जाता है; -1 रोकने तक पिंग करता रहता है।",
+  "1 device online.": "1 डिवाइस ऑनलाइन है।"
 }
