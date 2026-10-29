@@ -22,6 +22,7 @@ public static class HelpDoc
         new(Loc.ToolDnsLookup, Loc.ToolDnsLookupDesc),
         new(Loc.ToolPingRoute, Loc.ToolPingRouteDesc),
         new(Loc.ToolCalculator, Loc.ToolCalculatorDesc),
+        new(Loc.ToolMacTool, Loc.ToolMacToolDesc),
         new(Loc.ToolCertificate, Loc.ToolCertificateDesc),
     ];
 

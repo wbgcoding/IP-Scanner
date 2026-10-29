@@ -87,9 +87,8 @@ public sealed class ScanConfig
     /// "App". Falls back to "Scan" for an unknown/old value.</summary>
     public string SettingsPage { get; set; } = "Scan";
     /// <summary>Last-selected tool in the Tools window's left-hand navigation:
-    /// "WakeOnLan", "PortCheck", "DnsLookup", "PingRoute",
-    /// "Calculator" or "Certificate". Falls back to "WakeOnLan" for an
-    /// unknown/old value.</summary>
+    /// one of the page tags in ConfigManager.ToolsPages ("WakeOnLan", "Calculator",
+    /// "MacTool", "ScanExport", ...). Falls back to "WakeOnLan" for an unknown/old value.</summary>
     public string ToolsLastPage { get; set; } = "WakeOnLan";
     /// <summary>Last five Wake-on-LAN targets, most recent first, one
     /// "MAC Label" entry each (label falls back to the MAC itself when the target
