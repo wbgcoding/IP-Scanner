@@ -749,7 +749,6 @@ public static class Loc
     public static string ArchiveTitle => S("Scan-Archiv", "Scan archive");
     public static string ArchiveFrom => S("Von", "From");
     public static string ArchiveTo => S("Bis", "To");
-    public static string ArchiveApplyRange => S("Zeitraum anzeigen", "Show range");
     public static string ArchiveClearRange => S("Alle", "All");
     public static string ArchiveRuns => S("Scanläufe", "Scan runs");
     public static string ArchiveDate => S("Datum", "Date");
@@ -820,8 +819,6 @@ public static class Loc
     public static string ArchiveTrendHint => S("Wähle oben ein Gerät, um sein Ergebnis in jedem Lauf zu sehen.", "Select a device above to see how it did in each run.");
     public static string ArchiveEmpty => S("Noch keine Scanläufe in diesem Zeitraum. Starte einen Scan oder wähle einen anderen Zeitraum.", "No scan runs in this range yet. Start a scan or choose another range.");
     public static string ArchiveRangeSummary => S("{0} Läufe, {1} Scan-Stichproben", "{0} runs, {1} scan samples");
-    public static string ArchiveRunSummary => S("{0} von {1} Geräten online · {2} Pings erfolgreich, {3} fehlgeschlagen · Netzwerke: {4}", "{0} of {1} devices online · {2} pings succeeded, {3} failed · Networks: {4}");
-    public static string ArchiveDatabaseSize => S("Datenbankgröße: {0:0.0} MiB", "Database size: {0:0.0} MiB");
     public static string ArchiveConfirmDeleteRun => S("Scanlauf vom {0} im Netzwerk {1} dauerhaft löschen?", "Permanently delete the scan run from {0} on network {1}?");
     public static string ArchiveConfirmDeleteRange => S("{0} Scanläufe vom {1:d} bis {2:d} dauerhaft löschen?", "Permanently delete {0} scan runs from {1:d} through {2:d}?");
     public static string ArchiveConfirmCompact => S("Bis zu {0} Scanläufe, älter als {1} Tage, zu Tageswerten verdichten? Einzelne Laufdetails gehen verloren.", "Compact up to {0} scan runs older than {1} days into daily summaries? Individual run details will be lost.");
@@ -838,6 +835,41 @@ public static class Loc
     public static string ArchiveAccessDenied => S("Kein Zugriff auf die Archivdatei. Wähle einen Ordner mit Schreibrechten.", "Cannot access the archive file. Choose a folder you can write to.");
     public static string ArchiveIoError => S("Archivdatei konnte nicht gelesen oder geschrieben werden. Prüfe Speicherplatz und Dateizugriff.", "Could not read or write the archive file. Check free space and file access.");
     public static string ArchiveUnexpectedError => S("Das Archiv konnte nicht verarbeitet werden. Prüfe die Datenbank und starte die Anwendung neu.", "Could not process the archive. Check the database and restart the app.");
+    // Archive page (redesign)
+    public static string ArchiveRange30d => S("30 Tage", "30 days");
+    public static string ArchiveSearchHint => S("IP, Name oder MAC filtern", "Filter by IP, name or MAC");
+    public static string ArchiveKpiRuns => S("Läufe", "Runs");
+    public static string ArchiveKpiCancelledFmt => S("davon {0} abgebrochen", "{0} cancelled");
+    public static string ArchiveKpiPeriod => S("Zeitraum", "Period");
+    public static string ArchiveKpiPeriodFmt => S("{0} bis {1}", "{0} to {1}");
+    public static string ArchiveKpiAvgDurationFmt => S("Ø Dauer {0}", "avg duration {0}");
+    public static string ArchiveKpiNewDevicesFmt => S("{0} neu im Zeitraum", "{0} new in period");
+    public static string ArchiveKpiAvgOnlineFmt => S("Ø {0} pro Lauf", "avg {0} per run");
+    public static string ArchiveKpiLossFmt => S("Verlust {0}", "loss {0}");
+    public static string ArchiveKpiLatency => S("Latenz", "Latency");
+    public static string ArchiveKpiLatencyRangeFmt => S("min {0} / max {1} ms", "min {0} / max {1} ms");
+    public static string ArchiveKpiJitterNote => S("Mittel über alle Geräte", "average over all devices");
+    public static string ArchiveKpiOpenPortsNote => S("im letzten Lauf", "in the latest run");
+    public static string ArchiveKpiFindingsNote => S("Konflikte und Portänderungen", "conflicts and port changes");
+    public static string ArchiveKpiFindings => S("Funde", "Findings");
+    public static string ArchiveKpiStorage => S("Speicher", "Storage");
+    public static string ArchiveKpiStorageNote => S("Archivdatenbank", "archive database");
+    public static string ArchiveChartTitle => S("Geräte online pro Lauf", "Devices online per run");
+    public static string ArchiveColAvgMs => S("Ø ms", "Avg ms");
+    public static string ArchiveStatusCompacted => S("verdichtet", "compacted");
+    public static string ArchiveTabPorts => S("Ports und Funde", "Ports and findings");
+    public static string ArchiveColKind => S("Art", "Kind");
+    public static string ArchiveKindOpenPort => S("Offener Port", "Open port");
+    public static string ArchiveKindMacOnIps => S("MAC bei mehreren IPs", "MAC on several IPs");
+    public static string ArchiveKindMultiMacs => S("Mehrere MACs bei einer IP", "Several MACs on one IP");
+    public static string ArchiveCardStarted => S("Gestartet", "Started");
+    public static string ArchiveCardFinished => S("Beendet", "Finished");
+    public static string ArchiveCardSettings => S("Scan-Einstellungen", "Scan settings");
+    public static string ArchiveCardSettingsFmt => S("{0} Pings, {1} ms Abstand, {2} Threads", "{0} pings, {1} ms interval, {2} threads");
+    public static string ArchiveCardPingsFmt => S("{0} erfolgreich, {1} fehlgeschlagen", "{0} succeeded, {1} failed");
+    public static string ArchiveCardOnlineFmt => S("{0} von {1} online", "{0} of {1} online");
+    public static string ArchiveNoPorts => S("Keine Funde oder offenen Ports in diesem Lauf.", "No findings or open ports in this run.");
+    public static string ArchiveNoMatch => S("Kein Gerät passt zum Filter.", "No device matches the filter.");
     public static string ToggleSidebar => S("Seitenleiste ein-/ausblenden", "Toggle sidebar");
     public static string ToolWakeOnLan => S("Aufwecken", "Wake up");
     public static string ToolPortCheck => S("Ports prüfen", "Port check");
@@ -1718,12 +1750,18 @@ public static class Loc
     public static string TipArchiveTo => S(
         "Letzter Tag des angezeigten Zeitraums. Leer lassen, um bis zum neuesten Lauf anzuzeigen.",
         "Last day of the range to show. Leave empty to include the newest run.");
-    public static string TipArchiveApply => S(
-        "Listet nur Läufe innerhalb der gewählten Tage. Zeitraum löschen betrifft genau diese Läufe.",
-        "Lists only the runs inside the chosen days. Delete range acts on exactly these runs.");
-    public static string TipArchiveClear => S(
-        "Leert beide Datumsfelder und listet wieder alle gespeicherten Läufe.",
-        "Clears both dates and lists every stored run again.");
+    public static string TipArchiveRangeDay => S(
+        "Zeigt nur die Läufe der letzten 24 Stunden und leert beide Datumsfelder.",
+        "Shows only the runs of the last 24 hours and clears both date fields.");
+    public static string TipArchiveRangeWeek => S(
+        "Zeigt nur die Läufe der letzten 7 Tage und leert beide Datumsfelder.",
+        "Shows only the runs of the last 7 days and clears both date fields.");
+    public static string TipArchiveRangeMonth => S(
+        "Zeigt nur die Läufe der letzten 30 Tage und leert beide Datumsfelder.",
+        "Shows only the runs of the last 30 days and clears both date fields.");
+    public static string TipArchiveRangeAll => S(
+        "Zeigt alle gespeicherten Läufe und leert beide Datumsfelder.",
+        "Shows every stored run and clears both date fields.");
     public static string TipCompareToggle => S(
         "Blendet den Vergleich zweier Läufe ein oder aus: welche Geräte neu, verschwunden oder in der Latenz verändert sind.",
         "Shows or hides the comparison of two runs: which devices appeared, disappeared or changed latency.");

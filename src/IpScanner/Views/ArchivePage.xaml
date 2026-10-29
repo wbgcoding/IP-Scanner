@@ -350,11 +350,76 @@
                 <DataTrigger Binding="{Binding Type}" Value="LatencyChanged"><Setter Property="Foreground" Value="{DynamicResource Yellow}"/></DataTrigger>
             </Style.Triggers>
         </Style>
+        <!-- Cards: one rounded surface look for the key figures, the run facts, the chart and the housekeeping row. -->
+        <Style x:Key="ArchiveCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Surface}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+        </Style>
+        <Style x:Key="ArchiveCaption" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource Subtext}"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+        <!-- A key figure takes the colour of its health state when the page sets one, else the normal text colour. -->
+        <Style x:Key="KpiValue" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,3,0,3"/>
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding HasAccent}" Value="True">
+                    <Setter Property="Foreground" Value="{Binding Accent}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <DataTemplate x:Key="KpiTemplate">
+            <Border Style="{StaticResource ArchiveCard}" Margin="0,0,8,8">
+                <StackPanel>
+                    <TextBlock Text="{Binding Label}" Style="{StaticResource ArchiveCaption}"/>
+                    <TextBlock Text="{Binding Value}" FontSize="{Binding ValueSize}" Style="{StaticResource KpiValue}"/>
+                    <TextBlock Text="{Binding Sub}" Style="{StaticResource ArchiveCaption}"
+                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+        <DataTemplate x:Key="FactTemplate">
+            <StackPanel Margin="0,0,24,6" MinWidth="110" MaxWidth="280">
+                <TextBlock Text="{Binding Label}" Style="{StaticResource ArchiveCaption}"/>
+                <TextBlock Text="{Binding Value}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Text}"
+                           TextWrapping="Wrap" Margin="0,1,0,0"/>
+            </StackPanel>
+        </DataTemplate>
+        <!-- Number cells sit on the right so the digits line up; latency and loss take the main table's heat colours. -->
+        <Style x:Key="ArchiveNumberCell" TargetType="TextBlock" BasedOn="{StaticResource TrimmedCell}">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        </Style>
+        <Style x:Key="ArchiveHeatCell" TargetType="TextBlock" BasedOn="{StaticResource ArchiveNumberCell}">
+            <Setter Property="Foreground" Value="{Binding LatencyBrush}"/>
+        </Style>
+        <Style x:Key="ArchiveLossCell" TargetType="TextBlock" BasedOn="{StaticResource ArchiveNumberCell}">
+            <Setter Property="Foreground" Value="{Binding LossBrush}"/>
+        </Style>
+        <Style x:Key="ArchiveSearchHintText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource Subtext}"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="9,0,9,0"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <Grid Margin="20,16" SizeChanged="OnPageSizeChanged">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Title row: the run summary or the last message sits under the title; page actions on the right. -->
@@ -375,167 +440,263 @@
                     Click="OnClose" IsCancel="True" ToolTip="{loc:L TipBackToTable}" AutomationProperties.Name="{loc:L Close}"/>
         </Grid>
 
-        <WrapPanel x:Name="FilterBar" Grid.Row="1" Margin="0,0,0,12" VerticalAlignment="Center">
-            <TextBlock Text="{loc:L ArchiveFrom}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <DatePicker x:Name="FromDate" ToolTip="{loc:L TipArchiveFrom}" MinWidth="140" Margin="0,0,12,0" AutomationProperties.Name="{loc:L ArchiveFrom}"/>
-            <TextBlock Text="{loc:L ArchiveTo}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-            <DatePicker x:Name="ToDate" ToolTip="{loc:L TipArchiveTo}" MinWidth="140" Margin="0,0,12,0" AutomationProperties.Name="{loc:L ArchiveTo}"/>
-            <Button Content="{loc:L ArchiveApplyRange}" Style="{StaticResource ArchiveButton}" Click="OnApplyRange" ToolTip="{loc:L TipArchiveApply}"/>
-            <Button Content="{loc:L ArchiveClearRange}" Style="{StaticResource ArchiveButton}" Click="OnClearRange" ToolTip="{loc:L TipArchiveClear}"/>
-        </WrapPanel>
+        <!-- The overview and the comparison share this cell; the overview scrolls as a whole when the window is small. -->
+        <Grid x:Name="ContentHost" Grid.Row="1" SizeChanged="OnHostSizeChanged">
+            <ScrollViewer x:Name="OverviewScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <StackPanel>
+                    <StackPanel x:Name="TopBlock" SizeChanged="OnHostSizeChanged">
+                        <!-- Range: two dates, quick spans and a filter for the device tables. A pick applies at once. -->
+                        <WrapPanel x:Name="FilterBar" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,14,6">
+                                <TextBlock Text="{loc:L ArchiveFrom}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <DatePicker x:Name="FromDate" ToolTip="{loc:L TipArchiveFrom}" MinWidth="140" SelectedDateChanged="OnDateChanged"
+                                            AutomationProperties.Name="{loc:L ArchiveFrom}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,14,6">
+                                <TextBlock Text="{loc:L ArchiveTo}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <DatePicker x:Name="ToDate" ToolTip="{loc:L TipArchiveTo}" MinWidth="140" SelectedDateChanged="OnDateChanged"
+                                            AutomationProperties.Name="{loc:L ArchiveTo}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,8,6">
+                                <ToggleButton x:Name="QuickDay" Tag="Day" ToolTip="{loc:L TipArchiveRangeDay}" Style="{StaticResource ArchiveTab}" Margin="0,0,6,0" Content="{loc:L RangeDay}" Click="OnQuickRange"
+                                              AutomationProperties.Name="{loc:L RangeDay}"/>
+                                <ToggleButton x:Name="QuickWeek" Tag="Week" ToolTip="{loc:L TipArchiveRangeWeek}" Style="{StaticResource ArchiveTab}" Margin="0,0,6,0" Content="{loc:L RangeWeek}" Click="OnQuickRange"
+                                              AutomationProperties.Name="{loc:L RangeWeek}"/>
+                                <ToggleButton x:Name="QuickMonth" Tag="Month" ToolTip="{loc:L TipArchiveRangeMonth}" Style="{StaticResource ArchiveTab}" Margin="0,0,6,0" Content="{loc:L ArchiveRange30d}" Click="OnQuickRange"
+                                              AutomationProperties.Name="{loc:L ArchiveRange30d}"/>
+                                <ToggleButton x:Name="QuickAll" Tag="All" ToolTip="{loc:L TipArchiveRangeAll}" Style="{StaticResource ArchiveTab}" Margin="0" Content="{loc:L ArchiveClearRange}" IsChecked="True" Click="OnQuickRange"
+                                              AutomationProperties.Name="{loc:L ArchiveClearRange}"/>
+                            </StackPanel>
+                            <Grid Width="230" Margin="0,0,0,6">
+                                <TextBox x:Name="SearchBox" VerticalContentAlignment="Center" TextChanged="OnSearchChanged" ToolTip="{loc:L ArchiveSearchHint}"
+                                         AutomationProperties.Name="{loc:L ArchiveSearchHint}"/>
+                                <TextBlock Text="{loc:L ArchiveSearchHint}" Style="{StaticResource ArchiveSearchHintText}"/>
+                            </Grid>
+                        </WrapPanel>
 
-        <!-- Overview: runs on the left, the selected run's devices or the device history on the right. -->
-        <Grid x:Name="MainArea" Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="4*" MinWidth="260"/><ColumnDefinition Width="12"/><ColumnDefinition Width="5*" MinWidth="330"/>
-            </Grid.ColumnDefinitions>
-            <Grid>
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                <Grid Margin="0,0,0,8" MinHeight="30">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock Text="{loc:L ArchiveRuns}" Style="{StaticResource ArchiveSectionTitle}" TextTrimming="CharacterEllipsis"/>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button x:Name="DeleteRunButton" ToolTip="{loc:L TipArchiveDeleteRun}" Content="{loc:L ArchiveDeleteRun}" Style="{StaticResource ArchiveSmallButton}"
-                                IsEnabled="False" Click="OnDeleteRun"/>
-                        <Button x:Name="DeleteRangeButton" ToolTip="{loc:L TipArchiveDeleteRange}" Content="{loc:L ArchiveDeleteRange}" Style="{StaticResource ArchiveSmallButton}"
-                                IsEnabled="False" Click="OnDeleteRange"/>
+                        <!-- Key figures of the range. -->
+                        <ItemsControl x:Name="KpiList" Margin="0,0,-8,0" Focusable="False" Tag="5" ItemTemplate="{StaticResource KpiTemplate}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+
+                        <!-- Devices online per run. -->
+                        <Border x:Name="ChartCard" Style="{StaticResource ArchiveCard}" Margin="0,0,0,0" Visibility="Collapsed">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="{loc:L ArchiveChartTitle}" Style="{StaticResource ArchiveCaption}"/>
+                                    <TextBlock x:Name="ChartMaxText" Style="{StaticResource ArchiveCaption}" HorizontalAlignment="Right"/>
+                                </Grid>
+                                <Canvas x:Name="ChartCanvas" Height="56" ClipToBounds="True" SizeChanged="OnChartSizeChanged"
+                                        AutomationProperties.Name="{loc:L ArchiveChartTitle}">
+                                    <Polygon x:Name="ChartFill" Fill="{DynamicResource Mauve}" Opacity="0.18"/>
+                                    <Polyline x:Name="ChartLine" Stroke="{DynamicResource Mauve}" StrokeThickness="2" StrokeLineJoin="Round"/>
+                                </Canvas>
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="ChartTickFirst" Style="{StaticResource ArchiveCaption}" HorizontalAlignment="Left"/>
+                                    <TextBlock x:Name="ChartTickMid" Grid.Column="1" Style="{StaticResource ArchiveCaption}" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="ChartTickLast" Grid.Column="2" Style="{StaticResource ArchiveCaption}" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Grid>
-                <Border Grid.Row="1" Style="{StaticResource ArchiveFrame}">
-                    <DataGrid x:Name="RunsGrid" Style="{StaticResource ArchiveGrid}" HorizontalScrollBarVisibility="Disabled" SelectionChanged="OnRunSelected"
-                              AutomationProperties.Name="{loc:L ArchiveRuns}">
+
+                    <!-- Runs on the left, the selected run on the right; stacked below each other on narrow pages. -->
+                    <Grid x:Name="MainArea" Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="RunsColumn" Width="11*" MinWidth="260"/><ColumnDefinition Width="12"/><ColumnDefinition x:Name="DetailColumn" Width="9*" MinWidth="320"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="0"/></Grid.RowDefinitions>
+
+                        <Grid x:Name="RunsPane">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <Grid Margin="0,0,0,8" MinHeight="30">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="{loc:L ArchiveRuns}" Style="{StaticResource ArchiveSectionTitle}" TextTrimming="CharacterEllipsis"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button x:Name="DeleteRunButton" ToolTip="{loc:L TipArchiveDeleteRun}" Content="{loc:L ArchiveDeleteRun}" Style="{StaticResource ArchiveSmallButton}"
+                                            IsEnabled="False" Click="OnDeleteRun"/>
+                                    <Button x:Name="DeleteRangeButton" ToolTip="{loc:L TipArchiveDeleteRange}" Content="{loc:L ArchiveDeleteRange}" Style="{StaticResource ArchiveSmallButton}"
+                                            IsEnabled="False" Click="OnDeleteRange"/>
+                                </StackPanel>
+                            </Grid>
+                            <Border Grid.Row="1" Style="{StaticResource ArchiveFrame}">
+                                <Grid>
+                                    <DataGrid x:Name="RunsGrid" Style="{StaticResource ArchiveGrid}" SelectionChanged="OnRunSelected" PreviewMouseWheel="OnGridWheel"
+                                              AutomationProperties.Name="{loc:L ArchiveRuns}">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveDate}" Binding="{Binding DateText}" SortMemberPath="Started" Width="Auto"/>
+                                            <DataGridTextColumn x:Name="RunDurationColumn" ElementStyle="{StaticResource ArchiveNumberCell}" Header="{loc:L ArchiveDuration}" Binding="{Binding DurationClock}" SortMemberPath="DurationSeconds" Width="Auto"/>
+                                            <DataGridTextColumn ElementStyle="{StaticResource RunNetworkCell}" Header="{loc:L Network}" Binding="{Binding NetworkText}" SortMemberPath="Network" Width="Auto" MaxWidth="170"/>
+                                            <DataGridTextColumn ElementStyle="{StaticResource ArchiveNumberCell}" Header="{loc:L Devices}" Binding="{Binding DeviceCount}" Width="Auto"/>
+                                            <DataGridTextColumn ElementStyle="{StaticResource ArchiveNumberCell}" Header="{loc:L Online}" Binding="{Binding OnlineCount}" Width="Auto"/>
+                                            <DataGridTextColumn ElementStyle="{StaticResource ArchiveHeatCell}" Header="{loc:L ArchiveColAvgMs}" Binding="{Binding AvgText}" SortMemberPath="AvgSort" Width="Auto"/>
+                                            <DataGridTextColumn x:Name="RunLossColumn" ElementStyle="{StaticResource ArchiveLossCell}" Header="{loc:L Loss}" Binding="{Binding LossText}" SortMemberPath="LossSort" Width="Auto"/>
+                                            <DataGridTextColumn x:Name="RunFindingsColumn" ElementStyle="{StaticResource ArchiveNumberCell}" Header="{loc:L ArchiveKpiFindings}" Binding="{Binding FindingsText}" SortMemberPath="Findings" Width="Auto"/>
+                                            <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L Status}" Binding="{Binding StatusText}" Width="*" MinWidth="70"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                    <TextBlock x:Name="RunsHint" Style="{StaticResource ArchiveHint}"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <GridSplitter x:Name="MainSplitter" Grid.Column="1" Width="12" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                      Background="Transparent" ShowsPreview="False" ResizeBehavior="PreviousAndNext" Focusable="False"/>
+
+                        <Grid x:Name="DetailPane" Grid.Column="2">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <TextBlock x:Name="DetailText" Foreground="{DynamicResource Subtext}" FontSize="12" TextWrapping="Wrap" MinHeight="30"
+                                       VerticalAlignment="Center" Margin="0,0,0,8" AutomationProperties.LiveSetting="Polite"/>
+                            <Border x:Name="RunCard" Grid.Row="1" Style="{StaticResource ArchiveCard}" Margin="0,0,0,8" Padding="12,10,12,4" Visibility="Collapsed">
+                                <ItemsControl x:Name="FactsList" Focusable="False" ItemTemplate="{StaticResource FactTemplate}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </Border>
+                            <TabControl x:Name="DetailTabs" Grid.Row="2" SelectedIndex="0">
+                                <TabItem Header="{loc:L Devices}" ToolTip="{loc:L ArchiveDevices}" AutomationProperties.Name="{loc:L ArchiveDevices}">
+                                    <Grid>
+                                        <DataGrid x:Name="DevicesGrid" Style="{StaticResource ArchiveGrid}" SelectionChanged="OnDeviceSelected" PreviewMouseWheel="OnGridWheel"
+                                                  AutomationProperties.Name="{loc:L ArchiveDevices}">
+                                            <DataGrid.Columns>
+                                                <DataGridTemplateColumn Header="" Width="28" SortMemberPath="OnlineSort" CanUserResize="False">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <Ellipse Width="9" Height="9" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                     Fill="{Binding DotBrush}" ToolTip="{Binding Status}"/>
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" SortMemberPath="IpSort" Width="Auto"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Hostname}" Binding="{Binding Hostname}" Width="*" MinWidth="70"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Mac}" Binding="{Binding Mac}" Width="Auto"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Vendor}" Binding="{Binding Vendor}" Width="Auto" MaxWidth="150"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource ArchiveHeatCell}" Header="{loc:L ArchiveColAvgMs}" Binding="{Binding AvgText}" SortMemberPath="AvgSort" Width="Auto"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource ArchiveNumberCell}" Header="{loc:L Min}" Binding="{Binding MinText}" SortMemberPath="MinSort" Width="Auto"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource ArchiveNumberCell}" Header="{loc:L Max}" Binding="{Binding MaxText}" SortMemberPath="MaxSort" Width="Auto"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource ArchiveNumberCell}" Header="{loc:L Jitter}" Binding="{Binding JitterText}" SortMemberPath="JitterSort" Width="Auto"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource ArchiveLossCell}" Header="{loc:L Loss}" Binding="{Binding LossText}" SortMemberPath="LossSort" Width="Auto"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L DeviceNote}" Binding="{Binding Note}" Width="Auto" MinWidth="56" MaxWidth="160"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        <TextBlock x:Name="DevicesHint" Style="{StaticResource ArchiveHint}"/>
+                                    </Grid>
+                                </TabItem>
+                                <TabItem Header="{loc:L ArchiveTabPorts}" ToolTip="{loc:L ArchiveTabPorts}" AutomationProperties.Name="{loc:L ArchiveTabPorts}">
+                                    <Grid>
+                                        <DataGrid x:Name="PortsGrid" Style="{StaticResource ArchiveGrid}" PreviewMouseWheel="OnGridWheel"
+                                                  AutomationProperties.Name="{loc:L ArchiveTabPorts}">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" SortMemberPath="IpSort" Width="Auto"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveColKind}" Binding="{Binding KindLabel}" Width="Auto"/>
+                                                <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ErrorDialogDetails}" Binding="{Binding Detail}" Width="*" MinWidth="80"/>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                        <TextBlock x:Name="PortsHint" Style="{StaticResource ArchiveHint}"/>
+                                    </Grid>
+                                </TabItem>
+                                <TabItem Header="{loc:L ArchiveTabHistory}" ToolTip="{loc:L ArchiveDeviceHistory}" AutomationProperties.Name="{loc:L ArchiveDeviceHistory}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="3*" MinHeight="90"/><RowDefinition Height="Auto"/><RowDefinition Height="2*" MinHeight="90"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid>
+                                            <DataGrid x:Name="HistoryGrid" Style="{StaticResource ArchiveGrid}" SelectionChanged="OnHistorySelected" PreviewMouseWheel="OnGridWheel"
+                                                      AutomationProperties.Name="{loc:L ArchiveDeviceHistory}">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" SortMemberPath="IpSort" Width="Auto"/>
+                                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveAvailability}" Binding="{Binding Availability}" SortMemberPath="AvailabilitySort" Width="Auto"/>
+                                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" SortMemberPath="LatencySort" Width="Auto"/>
+                                                    <DataGridTextColumn x:Name="HistoryFirstSeenColumn" ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveFirstSeen}" Binding="{Binding FirstSeen}" SortMemberPath="FirstSeenSort" Width="Auto"/>
+                                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveLastSeen}" Binding="{Binding LastSeen}" SortMemberPath="LastSeenSort" Width="*" MinWidth="90"/>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                            <TextBlock x:Name="HistoryHint" Style="{StaticResource ArchiveHint}"/>
+                                        </Grid>
+                                        <TextBlock Grid.Row="1" Text="{loc:L ArchiveTrendTitle}" Style="{StaticResource ArchiveSectionTitle}" Margin="0,10,0,6"/>
+                                        <Grid Grid.Row="2">
+                                            <DataGrid x:Name="TrendGrid" Style="{StaticResource ArchiveGrid}" PreviewMouseWheel="OnGridWheel" AutomationProperties.Name="{loc:L ArchiveTrendTitle}">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveDate}" Binding="{Binding Date}" Width="Auto"/>
+                                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveAvailability}" Binding="{Binding Availability}" Width="Auto"/>
+                                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" Width="*" MinWidth="90"/>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                            <TextBlock x:Name="TrendHint" Style="{StaticResource ArchiveHint}" Margin="16,24,16,16" Text="{loc:L ArchiveTrendHint}"/>
+                                        </Grid>
+                                    </Grid>
+                                </TabItem>
+                            </TabControl>
+                        </Grid>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Comparison of two runs; replaces the overview while it is open. -->
+            <Grid x:Name="CompareArea" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="CompareEmptyText" Grid.RowSpan="4" Foreground="{DynamicResource Subtext}" TextWrapping="Wrap"
+                           Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"/>
+                <Border x:Name="ComparePickers" Style="{StaticResource ArchiveCard}" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <TextBlock Text="{loc:L CompareRunA}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <ComboBox x:Name="CompareRunABox" ToolTip="{loc:L TipCompareRunA}" Grid.Column="1" DisplayMemberPath="Label" SelectionChanged="OnCompareInputChanged"
+                                  AutomationProperties.Name="{loc:L CompareRunA}"/>
+                        <TextBlock Grid.Row="1" Text="{loc:L CompareRunB}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,8,12,0"/>
+                        <ComboBox x:Name="CompareRunBBox" ToolTip="{loc:L TipCompareRunB}" Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" DisplayMemberPath="Label"
+                                  SelectionChanged="OnCompareInputChanged" AutomationProperties.Name="{loc:L CompareRunB}"/>
+                        <WrapPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10,0,0">
+                            <TextBlock Text="{loc:L CompareLatencyPercent}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBox x:Name="ComparePercentBox" ToolTip="{loc:L TipComparePercent}" Width="54" Text="50" VerticalContentAlignment="Center" TextChanged="OnCompareInputChanged"
+                                     AutomationProperties.Name="{loc:L CompareLatencyPercent}"/>
+                            <TextBlock Text="{loc:L CompareLatencyMinMs}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="14,0,6,0"/>
+                            <TextBox x:Name="CompareMinMsBox" ToolTip="{loc:L TipCompareMinMs}" Width="54" Text="10" VerticalContentAlignment="Center" TextChanged="OnCompareInputChanged"
+                                     AutomationProperties.Name="{loc:L CompareLatencyMinMs}"/>
+                        </WrapPanel>
+                    </Grid>
+                </Border>
+                <DockPanel x:Name="CompareActions" Grid.Row="1" Margin="0,0,0,8">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button x:Name="CompareCopyButton" ToolTip="{loc:L TipCompareCopy}" Content="{loc:L CompareCopy}" Style="{StaticResource ArchiveSmallButton}" Click="OnCompareCopy"/>
+                        <Button x:Name="CompareJsonButton" ToolTip="{loc:L TipCompareJson}" Content="{loc:L CompareSaveJson}" Style="{StaticResource ArchiveSmallButton}" Click="OnCompareSaveJson"/>
+                        <Button x:Name="CompareTextButton" ToolTip="{loc:L TipCompareText}" Content="{loc:L CompareSaveText}" Style="{StaticResource ArchiveSmallButton}" Click="OnCompareSaveText"/>
+                    </StackPanel>
+                    <TextBlock x:Name="CompareSummaryText" Style="{StaticResource ArchiveSectionTitle}" TextWrapping="Wrap" Margin="0,0,8,0"
+                               AutomationProperties.LiveSetting="Polite"/>
+                </DockPanel>
+                <TextBlock x:Name="CompareHintText" Grid.Row="2" Foreground="{DynamicResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                <Border x:Name="CompareFrame" Grid.Row="3" Style="{StaticResource ArchiveFrame}">
+                    <DataGrid x:Name="CompareGrid" Style="{StaticResource ArchiveGrid}" AutomationProperties.Name="{loc:L ArchiveDetails}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveDate}" Binding="{Binding DateText}" Width="Auto"/>
-                            <DataGridTextColumn ElementStyle="{StaticResource RunNetworkCell}" Header="{loc:L Network}" Binding="{Binding NetworkText}" Width="Auto" MaxWidth="170"/>
-                            <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L Devices}" Binding="{Binding DeviceCount}" Width="*" MinWidth="60"/>
-                            <DataGridTextColumn x:Name="RunDurationColumn" ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveDuration}" Binding="{Binding DurationText}" Width="Auto"/>
+                            <DataGridTextColumn ElementStyle="{StaticResource ChangeTypeCell}" Header="{loc:L CompareChange}" Binding="{Binding TypeLabel}" Width="Auto"/>
+                            <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" Width="Auto"/>
+                            <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Hostname}" Binding="{Binding Hostname}" Width="*" MinWidth="80"/>
+                            <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L CompareBefore}" Binding="{Binding Before}" Width="1.2*" MinWidth="90"/>
+                            <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L CompareAfter}" Binding="{Binding After}" Width="1.2*" MinWidth="90"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>
             </Grid>
-
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,8" MinHeight="30">
-                    <ToggleButton x:Name="DevicesTab" Style="{StaticResource ArchiveTab}" Content="{loc:L Devices}" IsChecked="True"
-                                  Click="OnDetailTab" ToolTip="{loc:L ArchiveDevices}" AutomationProperties.Name="{loc:L ArchiveDevices}"/>
-                    <ToggleButton x:Name="HistoryTab" Style="{StaticResource ArchiveTab}" Content="{loc:L ArchiveTabHistory}"
-                                  Click="OnDetailTab" ToolTip="{loc:L ArchiveDeviceHistory}" AutomationProperties.Name="{loc:L ArchiveDeviceHistory}"/>
-                </StackPanel>
-
-                <Grid x:Name="DevicesView" Grid.Row="1">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <TextBlock x:Name="DetailText" Foreground="{DynamicResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"
-                               AutomationProperties.LiveSetting="Polite"/>
-                    <Border Grid.Row="1" Style="{StaticResource ArchiveFrame}">
-                        <Grid>
-                            <DataGrid x:Name="DevicesGrid" Style="{StaticResource ArchiveGrid}" SelectionChanged="OnDeviceSelected"
-                                      AutomationProperties.Name="{loc:L ArchiveDevices}">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" Width="Auto"/>
-                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Hostname}" Binding="{Binding Hostname}" Width="*" MinWidth="70"/>
-                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L Status}" Binding="{Binding Status}" Width="Auto"/>
-                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" Width="Auto"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                            <TextBlock x:Name="DevicesHint" Style="{StaticResource ArchiveHint}"/>
-                        </Grid>
-                    </Border>
-                </Grid>
-
-                <Grid x:Name="HistoryView" Grid.Row="1" Visibility="Collapsed">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="3*" MinHeight="90"/><RowDefinition Height="Auto"/><RowDefinition Height="2*" MinHeight="90"/>
-                    </Grid.RowDefinitions>
-                    <Border Style="{StaticResource ArchiveFrame}">
-                        <Grid>
-                            <DataGrid x:Name="HistoryGrid" Style="{StaticResource ArchiveGrid}" SelectionChanged="OnHistorySelected"
-                                      AutomationProperties.Name="{loc:L ArchiveDeviceHistory}">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" Width="Auto"/>
-                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveAvailability}" Binding="{Binding Availability}" Width="Auto"/>
-                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" Width="Auto"/>
-                                    <DataGridTextColumn x:Name="HistoryFirstSeenColumn" ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveFirstSeen}" Binding="{Binding FirstSeen}" Width="Auto"/>
-                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveLastSeen}" Binding="{Binding LastSeen}" Width="Auto"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                            <TextBlock x:Name="HistoryHint" Style="{StaticResource ArchiveHint}"/>
-                        </Grid>
-                    </Border>
-                    <TextBlock Grid.Row="1" Text="{loc:L ArchiveTrendTitle}" Style="{StaticResource ArchiveSectionTitle}" Margin="0,10,0,6"/>
-                    <Border Grid.Row="2" Style="{StaticResource ArchiveFrame}">
-                        <Grid>
-                            <DataGrid x:Name="TrendGrid" Style="{StaticResource ArchiveGrid}" AutomationProperties.Name="{loc:L ArchiveTrendTitle}">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L ArchiveDate}" Binding="{Binding Date}" Width="Auto"/>
-                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveAvailability}" Binding="{Binding Availability}" Width="Auto"/>
-                                    <DataGridTextColumn ElementStyle="{StaticResource ArchiveCenterCell}" Header="{loc:L ArchiveLatencyTrend}" Binding="{Binding Latency}" Width="Auto"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                            <TextBlock x:Name="TrendHint" Style="{StaticResource ArchiveHint}" Margin="16,24,16,16" Text="{loc:L ArchiveTrendHint}"/>
-                        </Grid>
-                    </Border>
-                </Grid>
-            </Grid>
         </Grid>
 
-        <!-- Comparison of two runs; replaces the overview while it is open. -->
-        <Grid x:Name="CompareArea" Grid.Row="2" Visibility="Collapsed">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <TextBlock x:Name="CompareEmptyText" Grid.RowSpan="4" Foreground="{DynamicResource Subtext}" TextWrapping="Wrap"
-                       Visibility="Collapsed" AutomationProperties.LiveSetting="Polite"/>
-            <Grid x:Name="ComparePickers" Margin="0,0,0,10">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <TextBlock Text="{loc:L CompareRunA}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                <ComboBox x:Name="CompareRunABox" ToolTip="{loc:L TipCompareRunA}" Grid.Column="1" DisplayMemberPath="Label" SelectionChanged="OnCompareInputChanged"
-                          AutomationProperties.Name="{loc:L CompareRunA}"/>
-                <TextBlock Grid.Row="1" Text="{loc:L CompareRunB}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,8,12,0"/>
-                <ComboBox x:Name="CompareRunBBox" ToolTip="{loc:L TipCompareRunB}" Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" DisplayMemberPath="Label"
-                          SelectionChanged="OnCompareInputChanged" AutomationProperties.Name="{loc:L CompareRunB}"/>
-                <WrapPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10,0,0">
-                    <TextBlock Text="{loc:L CompareLatencyPercent}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBox x:Name="ComparePercentBox" ToolTip="{loc:L TipComparePercent}" Width="54" Text="50" VerticalContentAlignment="Center" TextChanged="OnCompareInputChanged"
-                             AutomationProperties.Name="{loc:L CompareLatencyPercent}"/>
-                    <TextBlock Text="{loc:L CompareLatencyMinMs}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="14,0,6,0"/>
-                    <TextBox x:Name="CompareMinMsBox" ToolTip="{loc:L TipCompareMinMs}" Width="54" Text="10" VerticalContentAlignment="Center" TextChanged="OnCompareInputChanged"
-                             AutomationProperties.Name="{loc:L CompareLatencyMinMs}"/>
-                </WrapPanel>
-            </Grid>
-            <DockPanel x:Name="CompareActions" Grid.Row="1" Margin="0,0,0,8">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button x:Name="CompareCopyButton" ToolTip="{loc:L TipCompareCopy}" Content="{loc:L CompareCopy}" Style="{StaticResource ArchiveSmallButton}" Click="OnCompareCopy"/>
-                    <Button x:Name="CompareJsonButton" ToolTip="{loc:L TipCompareJson}" Content="{loc:L CompareSaveJson}" Style="{StaticResource ArchiveSmallButton}" Click="OnCompareSaveJson"/>
-                    <Button x:Name="CompareTextButton" ToolTip="{loc:L TipCompareText}" Content="{loc:L CompareSaveText}" Style="{StaticResource ArchiveSmallButton}" Click="OnCompareSaveText"/>
-                </StackPanel>
-                <TextBlock x:Name="CompareSummaryText" Style="{StaticResource ArchiveSectionTitle}" TextWrapping="Wrap" Margin="0,0,8,0"
-                           AutomationProperties.LiveSetting="Polite"/>
-            </DockPanel>
-            <TextBlock x:Name="CompareHintText" Grid.Row="2" Foreground="{DynamicResource Subtext}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
-            <Border x:Name="CompareFrame" Grid.Row="3" Style="{StaticResource ArchiveFrame}">
-                <DataGrid x:Name="CompareGrid" Style="{StaticResource ArchiveGrid}" AutomationProperties.Name="{loc:L ArchiveDetails}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn ElementStyle="{StaticResource ChangeTypeCell}" Header="{loc:L CompareChange}" Binding="{Binding TypeLabel}" Width="Auto"/>
-                        <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L IpAddress}" Binding="{Binding Ip}" Width="Auto"/>
-                        <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L Hostname}" Binding="{Binding Hostname}" Width="*" MinWidth="80"/>
-                        <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L CompareBefore}" Binding="{Binding Before}" Width="1.2*" MinWidth="90"/>
-                        <DataGridTextColumn ElementStyle="{StaticResource TrimmedCell}" Header="{loc:L CompareAfter}" Binding="{Binding After}" Width="1.2*" MinWidth="90"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Border>
-        </Grid>
-
-        <!-- Housekeeping: age-based clean-up, then import and backup; the database size sits on the right. -->
-        <Grid x:Name="ManagementRow" Grid.Row="3" Margin="0,12,0,0">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <!-- Housekeeping: age-based clean-up, then import and backup. -->
+        <Border x:Name="ManagementRow" Grid.Row="2" Style="{StaticResource ArchiveCard}" Padding="10,4" Margin="0,12,0,0">
             <WrapPanel x:Name="ManagementPanel" IsEnabled="False" VerticalAlignment="Center">
-                <Border BorderBrush="{DynamicResource Surface}" BorderThickness="1" CornerRadius="8" Padding="8,3" Margin="0,2,10,2">
+                <Border Background="{DynamicResource Surface2}" CornerRadius="8" Padding="8,3" Margin="0,2,10,2">
                     <StackPanel Orientation="Horizontal">
                         <TextBox x:Name="DaysBox" ToolTip="{loc:L TipArchiveDays}" Width="54" Text="30" Margin="0,0,6,0" VerticalContentAlignment="Center"
                                  AutomationProperties.Name="{loc:L ArchiveOlderThanDays}"/>
-                        <TextBlock Text="{loc:L ArchiveOlderThanDays}" Foreground="{DynamicResource Subtext}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="{loc:L ArchiveOlderThanDays}" Foreground="{DynamicResource Text}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <Button Content="{loc:L ArchiveCompact}" Style="{StaticResource ArchiveSmallButton}" Margin="0,0,6,0" Click="OnCompact" ToolTip="{loc:L TipArchiveCompact}"/>
                         <Button Content="{loc:L ArchivePurge}" Style="{StaticResource ArchiveSmallButton}" Margin="0" Click="OnPurge" ToolTip="{loc:L TipArchivePurge}"/>
                     </StackPanel>
@@ -543,8 +704,6 @@
                 <Button Content="{loc:L ArchiveImport}" Style="{StaticResource ArchiveSmallButton}" Margin="0,2,6,2" Click="OnImport" ToolTip="{loc:L TipArchiveImport}"/>
                 <Button Content="{loc:L ArchiveBackup}" Style="{StaticResource ArchiveSmallButton}" Margin="0,2,0,2" Click="OnBackup" ToolTip="{loc:L TipArchiveBackup}"/>
             </WrapPanel>
-            <TextBlock x:Name="SizeText" Grid.Column="1" Foreground="{DynamicResource Subtext}" FontSize="12" VerticalAlignment="Center" Margin="12,0,0,0"
-                       AutomationProperties.LiveSetting="Polite"/>
-        </Grid>
+        </Border>
     </Grid>
 </UserControl>
