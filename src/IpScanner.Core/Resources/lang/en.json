@@ -1266,5 +1266,14 @@
   "Device unreachable": "Device unreachable",
   "Device reachable again": "Device reachable again",
   "{0} is no longer reachable.": "{0} is no longer reachable.",
-  "{0} is reachable again (after {1}).": "{0} is reachable again (after {1})."
+  "{0} is reachable again (after {1}).": "{0} is reachable again (after {1}).",
+  "Open with": "Open with",
+  "Browser (HTTP)": "Browser (HTTP)",
+  "Browser (HTTPS)": "Browser (HTTPS)",
+  "Remote desktop": "Remote desktop",
+  "SSH": "SSH",
+  "Network shares": "Network shares",
+  "This device has no valid IP address.": "This device has no valid IP address.",
+  "{0} could not be started.": "{0} could not be started.",
+  "Port {0} was not open in the last scan.": "Port {0} was not open in the last scan."
 }

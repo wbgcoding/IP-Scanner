@@ -1266,5 +1266,14 @@
   "Device unreachable": "设备无法访问",
   "Device reachable again": "设备已恢复访问",
   "{0} is no longer reachable.": "{0} 已无法访问。",
-  "{0} is reachable again (after {1}).": "{0} 已恢复访问（{1} 后）。"
+  "{0} is reachable again (after {1}).": "{0} 已恢复访问（{1} 后）。",
+  "Open with": "打开方式",
+  "Browser (HTTP)": "浏览器 (HTTP)",
+  "Browser (HTTPS)": "浏览器 (HTTPS)",
+  "Remote desktop": "远程桌面",
+  "SSH": "SSH",
+  "Network shares": "网络共享",
+  "This device has no valid IP address.": "此设备没有有效的 IP 地址。",
+  "{0} could not be started.": "无法启动 {0}。",
+  "Port {0} was not open in the last scan.": "上次扫描时端口 {0} 未开放。"
 }

@@ -1266,5 +1266,14 @@
   "Device unreachable": "デバイスに到達できません",
   "Device reachable again": "デバイスに再び到達できます",
   "{0} is no longer reachable.": "{0} に到達できなくなりました。",
-  "{0} is reachable again (after {1}).": "{0} に再び到達できます ({1} 後)。"
+  "{0} is reachable again (after {1}).": "{0} に再び到達できます ({1} 後)。",
+  "Open with": "開く方法",
+  "Browser (HTTP)": "ブラウザー (HTTP)",
+  "Browser (HTTPS)": "ブラウザー (HTTPS)",
+  "Remote desktop": "リモート デスクトップ",
+  "SSH": "SSH",
+  "Network shares": "ネットワーク共有",
+  "This device has no valid IP address.": "このデバイスには有効な IP アドレスがありません。",
+  "{0} could not be started.": "{0} を起動できませんでした。",
+  "Port {0} was not open in the last scan.": "前回のスキャンではポート {0} は開いていませんでした。"
 }

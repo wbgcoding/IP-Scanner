@@ -2563,4 +2563,13 @@ public static class Loc
     public static string TrayDeviceBackTitle => S("Gerät wieder erreichbar", "Device reachable again");
     public static string TrayDeviceLostTextFmt => S("{0} ist nicht mehr erreichbar.", "{0} is no longer reachable.");
     public static string TrayDeviceBackTextFmt => S("{0} ist wieder erreichbar (nach {1}).", "{0} is reachable again (after {1}).");
+    public static string DeviceOpenWith => S("Öffnen mit", "Open with");
+    public static string OpenWithBrowserHttp => S("Browser (HTTP)", "Browser (HTTP)");
+    public static string OpenWithBrowserHttps => S("Browser (HTTPS)", "Browser (HTTPS)");
+    public static string OpenWithRemoteDesktop => S("Remotedesktop", "Remote desktop");
+    public static string OpenWithSsh => S("SSH", "SSH");
+    public static string OpenWithShares => S("Netzwerkfreigaben", "Network shares");
+    public static string OpenWithNoAddress => S("Dieses Gerät hat keine gültige IP-Adresse.", "This device has no valid IP address.");
+    public static string OpenWithFailedFmt => S("{0} konnte nicht gestartet werden.", "{0} could not be started.");
+    public static string OpenWithPortClosedFmt => S("Port {0} war beim letzten Scan nicht offen.", "Port {0} was not open in the last scan.");
 }

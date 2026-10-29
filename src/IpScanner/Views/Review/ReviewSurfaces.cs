@@ -484,6 +484,25 @@ internal static class ReviewSurfaces
             shown.Popup = () => menu;
             return shown;
         }));
+        all.Add(new Surface("main.menu.devicerow.openwith", "g.popups", true, async c =>
+        {
+            var w = await NewMainAsync(c);
+            var grid = w.ReviewElement("DeviceGrid") as DataGrid;
+            var row = grid is null ? null : FirstRow(grid);
+            ContextMenu? menu = row?.ContextMenu;
+            MenuItem? openWith = null;
+            if (menu is not null && row is not null)
+            {
+                menu.PlacementTarget = row;
+                menu.IsOpen = true;
+                await Settle();
+                openWith = menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "OpenWithItem");
+                if (openWith is not null) { openWith.IsSubmenuOpen = true; await Settle(); }
+            }
+            var shown = new Shown { Primary = w };
+            shown.Popup = () => (openWith?.Template.FindName("PART_Popup", openWith) as Popup)?.Child as FrameworkElement;
+            return shown;
+        }));
         return all;
     }
 
