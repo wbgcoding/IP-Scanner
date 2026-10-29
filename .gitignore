@@ -35,6 +35,8 @@ error.log
 *.txt
 # ...but the embedded vendor DB must stay tracked.
 !src/IpScanner.Core/Resources/oui.txt
+# ...and the pinned workflow tool list.
+!.github/zizmor-requirements.txt
 
 # Brainstorm companion scratch files
 .superpowers/

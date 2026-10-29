@@ -8,3 +8,16 @@ updates:
       nuget:
         patterns: ["*"]
     open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pip
+    directory: /.github
+    schedule:
+      interval: monthly
