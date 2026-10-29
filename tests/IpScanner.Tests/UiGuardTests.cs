@@ -427,7 +427,7 @@ public class UiGuardTests
             {
                 columns++;
                 if (!System.Text.RegularExpressions.Regex.IsMatch((string?)col.Attribute("ElementStyle") ?? "",
-                        @"^\{StaticResource (TrimmedCell|ArchiveCenterCell|RunNetworkCell|ChangeTypeCell)\}$")
+                        @"^\{StaticResource (TrimmedCell|ArchiveCenterCell|ArchiveNumberCell|ArchiveHeatCell|ArchiveLossCell|RunNetworkCell|ChangeTypeCell)\}$")
                     && !col.Elements().Any(c => c.Name.LocalName == "DataGridTextColumn.ElementStyle"))
                     bare.Add(file + ": " + (string?)col.Attribute("Header"));
             }
