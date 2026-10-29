@@ -6,7 +6,6 @@
   "Service": "Service",
   "known_devices.csv": "known_devices.csv",
   "Scan archive": "Scan archive",
-  "Show range": "Show range",
   "All": "All",
   "Scan runs": "Scan runs",
   "Date": "Date",
@@ -36,8 +35,6 @@
   "Select a device above to see how it did in each run.": "Select a device above to see how it did in each run.",
   "No scan runs in this range yet. Start a scan or choose another range.": "No scan runs in this range yet. Start a scan or choose another range.",
   "{0} runs, {1} scan samples": "{0} runs, {1} scan samples",
-  "{0} of {1} devices online · {2} pings succeeded, {3} failed · Networks: {4}": "{0} of {1} devices online · {2} pings succeeded, {3} failed · Networks: {4}",
-  "Database size: {0:0.0} MiB": "Database size: {0:0.0} MiB",
   "Permanently delete the scan run from {0} on network {1}?": "Permanently delete the scan run from {0} on network {1}?",
   "Permanently delete {0} scan runs from {1:d} through {2:d}?": "Permanently delete {0} scan runs from {1:d} through {2:d}?",
   "Compact up to {0} scan runs older than {1} days into daily summaries? Individual run details will be lost.": "Compact up to {0} scan runs older than {1} days into daily summaries? Individual run details will be lost.",
@@ -905,8 +902,6 @@
   "Narrows the service list to entries that contain this text.": "Narrows the service list to entries that contain this text.",
   "First day of the range to show. Leave empty to start at the oldest run.": "First day of the range to show. Leave empty to start at the oldest run.",
   "Last day of the range to show. Leave empty to include the newest run.": "Last day of the range to show. Leave empty to include the newest run.",
-  "Lists only the runs inside the chosen days. Delete range acts on exactly these runs.": "Lists only the runs inside the chosen days. Delete range acts on exactly these runs.",
-  "Clears both dates and lists every stored run again.": "Clears both dates and lists every stored run again.",
   "Shows or hides the comparison of two runs: which devices appeared, disappeared or changed latency.": "Shows or hides the comparison of two runs: which devices appeared, disappeared or changed latency.",
   "The archive is empty. Starts a scan whose result can then appear in the archive.": "The archive is empty. Starts a scan whose result can then appear in the archive.",
   "The earlier run to compare against.": "The earlier run to compare against.",
@@ -1281,5 +1276,9 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "IPv4 or IPv6 address of another server to include in the comparison.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "Adds the server you typed to the comparison. At most 6 are possible.",
   "Takes this server out of the comparison.": "Takes this server out of the comparison.",
-  "Remove": "Remove"
+  "Remove": "Remove",
+  "Shows only the runs of the last 24 hours and clears both date fields.": "Shows only the runs of the last 24 hours and clears both date fields.",
+  "Shows only the runs of the last 7 days and clears both date fields.": "Shows only the runs of the last 7 days and clears both date fields.",
+  "Shows only the runs of the last 30 days and clears both date fields.": "Shows only the runs of the last 30 days and clears both date fields.",
+  "Shows every stored run and clears both date fields.": "Shows every stored run and clears both date fields."
 }

@@ -6,7 +6,6 @@
   "Service": "सेवा",
   "known_devices.csv": "ज्ञात_डिवाइस.csv",
   "Scan archive": "स्कैन संग्रह",
-  "Show range": "अवधि दिखाएँ",
   "All": "सभी",
   "Scan runs": "स्कैन रिकॉर्ड",
   "Date": "तारीख",
@@ -36,8 +35,6 @@
   "Select a device above to see how it did in each run.": "हर रन में उसका नतीजा देखने के लिए ऊपर कोई डिवाइस चुनें।",
   "No scan runs in this range yet. Start a scan or choose another range.": "इस अवधि में कोई स्कैन नहीं है। स्कैन शुरू करें या दूसरी अवधि चुनें।",
   "{0} runs, {1} scan samples": "{0} स्कैन, {1} नमूने",
-  "{0} of {1} devices online · {2} pings succeeded, {3} failed · Networks: {4}": "{1} में से {0} डिवाइस ऑनलाइन · {2} पिंग सफल, {3} विफल · नेटवर्क: {4}",
-  "Database size: {0:0.0} MiB": "डेटाबेस का आकार: {0:0.0} MiB",
   "Permanently delete the scan run from {0} on network {1}?": "नेटवर्क {1} पर {0} का स्कैन हमेशा के लिए हटाएँ?",
   "Permanently delete {0} scan runs from {1:d} through {2:d}?": "{1:d} से {2:d} तक के {0} स्कैन हमेशा के लिए हटाएँ?",
   "Compact up to {0} scan runs older than {1} days into daily summaries? Individual run details will be lost.": "{1} दिन से पुराने अधिकतम {0} स्कैन दैनिक सारांश में बदलें? अलग-अलग स्कैन का विवरण खो जाएगा।",
@@ -905,8 +902,6 @@
   "Narrows the service list to entries that contain this text.": "सेवा सूची को उन प्रविष्टियों तक सीमित करता है जिनमें यह पाठ है।",
   "First day of the range to show. Leave empty to start at the oldest run.": "दिखाई जाने वाली अवधि का पहला दिन। सबसे पुराने स्कैन से शुरू करने के लिए खाली छोड़ें।",
   "Last day of the range to show. Leave empty to include the newest run.": "दिखाई जाने वाली अवधि का आख़िरी दिन। सबसे नए स्कैन तक शामिल करने के लिए खाली छोड़ें।",
-  "Lists only the runs inside the chosen days. Delete range acts on exactly these runs.": "केवल चुने गए दिनों के भीतर के स्कैन सूचीबद्ध करता है। अवधि हटाएँ ठीक इन्हीं स्कैन पर लागू होता है।",
-  "Clears both dates and lists every stored run again.": "दोनों तिथियाँ साफ़ करता है और सभी सहेजे गए स्कैन फिर से सूचीबद्ध करता है।",
   "Shows or hides the comparison of two runs: which devices appeared, disappeared or changed latency.": "दो स्कैन की तुलना दिखाता या छिपाता है: कौन से डिवाइस आए, गए या जिनकी विलंबता बदली।",
   "The archive is empty. Starts a scan whose result can then appear in the archive.": "संग्रह खाली है। एक स्कैन शुरू करता है, जिसका परिणाम बाद में संग्रह में दिख सकता है।",
   "The earlier run to compare against.": "वह पहले का स्कैन जिससे तुलना की जाती है।",
@@ -1281,5 +1276,9 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "तुलना में जोड़ने के लिए किसी और सर्वर का IPv4 या IPv6 पता।",
   "Adds the server you typed to the comparison. At most 6 are possible.": "लिखा हुआ सर्वर तुलना में जोड़ता है। अधिकतम 6 सर्वर संभव हैं।",
   "Takes this server out of the comparison.": "इस सर्वर को तुलना से हटाता है।",
-  "Remove": "हटाएँ"
+  "Remove": "हटाएँ",
+  "Shows only the runs of the last 24 hours and clears both date fields.": "केवल पिछले 24 घंटों की स्कैन रन दिखाता है और दोनों तिथि फ़ील्ड खाली करता है।",
+  "Shows only the runs of the last 7 days and clears both date fields.": "केवल पिछले 7 दिनों की स्कैन रन दिखाता है और दोनों तिथि फ़ील्ड खाली करता है।",
+  "Shows only the runs of the last 30 days and clears both date fields.": "केवल पिछले 30 दिनों की स्कैन रन दिखाता है और दोनों तिथि फ़ील्ड खाली करता है।",
+  "Shows every stored run and clears both date fields.": "सभी सहेजी गई स्कैन रन दिखाता है और दोनों तिथि फ़ील्ड खाली करता है।"
 }

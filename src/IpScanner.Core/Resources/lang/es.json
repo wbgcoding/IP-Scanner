@@ -6,7 +6,6 @@
   "Service": "Servicio",
   "known_devices.csv": "dispositivos_conocidos.csv",
   "Scan archive": "Archivo de escaneos",
-  "Show range": "Mostrar intervalo",
   "All": "Todo",
   "Scan runs": "Escaneos",
   "Date": "Fecha",
@@ -36,8 +35,6 @@
   "Select a device above to see how it did in each run.": "Selecciona un dispositivo arriba para ver su resultado en cada ejecución.",
   "No scan runs in this range yet. Start a scan or choose another range.": "No hay escaneos en este intervalo. Inicia uno o elige otro intervalo.",
   "{0} runs, {1} scan samples": "{0} escaneos, {1} muestras",
-  "{0} of {1} devices online · {2} pings succeeded, {3} failed · Networks: {4}": "{0} de {1} dispositivos en línea · {2} pings correctos, {3} fallidos · Redes: {4}",
-  "Database size: {0:0.0} MiB": "Tamaño de la base de datos: {0:0.0} MiB",
   "Permanently delete the scan run from {0} on network {1}?": "¿Eliminar permanentemente el escaneo del {0} en la red {1}?",
   "Permanently delete {0} scan runs from {1:d} through {2:d}?": "¿Eliminar permanentemente {0} escaneos del {1:d} al {2:d}?",
   "Compact up to {0} scan runs older than {1} days into daily summaries? Individual run details will be lost.": "¿Compactar hasta {0} escaneos de más de {1} días en resúmenes diarios? Se perderán los detalles de cada escaneo.",
@@ -905,8 +902,6 @@
   "Narrows the service list to entries that contain this text.": "Limita la lista de servicios a las entradas que contienen este texto.",
   "First day of the range to show. Leave empty to start at the oldest run.": "Primer día del intervalo a mostrar. Déjalo vacío para empezar en la ejecución más antigua.",
   "Last day of the range to show. Leave empty to include the newest run.": "Último día del intervalo a mostrar. Déjalo vacío para incluir la ejecución más reciente.",
-  "Lists only the runs inside the chosen days. Delete range acts on exactly these runs.": "Lista solo las ejecuciones dentro de los días elegidos. Eliminar intervalo actúa sobre exactamente esas ejecuciones.",
-  "Clears both dates and lists every stored run again.": "Borra ambas fechas y vuelve a listar todas las ejecuciones guardadas.",
   "Shows or hides the comparison of two runs: which devices appeared, disappeared or changed latency.": "Muestra u oculta la comparación de dos ejecuciones: qué dispositivos aparecieron, desaparecieron o cambiaron de latencia.",
   "The archive is empty. Starts a scan whose result can then appear in the archive.": "El archivo está vacío. Inicia un escaneo cuyo resultado podrá aparecer después en el archivo.",
   "The earlier run to compare against.": "La ejecución anterior con la que se compara.",
@@ -1281,5 +1276,9 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "Dirección IPv4 o IPv6 de otro servidor para incluir en la comparación.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "Añade a la comparación el servidor que has escrito. Se permiten 6 como máximo.",
   "Takes this server out of the comparison.": "Quita este servidor de la comparación.",
-  "Remove": "Quitar"
+  "Remove": "Quitar",
+  "Shows only the runs of the last 24 hours and clears both date fields.": "Muestra solo las ejecuciones de las últimas 24 horas y borra ambas fechas.",
+  "Shows only the runs of the last 7 days and clears both date fields.": "Muestra solo las ejecuciones de los últimos 7 días y borra ambas fechas.",
+  "Shows only the runs of the last 30 days and clears both date fields.": "Muestra solo las ejecuciones de los últimos 30 días y borra ambas fechas.",
+  "Shows every stored run and clears both date fields.": "Muestra todas las ejecuciones guardadas y borra ambas fechas."
 }
