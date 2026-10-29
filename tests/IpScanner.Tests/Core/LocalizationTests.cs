@@ -181,7 +181,7 @@ public class LocalizationTests
 
     // Words a Latin-script language spells exactly like English (or borrows as is), per language.
     private static readonly string[] SameInSpanishFrenchPortuguese =
-        { "App", "Top 1000", "Normal", "Internet", "Pings", "Total", "\u00D8 Total" };
+        { "App", "Top 1000", "Normal", "Internet", "Pings", "Total", "\u00D8 Total", "1 min", "5 min", "1 h" };
 
     private static readonly Dictionary<string, string[]> SameSpelled = new()
     {

@@ -100,7 +100,7 @@ public static class CliFlags
         F("reason", "--reason", CliArg.None, null, GroupOutput, "Show why each port got its state."),
         F("open", "--open", CliArg.None, null, GroupOutput, "Report only open (and open|filtered) ports."),
 
-        F("allow-full-scan", "--allow-full-scan", CliArg.None, null, GroupSafety, "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535."),
+        F("allow-full-scan", "--allow-full-scan", CliArg.None, null, GroupSafety, "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535."),
         F("allow-large", "--allow-large", CliArg.None, null, GroupSafety, "Allow more than 65536 targets."),
         F("allow-intrusive", "--allow-intrusive", CliArg.None, null, GroupSafety, "Allow the intrusive check category."),
         F("allow-aggressive", "--allow-aggressive", CliArg.None, null, GroupSafety, "Allow the FIN, Null, Xmas and Maimon scans."),

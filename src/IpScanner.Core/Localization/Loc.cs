@@ -620,7 +620,6 @@ public static class Loc
     public static string RouteHopLabel => S("Station", "Hop");
     public static string RouteAddressLabel => S("Adresse", "Address");
     public static string RouteNameLabel => S("Name", "Name");
-    public static string RoutePingLabel => S("Ping", "Ping");
     public static string PingCopyButton => S("Kopieren", "Copy");
     public static string RouteCopyButton => S("Kopieren", "Copy");
 
@@ -2304,7 +2303,7 @@ public static class Loc
     public static string HelpOpt_oG => S("Den grep-baren Bericht in eine Datei schreiben (- für die Standardausgabe).", "Write the grepable report to a file (- for stdout).");
     public static string HelpOpt_reason => S("Zeigen, warum jeder Port seinen Zustand hat.", "Show why each port got its state.");
     public static string HelpOpt_open => S("Nur offene Ports melden (und open|filtered).", "Report only open (and open|filtered) ports.");
-    public static string HelpOpt_allow_full_scan => S("Einen gewählten Scan von mehr als 100 Ports erlauben (-p, --top-ports), bis zu allen 65535.", "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.");
+    public static string HelpOpt_allow_full_scan => S("Einen gewählten Scan von mehr als 100 Ports (-p) oder einer --top-ports-Anzahl über 1000 erlauben, bis zu allen 65535.", "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.");
     public static string HelpOpt_allow_large => S("Mehr als 65536 Ziele erlauben.", "Allow more than 65536 targets.");
     public static string HelpOpt_allow_intrusive => S("Die Prüfkategorie intrusive erlauben.", "Allow the intrusive check category.");
     public static string HelpOpt_allow_aggressive => S("Die Scans FIN, Null, Xmas und Maimon erlauben.", "Allow the FIN, Null, Xmas and Maimon scans.");
@@ -2533,4 +2532,20 @@ public static class Loc
     public static string TipDnsCompareAdd => S("Nimmt den eingegebenen Server in den Vergleich auf. Es sind höchstens 6 möglich.", "Adds the server you typed to the comparison. At most 6 are possible.");
     public static string TipDnsCompareRemove => S("Nimmt diesen Server aus dem Vergleich.", "Takes this server out of the comparison.");
     public static string DnsRemoveServerButton => S("Entfernen", "Remove");
+    // Batch Y2
+    public static string PingZoom1Min => S("1 Min", "1 min");
+    public static string PingZoom5Min => S("5 Min", "5 min");
+    public static string PingZoom1Hour => S("1 Std", "1 h");
+    public static string PingZoomAll => S("Alles", "All");
+    public static string PingZoomLabel => S("Zeitraum", "Time range");
+    public static string PingOutagesFmt => S("Ausfälle: {0}", "Outages: {0}");
+    public static string TipPingZoom => S("Wie viel der Ping-Sitzung das Diagramm zeigt. Gespeichert wird immer die ganze Sitzung.", "How much of the ping session the graph shows. Saving always includes the whole session.");
+    public static string TipPingSave => S("Speichert alle Pings dieser Sitzung als CSV-Datei: Zeit, Laufzeit in ms (leer bei Verlust) und Status.", "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.");
+    public static string RouteContinuousLabel => S("Fortlaufend", "Continuous");
+    public static string TipRouteContinuous => S("Prüft nach dem ersten Durchlauf jede Station jede Sekunde erneut, bis du auf Stopp klickst. So siehst du Verlust und Laufzeit je Station.", "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.");
+    public static string RouteLossColumn => S("Verlust %", "Loss %");
+    public static string RouteLastLabel => S("Letzte", "Last");
+    public static string RouteAvgLabel => S("Mittel", "Avg");
+    public static string RouteBestLabel => S("Beste", "Best");
+    public static string RouteWorstLabel => S("Schlechteste", "Worst");
 }

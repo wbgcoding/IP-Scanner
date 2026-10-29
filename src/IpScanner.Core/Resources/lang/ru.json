@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "Записать отчёт для grep в файл (- для stdout).",
   "Show why each port got its state.": "Показать, почему каждый порт получил своё состояние.",
   "Report only open (and open|filtered) ports.": "Сообщать только об открытых портах (и open|filtered).",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "Разрешить выбранное сканирование более 100 портов (-p, --top-ports), вплоть до всех 65535.",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "Разрешить выбранное сканирование более 100 портов (-p) или значение --top-ports выше 1000, вплоть до всех 65535.",
   "Allow more than 65536 targets.": "Разрешить более 65536 целей.",
   "Allow the intrusive check category.": "Разрешить категорию проверок intrusive.",
   "Allow the FIN, Null, Xmas and Maimon scans.": "Разрешить сканирования FIN, Null, Xmas и Maimon.",
@@ -1248,5 +1248,17 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "Адрес IPv4 или IPv6 ещё одного сервера для сравнения.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "Добавляет введённый сервер к сравнению. Не более 6.",
   "Takes this server out of the comparison.": "Убирает этот сервер из сравнения.",
-  "Remove": "Убрать"
+  "Remove": "Убрать",
+  "1 min": "1 мин",
+  "5 min": "5 мин",
+  "1 h": "1 ч",
+  "Time range": "Период",
+  "Outages: {0}": "Сбои: {0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "Какая часть сеанса пинга показана на графике. При сохранении всегда записывается весь сеанс.",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "Сохраняет все пробы сеанса в файл CSV: время, время отклика в мс (пусто при потере) и состояние.",
+  "Continuous": "Непрерывно",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "После первого прохода каждую секунду повторно проверяет каждый узел, пока вы не нажмёте «Стоп», и показывает потери и задержку по узлам.",
+  "Loss %": "Потери %",
+  "Best": "Лучший",
+  "Worst": "Худший"
 }

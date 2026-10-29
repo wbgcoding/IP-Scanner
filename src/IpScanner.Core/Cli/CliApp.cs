@@ -87,7 +87,7 @@ public static class CliApp
                 if (ports.IsEmpty) return Usage(stderr, "The port list has no port for the chosen protocols.");
                 probes = ports.Tcp.Count + ports.Udp.Count;
                 bool chosen = o.Ports is not null || o.TopPorts is not null;
-                if (chosen && PortScanGate.NeedsConfirmation(probes) && !o.AllowFullScan)
+                if (chosen && PortScanGate.NeedsConfirmation(o.TopPorts, probes) && !o.AllowFullScan)
                     return Usage(stderr, $"Scanning {probes} ports takes long and is noisy. Add --allow-full-scan to do it.");
                 if (ScanTypes.IsAggressive(type) && !o.AllowAggressive)
                     return Usage(stderr, $"The scan type '{ScanTypes.Label(type)}' sends unusual packets. Add --allow-aggressive to use it.");

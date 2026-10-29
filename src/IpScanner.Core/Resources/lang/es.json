@@ -1116,7 +1116,7 @@
   "Write the grepable report to a file (- for stdout).": "Escribe el informe grepable en un archivo (- para stdout).",
   "Show why each port got its state.": "Muestra por qué cada puerto tiene su estado.",
   "Report only open (and open|filtered) ports.": "Informa solo de los puertos abiertos (y open|filtered).",
-  "Allow a chosen scan of more than 100 ports (-p, --top-ports), up to all 65535.": "Permite un escaneo elegido de más de 100 puertos (-p, --top-ports), hasta los 65535.",
+  "Allow a chosen scan of more than 100 ports (-p) or a --top-ports count above 1000, up to all 65535.": "Permite un escaneo elegido de más de 100 puertos (-p) o un número de --top-ports superior a 1000, hasta los 65535.",
   "Allow more than 65536 targets.": "Permite más de 65536 objetivos.",
   "Allow the intrusive check category.": "Permite la categoría de comprobaciones intrusivas.",
   "Allow the FIN, Null, Xmas and Maimon scans.": "Permite los escaneos FIN, Null, Xmas y Maimon.",
@@ -1248,5 +1248,17 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "Dirección IPv4 o IPv6 de otro servidor para incluir en la comparación.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "Añade a la comparación el servidor que has escrito. Se permiten 6 como máximo.",
   "Takes this server out of the comparison.": "Quita este servidor de la comparación.",
-  "Remove": "Quitar"
+  "Remove": "Quitar",
+  "1 min": "1 min",
+  "5 min": "5 min",
+  "1 h": "1 h",
+  "Time range": "Periodo",
+  "Outages: {0}": "Interrupciones: {0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "Cuánta parte de la sesión de ping muestra el gráfico. Al guardar siempre se incluye la sesión completa.",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "Guarda cada sondeo de esta sesión como archivo CSV: hora, tiempo de respuesta en ms (vacío si se perdió) y estado.",
+  "Continuous": "Continuo",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "Tras el primer recorrido sondea cada salto de nuevo cada segundo hasta que pulses Detener, así ves la pérdida y la latencia por salto.",
+  "Loss %": "Pérdida %",
+  "Best": "Mejor",
+  "Worst": "Peor"
 }
