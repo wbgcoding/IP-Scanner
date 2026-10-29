@@ -266,6 +266,16 @@ internal static class ReviewSurfaces
                 await Settle(500);
                 return new Shown { Primary = w };
             }),
+            new("archive.runs", "g.archive", true, async c =>
+            {
+                var w = await NewMainAsync(c);
+                SeedRealisticArchive(Path.Combine(c.TempDir, "scanner.db"));
+                await w.ReviewOpenArchiveAsync();
+                await Settle(500);
+                await w.ReviewSelectArchiveRunAsync(-1, -1);
+                await Settle(500);
+                return new Shown { Primary = w };
+            }),
             new("archive.ports", "g.archive", true, async c =>
             {
                 var w = await NewMainAsync(c);
