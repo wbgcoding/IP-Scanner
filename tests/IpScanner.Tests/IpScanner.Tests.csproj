@@ -10,6 +10,14 @@
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" />
   </ItemGroup>
+  <!-- An output folder built with an older runner package keeps its second adapter; with both present
+       the host discovers and runs every test twice in one process, so static state leaks between passes. -->
+  <Target Name="DropStaleRunnerFiles" AfterTargets="Build">
+    <ItemGroup>
+      <StaleRunnerFile Include="$(OutDir)xunit.runner.visualstudio.dotnetcore.testadapter.dll;$(OutDir)xunit.runner.utility.netcoreapp10.dll;$(OutDir)xunit.runner.reporters.netcoreapp10.dll" />
+    </ItemGroup>
+    <Delete Files="@(StaleRunnerFile)" ContinueOnError="true" />
+  </Target>
   <ItemGroup>
     <None Include="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
