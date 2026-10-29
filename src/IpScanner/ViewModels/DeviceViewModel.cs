@@ -394,6 +394,12 @@ public sealed class DeviceViewModel : ObservableObject
     }
     private bool _servicesScanned;
     private bool _scanningServices;
+
+    /// <summary>True only when a port scan of this app session got a refusal (reset) for the TCP port
+    /// and the port is not listed as open. Filtered or dropped probes and results stored by an older
+    /// session never count.</summary>
+    internal bool IsPortKnownClosed(int port)
+        => SessionPortFacts.IsClosed(_device.Ip, port) && !Services.Any(s => s.Protocol == NetProtocol.Tcp && s.Port == port);
     public bool IsScanningServices => _scanningServices;
     /// <summary>True whenever the "nothing to show" placeholder text should be
     /// visible - an empty result, a scan in progress covers itself separately.</summary>
@@ -533,7 +539,9 @@ public sealed class DeviceViewModel : ObservableObject
                 var udp = Services.Where(s => s.Protocol == NetProtocol.Udp).ToList();
                 Services.ReplaceAll(udp.Concat(merged.Values.OrderBy(s => s.Port)));
                 if (!partial)
+                {
                     _servicesScanned = true;   // only a completed sweep satisfies the quick scan too
+                }
             }
             catch (OperationCanceledException) { return; }
             catch (Exception ex)
@@ -586,7 +594,9 @@ public sealed class DeviceViewModel : ObservableObject
         _fullScanCts?.Cancel();
     }
 
-    public System.Windows.Media.PointCollection RowGraphPoints { get; private set; } = new();
+    public System.Windows.Media.Geometry RowGraphLine { get; private set; } = System.Windows.Media.Geometry.Empty;
+    public System.Windows.Media.Geometry RowGraphLoss { get; private set; } = System.Windows.Media.Geometry.Empty;
+    public System.Windows.Media.Geometry RowGraphBands { get; private set; } = System.Windows.Media.Geometry.Empty;
     public string RowGraphMax { get; private set; } = "";
     public string RowGraphMin { get; private set; } = "";
     public IReadOnlyList<GraphSeries.Tick> RowGraphTicks { get; private set; } = Array.Empty<GraphSeries.Tick>();
@@ -634,10 +644,8 @@ public sealed class DeviceViewModel : ObservableObject
     /// same polyline/labels the live per-second graph uses.</summary>
     public void SetHistoryGraph(IReadOnlyList<double?> samples, int secondsPerBucket, int tickIntervalSeconds)
     {
-        var r = GraphSeries.Compute(samples, _rowGraphWidth, RowGraphHeight, tickIntervalSeconds, secondsPerBucket);
-        RowGraphPoints = r.Points; RowGraphMax = r.MaxText; RowGraphMin = r.MinText; RowGraphTicks = r.Ticks;
-        Raise(nameof(RowGraphPoints)); Raise(nameof(RowGraphMax));
-        Raise(nameof(RowGraphMin)); Raise(nameof(RowGraphTicks));
+        // An empty history bucket means no data, not a lost ping, so nothing is marked as an outage here.
+        ApplyRowGraph(GraphSeries.Compute(samples, _rowGraphWidth, RowGraphHeight, tickIntervalSeconds, secondsPerBucket));
     }
 
     /// <summary>Let the row graph fill the table width (called from the canvas SizeChanged).</summary>
@@ -656,10 +664,16 @@ public sealed class DeviceViewModel : ObservableObject
     private void BuildRowGraph()
     {
         GraphSeries.Result r;
-        lock (_rowLock) r = GraphSeries.Compute(_rowSamples, _rowGraphWidth, RowGraphHeight, _rowTick);
-        RowGraphPoints = r.Points; RowGraphMax = r.MaxText; RowGraphMin = r.MinText; RowGraphTicks = r.Ticks;
-        Raise(nameof(RowGraphPoints)); Raise(nameof(RowGraphMax));
-        Raise(nameof(RowGraphMin)); Raise(nameof(RowGraphTicks));
+        lock (_rowLock) r = GraphSeries.Compute(_rowSamples, _rowGraphWidth, RowGraphHeight, _rowTick, markLoss: true);
+        ApplyRowGraph(r);
+    }
+
+    private void ApplyRowGraph(GraphSeries.Result r)
+    {
+        RowGraphLine = r.Line; RowGraphLoss = r.LossGeometry; RowGraphBands = r.BandGeometry;
+        RowGraphMax = r.MaxText; RowGraphMin = r.MinText; RowGraphTicks = r.Ticks;
+        Raise(nameof(RowGraphLine)); Raise(nameof(RowGraphLoss)); Raise(nameof(RowGraphBands));
+        Raise(nameof(RowGraphMax)); Raise(nameof(RowGraphMin)); Raise(nameof(RowGraphTicks));
     }
 
     /// <summary>Push the underlying device's latest values to the UI.</summary>

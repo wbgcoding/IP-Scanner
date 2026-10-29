@@ -29,9 +29,20 @@
             <MenuItem Name="ResolveHostnameAgainItem" Header="{loc:L ResolveHostnameAgain}" Click="OnResolveHostnameAgain"/>
             <MenuItem Name="StopHostnameRetryItem" Header="{loc:L StopHostnameRetry}" IsCheckable="True" Click="OnToggleHostnameRetry"/>
             <MenuItem Name="MuteDeviceItem" Header="{loc:L MuteDevice}" IsCheckable="True" Click="OnToggleMuteDevice"/>
+            <MenuItem Name="AlertOfflineItem" Header="{loc:L DeviceAlertOffline}" IsCheckable="True" Click="OnToggleAlertOffline"/>
             <MenuItem Name="MarkAsKnownItem" Header="{loc:L MarkAsKnown}" Click="OnMarkAsKnown"/>
             <Separator/>
-            <MenuItem Header="{loc:L WakeDevice}" Click="OnWake"/>
+            <MenuItem Header="{loc:L DevicePingContinuous}" Click="OnDeviceContinuousPing"/>
+            <MenuItem Header="{loc:L DeviceTraceRoute}" Click="OnDeviceTraceRoute"/>
+            <MenuItem Name="OpenWithItem" Header="{loc:L DeviceOpenWith}">
+                <MenuItem Name="OpenWithBrowserHttp" Tag="BrowserHttp" Header="{loc:L OpenWithBrowserHttp}" Click="OnOpenWith"/>
+                <MenuItem Name="OpenWithBrowserHttps" Tag="BrowserHttps" Header="{loc:L OpenWithBrowserHttps}" Click="OnOpenWith"/>
+                <MenuItem Name="OpenWithRemoteDesktop" Tag="RemoteDesktop" Header="{loc:L OpenWithRemoteDesktop}" Click="OnOpenWith"/>
+                <MenuItem Name="OpenWithSsh" Tag="Ssh" Header="{loc:L OpenWithSsh}" Click="OnOpenWith"/>
+                <MenuItem Name="OpenWithShares" Tag="Shares" Header="{loc:L OpenWithShares}" Click="OnOpenWith"/>
+            </MenuItem>
+            <Separator/>
+            <MenuItem Name="WakeDeviceItem" Header="{loc:L WakeDevice}" Click="OnWake"/>
         </ContextMenu>
 
         <!-- The expanded row-detail content, kept out of RowDetailsTemplate itself:
@@ -95,8 +106,10 @@
                              an RTL layout - force LTR so the time axis keeps running forward. -->
                         <Canvas Width="360" Height="60" Margin="0,6,0,0" ClipToBounds="True"
                                 HorizontalAlignment="Left" SizeChanged="OnRowGraphSizeChanged" FlowDirection="LeftToRight">
-                            <Polyline Points="{Binding RowGraphPoints}" Stroke="{DynamicResource Green}"
-                                      StrokeThickness="1.5" StrokeLineJoin="Round"/>
+                            <Path Data="{Binding RowGraphBands}" Fill="{DynamicResource Red}" Opacity="0.22"/>
+                            <Path Data="{Binding RowGraphLoss}" Stroke="{DynamicResource Red}" StrokeThickness="2"/>
+                            <Path Data="{Binding RowGraphLine}" Stroke="{DynamicResource Green}"
+                                  StrokeThickness="1.5" StrokeLineJoin="Round"/>
                             <TextBlock Text="{Binding RowGraphMax}" Canvas.Left="4" Canvas.Top="1"
                                        FontSize="9" Foreground="{DynamicResource MidGray}"/>
                             <TextBlock Text="{Binding RowGraphMin}" Canvas.Left="4" Canvas.Bottom="0"

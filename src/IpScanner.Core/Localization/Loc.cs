@@ -970,7 +970,7 @@ public static class Loc
         "Starts the app straight into the tray without showing the window.");
     public static string TrayScanDoneTitle => S("Scan abgeschlossen", "Scan finished");
     public static string TrayScanDoneTextFmt => S("{0} Geräte online.", "{0} devices online.");
-    public static string TrayScanDoneText(int online) => string.Format(TrayScanDoneTextFmt, online);
+    public static string TrayScanDoneText(int online) => online == 1 ? TrayScanDoneOneText : string.Format(TrayScanDoneTextFmt, online);
     public static string TrayNewDeviceTitle => S("Neues Gerät gefunden", "New device found");
     public static string TrayNewDeviceTextFmt => S("{0} ({1}) ist neu im Netzwerk.", "{0} ({1}) is new on the network.");
     public static string TrayNewDeviceText(string ip, string name) => string.Format(TrayNewDeviceTextFmt, ip, name);
@@ -2591,4 +2591,25 @@ public static class Loc
     public static string TipDefaultPings => S(
         "Anzahl der Pings je Gerät. Wird im Ping-Dropdown oben rechts eingestellt; -1 pingt bis zum Stopp.",
         "Pings per device. Set with the ping dropdown at the top right; -1 keeps pinging until stopped.");
+
+    // Batch Y1b
+    public static string TrayScanDoneOneText => S("1 Gerät online.", "1 device online.");
+    public static string DevicePingContinuous => S("Dauerping", "Continuous ping");
+    public static string DeviceTraceRoute => S("Weg zum Ziel", "Trace route");
+    public static string DeviceAlertOffline => S("Bei Ausfall melden", "Alert when offline");
+    public static string TrayDeviceLostTitle => S("Gerät nicht erreichbar", "Device unreachable");
+    public static string TrayDeviceBackTitle => S("Gerät wieder erreichbar", "Device reachable again");
+    public static string TrayDeviceLostTextFmt => S("{0} ist nicht mehr erreichbar.", "{0} is no longer reachable.");
+    public static string TrayDeviceBackTextFmt => S("{0} ist wieder erreichbar (nach {1}).", "{0} is reachable again (after {1}).");
+    public static string TrayDevicesLostTextFmt => S("{0} Geräte sind nicht mehr erreichbar.", "{0} devices are no longer reachable.");
+    public static string TrayDevicesBackTextFmt => S("{0} Geräte sind wieder erreichbar.", "{0} devices are reachable again.");
+    public static string DeviceOpenWith => S("Öffnen mit", "Open with");
+    public static string OpenWithBrowserHttp => S("Browser (HTTP)", "Browser (HTTP)");
+    public static string OpenWithBrowserHttps => S("Browser (HTTPS)", "Browser (HTTPS)");
+    public static string OpenWithRemoteDesktop => S("Remotedesktop", "Remote desktop");
+    public static string OpenWithSsh => S("SSH", "SSH");
+    public static string OpenWithShares => S("Netzwerkfreigaben", "Network shares");
+    public static string OpenWithNoAddress => S("Dieses Gerät hat keine gültige IP-Adresse.", "This device has no valid IP address.");
+    public static string OpenWithFailedFmt => S("{0} konnte nicht gestartet werden.", "{0} could not be started.");
+    public static string OpenWithPortClosedFmt => S("Port {0} war beim letzten Scan nicht offen.", "Port {0} was not open in the last scan.");
 }

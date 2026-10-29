@@ -113,7 +113,11 @@ public sealed class PingToolViewModel : ObservableObject
     public string LossText { get; private set; } = NoLoss;
     public string StatsText { get; private set; } = "";
 
-    public PointCollection GraphPoints { get; private set; } = new();
+    /// <summary>The last computed graph (points, segments, loss marks), for tests.</summary>
+    internal GraphSeries.Result? Graph { get; private set; }
+    public Geometry GraphLine { get; private set; } = Geometry.Empty;
+    public Geometry GraphLoss { get; private set; } = Geometry.Empty;
+    public Geometry GraphBands { get; private set; } = Geometry.Empty;
     public string GraphMax { get; private set; } = "";
     public string GraphMin { get; private set; } = "";
     public IReadOnlyList<GraphSeries.Tick> GraphTicks { get; private set; } = Array.Empty<GraphSeries.Tick>();
@@ -247,9 +251,12 @@ public sealed class PingToolViewModel : ObservableObject
         var series = Thin(_session, first, out int perPoint);
         secondsPerSample *= perPoint;
         var tick = TickStep(series.Count * secondsPerSample);
-        var r = GraphSeries.Compute(series, _graphWidth, GraphHeight, tick, secondsPerSample);
-        GraphPoints = r.Points; GraphMax = r.MaxText; GraphMin = r.MinText; GraphTicks = r.Ticks;
-        Raise(nameof(GraphPoints)); Raise(nameof(GraphMax)); Raise(nameof(GraphMin)); Raise(nameof(GraphTicks));
+        var r = GraphSeries.Compute(series, _graphWidth, GraphHeight, tick, secondsPerSample, markLoss: true);
+        Graph = r;
+        GraphLine = r.Line; GraphLoss = r.LossGeometry; GraphBands = r.BandGeometry;
+        GraphMax = r.MaxText; GraphMin = r.MinText; GraphTicks = r.Ticks;
+        Raise(nameof(GraphLine)); Raise(nameof(GraphLoss)); Raise(nameof(GraphBands));
+        Raise(nameof(GraphMax)); Raise(nameof(GraphMin)); Raise(nameof(GraphTicks));
     }
 
     /// <summary>Index of the first session sample the zoom box shows: those within its span of the newest one, or all.</summary>

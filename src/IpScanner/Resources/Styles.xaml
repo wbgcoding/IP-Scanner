@@ -985,10 +985,28 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="MenuItem">
-                    <Border x:Name="b" Background="Transparent" CornerRadius="5" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter ContentSource="Header" VerticalAlignment="Center"/>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="b" Background="Transparent" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <ContentPresenter ContentSource="Header" VerticalAlignment="Center"/>
+                                <Path x:Name="arrow" Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                      Data="M0,0 L4,4 L0,8" Stroke="{DynamicResource Subtext}" StrokeThickness="1.5"/>
+                            </Grid>
+                        </Border>
+                        <!-- Submenu: only used by items that carry child items. -->
+                        <Popup x:Name="PART_Popup" Placement="Right" HorizontalOffset="2" AllowsTransparency="True" Focusable="False"
+                               IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}">
+                            <Border Background="{DynamicResource BgDark}" BorderBrush="{DynamicResource Surface}" BorderThickness="1"
+                                    CornerRadius="8" Padding="4">
+                                <ItemsPresenter/>
+                            </Border>
+                        </Popup>
+                    </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="HasItems" Value="True">
+                            <Setter TargetName="arrow" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="b" Property="Padding" Value="11,6,22,6"/>
+                        </Trigger>
                         <Trigger Property="IsHighlighted" Value="True">
                             <Setter TargetName="b" Property="Background" Value="{DynamicResource Surface}"/>
                         </Trigger>

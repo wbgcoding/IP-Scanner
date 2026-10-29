@@ -393,23 +393,23 @@ public class PingRouteToolViewModelTests
     public void Zoom_ChangesHowMuchOfTheSessionTheGraphShows()
     {
         var vm = Filled(600, i => i % 7 + 1);
-        Assert.Equal(61, vm.GraphPoints.Count);
+        Assert.Equal(61, vm.Graph!.Points.Count);
         vm.Zoom = vm.ZoomOptions[1];
-        Assert.Equal(301, vm.GraphPoints.Count);
+        Assert.Equal(301, vm.Graph!.Points.Count);
         vm.Zoom = vm.ZoomOptions[3];
-        Assert.Equal(600, vm.GraphPoints.Count);
+        Assert.Equal(600, vm.Graph!.Points.Count);
         vm.Zoom = vm.ZoomOptions[2];
-        Assert.Equal(600, vm.GraphPoints.Count);
+        Assert.Equal(600, vm.Graph!.Points.Count);
     }
 
     [Fact]
-    public void Zoom_RaisesGraphPointsWhenChanged()
+    public void Zoom_RaisesGraphLineWhenChanged()
     {
         var vm = Filled(200, i => i % 7 + 1);
         var raised = new List<string>();
         vm.PropertyChanged += (_, e) => raised.Add(e.PropertyName!);
         vm.Zoom = vm.ZoomOptions[3];
-        Assert.Contains(nameof(PingToolViewModel.GraphPoints), raised);
+        Assert.Contains(nameof(PingToolViewModel.GraphLine), raised);
     }
 
     [Fact]

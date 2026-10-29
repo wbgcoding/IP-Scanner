@@ -19,6 +19,25 @@ public class NetworkTextTests
         Assert.Equal("SSH-2.0-OpenSSH_8.9evil", NetworkText.Sanitize(dirty));
     }
 
+    [Theory]
+    [InlineData('‪')]
+    [InlineData('‫')]
+    [InlineData('‬')]
+    [InlineData('‭')]
+    [InlineData('‮')]
+    [InlineData('⁦')]
+    [InlineData('⁧')]
+    [InlineData('⁨')]
+    [InlineData('⁩')]
+    [InlineData('‎')]
+    [InlineData('‏')]
+    public void Sanitize_StripsBidiControlCharacters(char bidi)
+        => Assert.Equal("ab", NetworkText.Sanitize("a" + bidi + "b"));
+
+    [Fact]
+    public void Sanitize_KeepsJoinersAndNonLatinText()
+        => Assert.Equal("Drucker ‍ Büro שלום", NetworkText.Sanitize("Drucker ‍ Büro שלום"));
+
     [Fact]
     public void Sanitize_TruncatesToMaxLength()
     {

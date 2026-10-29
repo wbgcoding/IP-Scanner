@@ -96,6 +96,14 @@ public partial class MainWindow : Window
         foreach (var vm in TargetDevices(sender)) _vm.SetMuted(vm, item.IsChecked);
     }
 
+    // Tray notification when a device stops answering (3 lost pings in a row) and when it is back.
+    // The same state is applied to every selected device.
+    private void OnToggleAlertOffline(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem item) return;
+        foreach (var vm in TargetDevices(sender)) _vm.SetAlertOffline(vm, item.IsChecked);
+    }
+
     // Accept a rogue device into the known-devices DB - removes the
     // orange highlight immediately (menu entry itself only shows for rogue rows).
     // Mark every rogue device in the selection and leave known devices unchanged.
@@ -168,12 +176,43 @@ public partial class MainWindow : Window
         }, Loc.WakeDevice);
     }
 
+    // "Open with": starts the system browser, remote desktop, ssh or Explorer on the device address.
+    // The launch is built from the validated IP only (OpenWithBuilder), never from a host name or
+    // any text that came from the network.
+    private async void OnOpenWith(object sender, RoutedEventArgs e)
+    {
+        await UiGuard.Run(() =>
+        {
+            if (sender is not MenuItem item || !Enum.TryParse<Core.Net.OpenWithKind>(item.Tag as string, out var kind)) return Task.CompletedTask;
+            if ((item.Parent as MenuItem)?.Parent is not ContextMenu { PlacementTarget: FrameworkElement target }
+                || MenuVm(target) is not { } vm)
+                return Task.CompletedTask;
+            var command = Core.Net.OpenWithBuilder.Build(kind, vm.Ip);
+            if (command is null)
+            {
+                MessageDialog.Show(this, Loc.OpenWithNoAddress, Loc.DeviceOpenWith, MessageDialogButtons.Ok, MessageDialogKind.Warning);
+                return Task.CompletedTask;
+            }
+            try
+            {
+                using var _ = System.Diagnostics.Process.Start(command.ToStartInfo());
+            }
+            catch (Exception ex)
+            {
+                Core.Log.Warn(Core.LogArea.Tools, "Open with failed (" + kind + ")", ex);
+                MessageDialog.Show(this, string.Format(Loc.OpenWithFailedFmt, item.Header),
+                    Loc.DeviceOpenWith, MessageDialogButtons.Ok, MessageDialogKind.Warning);
+            }
+            return Task.CompletedTask;
+        }, Loc.DeviceOpenWith);
+    }
+
     /// <summary>Wake-on-LAN only works within the same broadcast domain, and
     /// needs a known MAC - gray the item out and explain why when neither holds.</summary>
     private void OnDeviceRowMenuOpened(object sender, RoutedEventArgs e)
     {
         if (sender is not ContextMenu menu) return;
-        if (menu.Items.OfType<MenuItem>().LastOrDefault() is not { } wakeItem) return;
+        if (menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "WakeDeviceItem") is not { } wakeItem) return;
         if ((menu.PlacementTarget as FrameworkElement)?.DataContext is not DeviceViewModel vm) return;
         var targets = TargetDevices(menu.PlacementTarget);
         bool hasMac = vm.HasMac;
@@ -187,9 +226,30 @@ public partial class MainWindow : Window
         if (menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "MuteDeviceItem") is { } muteItem)
             muteItem.IsChecked = targets.All(_vm.IsMuted);
 
+        if (menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "AlertOfflineItem") is { } alertItem)
+            alertItem.IsChecked = targets.All(_vm.IsAlertOffline);
+
+        UpdateOpenWithItems(menu, vm, targets.Count == 1);
+
         // Mark-as-known is offered when at least one targeted device is rogue.
         if (menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "MarkAsKnownItem") is { } markItem)
             markItem.Visibility = targets.Any(v => v.IsRogue) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    // One device only. An entry is grayed out when a finished port scan found its port closed;
+    // without a finished scan every entry stays available (the port may simply not be checked yet).
+    private static void UpdateOpenWithItems(ContextMenu menu, DeviceViewModel vm, bool single)
+    {
+        if (menu.Items.OfType<MenuItem>().FirstOrDefault(m => m.Name == "OpenWithItem") is not { } parent) return;
+        parent.IsEnabled = single;
+        foreach (var child in parent.Items.OfType<MenuItem>())
+        {
+            if (!Enum.TryParse<Core.Net.OpenWithKind>(child.Tag as string, out var kind)) continue;
+            int port = Core.Net.OpenWithBuilder.PortOf(kind);
+            bool closed = vm.IsPortKnownClosed(port);
+            child.IsEnabled = !closed && Core.Net.OpenWithBuilder.Build(kind, vm.Ip) is not null;
+            child.ToolTip = closed ? string.Format(Loc.OpenWithPortClosedFmt, port) : null;
+        }
     }
 
     private void OnDeviceGridSelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -23,7 +23,7 @@ public sealed class OverrideStore
     /// pre-existing (3- or 4-column) entry line still parses the same way it
     /// always did.</summary>
     public sealed record Entry(string? Hostname, string? Color, bool NoHostnameRetry = false,
-        bool Muted = false, string? Note = null);
+        bool Muted = false, string? Note = null, bool AlertOffline = false);
 
     private readonly Dictionary<string, Entry> _entries = new();
     private string? _path;
@@ -131,8 +131,9 @@ public sealed class OverrideStore
             var noRetry = p.Length > 3 && p[3] == "1";
             var muted = p.Length > 4 && p[4] == "1";
             var note = p.Length > 5 ? DecodeNote(p[5]) : null;
-            if (host is not null || color is not null || noRetry || muted || note is not null)
-                _entries[p[0]] = new Entry(host, color, noRetry, muted, note);
+            var alert = p.Length > 6 && p[6] == "1";
+            if (host is not null || color is not null || noRetry || muted || note is not null || alert)
+                _entries[p[0]] = new Entry(host, color, noRetry, muted, note, alert);
         }
     }
 
@@ -165,7 +166,8 @@ public sealed class OverrideStore
                 byMac.Color ?? byIp.Color,
                 byMac.NoHostnameRetry || byIp.NoHostnameRetry,
                 byMac.Muted || byIp.Muted,
-                byMac.Note ?? byIp.Note);
+                byMac.Note ?? byIp.Note,
+                byMac.AlertOffline || byIp.AlertOffline);
         }
         else
         {
@@ -185,6 +187,10 @@ public sealed class OverrideStore
     public void SetMuted(string? mac, string ip, bool value) =>
         Update(mac, ip, e => e with { Muted = value });
 
+    /// <summary>"Alert when offline" - a tray notification when the device stops answering and when it is back.</summary>
+    public void SetAlertOffline(string? mac, string ip, bool value) =>
+        Update(mac, ip, e => e with { AlertOffline = value });
+
     private void Update(string? mac, string ip, Func<Entry, Entry> change)
     {
         var next = change(Get(mac, ip) ?? new Entry(null, null));
@@ -192,7 +198,7 @@ public sealed class OverrideStore
         // was known - drop both representations, then store the current one.
         _entries.Remove(ip);
         if (mac is not null) _entries.Remove(Key(mac));
-        if (next.Hostname is not null || next.Color is not null || next.NoHostnameRetry || next.Muted || next.Note is not null)
+        if (next.Hostname is not null || next.Color is not null || next.NoHostnameRetry || next.Muted || next.Note is not null || next.AlertOffline)
             _entries[mac is not null ? Key(mac) : ip] = next;
         Save();
     }
@@ -218,7 +224,7 @@ public sealed class OverrideStore
             // Notes are base64 inside the already sealed file so tabs and line breaks
             // cannot change the row structure. Older 3- to 5-column rows still parse.
             var body = string.Join('\n', new[] { FormatHeader }.Concat(_entries.Select(kv =>
-                $"{kv.Key}\t{kv.Value.Hostname ?? ""}\t{kv.Value.Color ?? "N/A"}\t{(kv.Value.NoHostnameRetry ? "1" : "0")}\t{(kv.Value.Muted ? "1" : "0")}\tb64:{Convert.ToBase64String(Encoding.UTF8.GetBytes(kv.Value.Note ?? ""))}")));
+                $"{kv.Key}\t{kv.Value.Hostname ?? ""}\t{kv.Value.Color ?? "N/A"}\t{(kv.Value.NoHostnameRetry ? "1" : "0")}\t{(kv.Value.Muted ? "1" : "0")}\tb64:{Convert.ToBase64String(Encoding.UTF8.GetBytes(kv.Value.Note ?? ""))}\t{(kv.Value.AlertOffline ? "1" : "0")}")));
             AtomicFile.Write(_path, _crypto.Seal(body));
             return true;
         }
