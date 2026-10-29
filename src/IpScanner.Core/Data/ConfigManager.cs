@@ -24,7 +24,7 @@ public static class ConfigManager
         "auto_graph_pinned", "show_offline_db", "minimize_to_tray", "theme", "sidebar_width",
         "color_online", "color_offline", "color_success", "color_failed", "color_skipped",
         "sidebar_exports_expanded", "sidebar_networks_expanded", "sidebar_pinned_expanded", "sidebar_internet_expanded", "table_sort", "table_widths", "manual_export_scope", "manual_export_format", "heat_ms_1", "heat_ms_2", "heat_ms_3", "heat_ms_4",
-        "settings_page", "tools_last_page", "accent_color", "date_number_format", "compact_rows", "hidden_columns",
+        "settings_page", "tools_last_page", "accent_color", "date_number_format", "compact_rows", "hidden_columns", "columns_version",
         "repeat_scan_minutes", "notify_scan_done", "notify_new_device", "start_minimized",
         "export_ports", "html_report", "db_retention_days", "archive_retention_days", "archive_backup_retention_days", "archive_compaction_days", "show_skipped_legend",
         "discovery_modes", "tcp_ping_ports", "udp_ping_ports", "os_fingerprint",
@@ -47,7 +47,7 @@ public static class ConfigManager
     private static readonly string[] ToolsPages = { "WakeOnLan", "PortCheck", "DnsLookup", "PingRoute", "Calculator", "MacTool", "Certificate", "HostDiscovery", "ServiceDetection", "OsEstimate", "Checks", "ScanExport" };
 
     // Table columns that can be hidden - IP/status/hostname stay mandatory.
-    // "jitter", "method" and "os" are hidden by default (see ScanConfig.HiddenColumns).
+    // "jitter", "method", "os", "first_seen" and "last_seen" are hidden by default (see ScanConfig.HiddenColumns).
     private static readonly string[] OptionalColumnKeys =
         { "group", "avg", "min", "max", "last", "loss", "jitter", "progress", "mac", "vendor", "ports", "method", "os", "first_seen", "last_seen" };
 
@@ -210,6 +210,10 @@ public static class ConfigManager
             }
         }
 
+        // A conf from before the first/last seen columns: they stay hidden until the user shows them.
+        if (flat.ContainsKey("hidden_columns") && !flat.ContainsKey("columns_version"))
+            foreach (var seenKey in new[] { "first_seen", "last_seen" })
+                if (!cfg.HiddenColumns.Contains(seenKey)) cfg.HiddenColumns.Add(seenKey);
         cfg.Subnets = subnets.Values.Distinct().ToList();
         cfg.ScanPresets = presets.Values.Distinct().Take(ScanPresets.MaxUserPresets).ToList();
         // A conf from before the archive had its own retention: the archive followed the history
@@ -388,8 +392,10 @@ public static class ConfigManager
         sb.AppendLine("# compact_rows  Denser table rows (22px instead of 28px). Default false.");
         sb.AppendLine($"compact_rows = {B(c.CompactRows)}");
         sb.AppendLine();
-        sb.AppendLine("# hidden_columns  Comma-separated, from: group,avg,min,max,last,loss,jitter,progress,mac,vendor,method.");
+        sb.AppendLine("# hidden_columns  Comma-separated, from: group,avg,min,max,last,loss,jitter,progress,mac,vendor,ports,method,os,first_seen,last_seen.");
         sb.AppendLine($"hidden_columns = {string.Join(",", c.HiddenColumns)}");
+        sb.AppendLine("# columns_version  Set by the program; lets it tell an old column list from a current one.");
+        sb.AppendLine("columns_version = 2");
         sb.AppendLine();
         sb.AppendLine("# -- Scan comfort ----------------------------------------------");
         sb.AppendLine("# repeat_scan_minutes  Auto-repeat the scan every N minutes: 0 (off), 5, 15, 30 or 60.");

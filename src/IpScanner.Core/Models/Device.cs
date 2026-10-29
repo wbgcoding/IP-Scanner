@@ -39,6 +39,10 @@ public sealed class Device
     /// ranked resolver disagreeing with the already-applied MAC.</summary>
     public bool HasMacConflictThisRun { get; set; }
     public bool FromDb { get; set; }
+    /// <summary>When the known-devices database first saw this device online (local time), null when unknown.</summary>
+    public DateTimeOffset? FirstSeen { get; set; }
+    /// <summary>When the known-devices database last saw this device online (local time), null when unknown.</summary>
+    public DateTimeOffset? LastSeen { get; set; }
     public bool Seen { get; private set; }
     /// <summary>True for a host that a list scan only named; nothing was sent to it.</summary>
     public bool IsListed => DiscoveryMethod == "list";

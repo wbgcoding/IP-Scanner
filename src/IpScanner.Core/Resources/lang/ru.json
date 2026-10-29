@@ -1249,5 +1249,7 @@
   "Adds the server you typed to the comparison. At most 6 are possible.": "Добавляет введённый сервер к сравнению. Не более 6.",
   "Takes this server out of the comparison.": "Убирает этот сервер из сравнения.",
   "Remove": "Убрать",
-  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "Показывает открытые TCP-порты, найденные на устройстве. Наведите курсор на ячейку, чтобы увидеть полный список с названиями служб."
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "Показывает открытые TCP-порты, найденные на устройстве. Наведите курсор на ячейку, чтобы увидеть полный список с названиями служб.",
+  "Shows when the device was first seen online. Only remembered while the known devices database is on.": "Показывает, когда устройство впервые заметили в сети. Запоминается, только пока включена база известных устройств.",
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Показывает, когда устройство в последний раз заметили в сети. Запоминается, только пока включена база известных устройств."
 }

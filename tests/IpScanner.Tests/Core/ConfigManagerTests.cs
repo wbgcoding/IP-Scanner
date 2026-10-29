@@ -297,7 +297,7 @@ public class ConfigManagerTests
 
     [Fact]
     public void NewScanConfig_ShowsLossAndHidesJitterByDefault()
-        => Assert.Equal(new[] { "jitter", "method", "os" }, new ScanConfig().HiddenColumns);
+        => Assert.Equal(new[] { "jitter", "method", "os", "first_seen", "last_seen" }, new ScanConfig().HiddenColumns);
 
     // Background hostname-retry cadence, 0 = off.
     [Fact]

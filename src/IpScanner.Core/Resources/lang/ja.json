@@ -1249,5 +1249,7 @@
   "Adds the server you typed to the comparison. At most 6 are possible.": "入力したサーバーを比較に追加します。最大 6 台までです。",
   "Takes this server out of the comparison.": "このサーバーを比較から外します。",
   "Remove": "削除",
-  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "デバイスで見つかった開いている TCP ポートを表示します。セルにカーソルを合わせると、サービス名付きの完全な一覧が表示されます。"
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "デバイスで見つかった開いている TCP ポートを表示します。セルにカーソルを合わせると、サービス名付きの完全な一覧が表示されます。",
+  "Shows when the device was first seen online. Only remembered while the known devices database is on.": "デバイスが初めてオンラインで確認された日時を表示します。既知デバイスのデータベースが有効な間だけ記憶されます。",
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "デバイスが最後にオンラインで確認された日時を表示します。既知デバイスのデータベースが有効な間だけ記憶されます。"
 }

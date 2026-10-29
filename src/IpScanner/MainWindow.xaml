@@ -853,6 +853,30 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
+                    <DataGridTextColumn x:Name="FirstSeenColumn" Header="{loc:L ColFirstSeen}" Binding="{Binding FirstSeenText}" SortMemberPath="FirstSeenSortKey" Width="Auto" MinWidth="120" MaxWidth="200">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="ToolTip" Value="{loc:L TipColFirstSeen}"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource CenterCell}">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn x:Name="LastSeenColumn" Header="{loc:L ColLastSeen}" Binding="{Binding LastSeenText}" SortMemberPath="LastSeenSortKey" Width="Auto" MinWidth="120" MaxWidth="200">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="ToolTip" Value="{loc:L TipColLastSeen}"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource CenterCell}">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -1748,6 +1772,8 @@
                                         <CheckBox x:Name="PortsColBox" ToolTip="{loc:L TipColPorts}" Content="{loc:L ColPorts}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="MethodColBox" ToolTip="{loc:L TipColMethod}" Content="{loc:L FoundBy}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="OsColBox" ToolTip="{loc:L TipColOs}" Content="{loc:L OsColumnHeader}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
+                                        <CheckBox x:Name="FirstSeenColBox" ToolTip="{loc:L TipColFirstSeen}" Content="{loc:L ColFirstSeen}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
+                                        <CheckBox x:Name="LastSeenColBox" ToolTip="{loc:L TipColLastSeen}" Content="{loc:L ColLastSeen}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                     </UniformGrid>
                                     <TextBlock Text="{loc:L TabLatencyColors}" Foreground="{DynamicResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,17,0,8"/>
                                     <Grid>

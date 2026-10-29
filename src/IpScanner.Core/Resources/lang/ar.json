@@ -1249,5 +1249,7 @@
   "Adds the server you typed to the comparison. At most 6 are possible.": "يضيف الخادم الذي كتبته إلى المقارنة. الحد الأقصى 6 خوادم.",
   "Takes this server out of the comparison.": "يزيل هذا الخادم من المقارنة.",
   "Remove": "إزالة",
-  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "يعرض منافذ TCP المفتوحة التي عُثر عليها على الجهاز. مرّر المؤشر فوق خلية لرؤية القائمة الكاملة مع أسماء الخدمات."
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "يعرض منافذ TCP المفتوحة التي عُثر عليها على الجهاز. مرّر المؤشر فوق خلية لرؤية القائمة الكاملة مع أسماء الخدمات.",
+  "Shows when the device was first seen online. Only remembered while the known devices database is on.": "يعرض وقت رصد الجهاز متصلاً للمرة الأولى. لا يُحفظ ذلك إلا ما دامت قاعدة بيانات الأجهزة المعروفة مفعّلة.",
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "يعرض وقت رصد الجهاز متصلاً آخر مرة. لا يُحفظ ذلك إلا ما دامت قاعدة بيانات الأجهزة المعروفة مفعّلة."
 }

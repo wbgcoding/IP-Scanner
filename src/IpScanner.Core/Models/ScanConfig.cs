@@ -112,10 +112,11 @@ public sealed class ScanConfig
     /// <summary>Compact table rows (22px) instead of normal (28px).</summary>
     public bool CompactRows { get; set; }
     /// <summary>Keys of table columns hidden by the user (group, avg,
-    /// min, max, last, loss, jitter, progress, mac, vendor). IP/status/hostname stay
-    /// mandatory. Jitter, method and OS start hidden by default for a brand-new config;
-    /// an existing config file already has its own saved list and is not touched.</summary>
-    public List<string> HiddenColumns { get; set; } = new() { "jitter", "method", "os" };
+    /// min, max, last, loss, jitter, progress, mac, vendor, ports, method, os, first_seen, last_seen).
+    /// IP/status/hostname stay mandatory. Jitter, method, OS and the two seen-times start hidden
+    /// by default for a brand-new config; an existing config file already has its own saved
+    /// list and keeps it (the seen-times are added to it once, so they do not appear unasked).</summary>
+    public List<string> HiddenColumns { get; set; } = new() { "jitter", "method", "os", "first_seen", "last_seen" };
 
     // Scan convenience.
     /// <summary>Auto-repeat the scan every N minutes (0/5/15/30/60). 0 = off.</summary>

@@ -89,6 +89,20 @@ public sealed class DeviceViewModel : ObservableObject
     public string? PortsTip => PortsSummary.Tip(Services);
     /// <summary>Column sort key: count of open TCP ports, then the lowest port.</summary>
     public long PortsSortKey => PortsSummary.SortKey(Services);
+
+    // First/last time the device was seen online. The stored stamps come from the known-devices
+    // database; a device that answers in this run is "last seen" now, and "first seen" now when the
+    // database never saw it. Kept per row so the cell changes at most once a minute, not per tick.
+    private DateTimeOffset? _onlineAt;
+    private DateTimeOffset? FirstSeenValue => _device.FirstSeen ?? _onlineAt;
+    private DateTimeOffset? LastSeenValue => _onlineAt ?? _device.LastSeen;
+    public string FirstSeenText => SeenText(FirstSeenValue);
+    public string LastSeenText => SeenText(LastSeenValue);
+    /// <summary>Column sort keys: UTC ticks, 0 (sorts first) when unknown.</summary>
+    public long FirstSeenSortKey => FirstSeenValue?.UtcTicks ?? 0;
+    public long LastSeenSortKey => LastSeenValue?.UtcTicks ?? 0;
+    internal static string SeenText(DateTimeOffset? when)
+        => when is { } w ? w.LocalDateTime.ToString("g", System.Globalization.CultureInfo.CurrentCulture) : "–";
     public string Os => Core.Scanner.Os.OsDisplay.Text(CurrentOs());
     public string OsTip => Core.Scanner.Os.OsDisplay.Tip(CurrentOs());
     /// <summary>A muted device never shows the offline-red highlight -
@@ -643,6 +657,13 @@ public sealed class DeviceViewModel : ObservableObject
     public void Refresh()
     {
         RefreshNote();
+        if (_device.IsOnline)
+        {
+            var now = DateTimeOffset.Now;
+            if (_onlineAt is not { } at || now - at >= TimeSpan.FromSeconds(30)) _onlineAt = now;
+        }
+        Raise(nameof(FirstSeenText)); Raise(nameof(LastSeenText));
+        Raise(nameof(FirstSeenSortKey)); Raise(nameof(LastSeenSortKey));
         Raise(nameof(Status)); Raise(nameof(StatusColor)); Raise(nameof(IsOnline)); Raise(nameof(Hostname)); Raise(nameof(Method));
         Raise(nameof(Os)); Raise(nameof(OsTip));
         Raise(nameof(ServicesEmptyText));

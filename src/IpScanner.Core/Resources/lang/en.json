@@ -1249,5 +1249,7 @@
   "Adds the server you typed to the comparison. At most 6 are possible.": "Adds the server you typed to the comparison. At most 6 are possible.",
   "Takes this server out of the comparison.": "Takes this server out of the comparison.",
   "Remove": "Remove",
-  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names."
+  "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.": "Shows the open TCP ports found on the device. Hover a cell to see the full list with service names.",
+  "Shows when the device was first seen online. Only remembered while the known devices database is on.": "Shows when the device was first seen online. Only remembered while the known devices database is on.",
+  "Shows when the device was last seen online. Only remembered while the known devices database is on.": "Shows when the device was last seen online. Only remembered while the known devices database is on."
 }
