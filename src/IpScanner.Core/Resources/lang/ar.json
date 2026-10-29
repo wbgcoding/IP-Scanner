@@ -1248,5 +1248,12 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "عنوان IPv4 أو IPv6 لخادم إضافي يُدرج في المقارنة.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "يضيف الخادم الذي كتبته إلى المقارنة. الحد الأقصى 6 خوادم.",
   "Takes this server out of the comparison.": "يزيل هذا الخادم من المقارنة.",
-  "Remove": "إزالة"
+  "Remove": "إزالة",
+  "1 min": "دقيقة واحدة",
+  "5 min": "5 دقائق",
+  "1 h": "ساعة واحدة",
+  "Time range": "النطاق الزمني",
+  "Outages: {0}": "الانقطاعات: {0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "مقدار جلسة البينغ الذي يعرضه الرسم البياني. تُحفظ الجلسة كاملة دائماً عند الحفظ.",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "يحفظ كل فحص في هذه الجلسة كملف CSV: الوقت وزمن الاستجابة بالميلي ثانية (فارغ عند الفقد) والحالة."
 }

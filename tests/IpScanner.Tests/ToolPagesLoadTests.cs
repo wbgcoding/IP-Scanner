@@ -15,7 +15,7 @@ public class ToolPagesLoadTests
     {
         await WpfTestHost.RunAsync(() =>
         {
-            var ping = new PingRouteTool(new PingRouteToolViewModel());
+            var ping = new PingRouteTool(new IpScanner.Core.Models.ScanConfig(), new PingRouteToolViewModel());
             var calculator = new CalculatorTool(new CalculatorToolViewModel());
             var mac = new MacTool(new MacToolViewModel());
             Assert.NotNull(ping);

@@ -30,7 +30,12 @@ public static class ReportFile
     /// <summary>Writes to a path the caller chose (replacing a file that is already there).</summary>
     public static void WriteTo(string path, ScanReport report, ReportFormat format, bool showReason = false)
     {
-        var bytes = Bytes(ReportWriters.Render(report, format, showReason), format);
+        WriteAtomic(path, Bytes(ReportWriters.Render(report, format, showReason), format));
+    }
+
+    /// <summary>Replaces the file at <paramref name="path"/> with <paramref name="bytes"/>, creating the folder when needed.</summary>
+    public static void WriteAtomic(string path, byte[] bytes)
+    {
         var dir = PrepareFolder(path);
         // A temp file next to the target, then a move: a full disk or a crash never leaves a half-written report.
         var temp = Path.Combine(dir, "." + Path.GetFileName(path) + "." + Guid.NewGuid().ToString("N") + ".tmp");

@@ -1248,5 +1248,12 @@
   "IPv4 or IPv6 address of another server to include in the comparison.": "Адрес IPv4 или IPv6 ещё одного сервера для сравнения.",
   "Adds the server you typed to the comparison. At most 6 are possible.": "Добавляет введённый сервер к сравнению. Не более 6.",
   "Takes this server out of the comparison.": "Убирает этот сервер из сравнения.",
-  "Remove": "Убрать"
+  "Remove": "Убрать",
+  "1 min": "1 мин",
+  "5 min": "5 мин",
+  "1 h": "1 ч",
+  "Time range": "Период",
+  "Outages: {0}": "Сбои: {0}",
+  "How much of the ping session the graph shows. Saving always includes the whole session.": "Какая часть сеанса пинга показана на графике. При сохранении всегда записывается весь сеанс.",
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "Сохраняет все пробы сеанса в файл CSV: время, время отклика в мс (пусто при потере) и состояние."
 }
