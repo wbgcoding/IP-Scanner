@@ -1255,5 +1255,10 @@
   "Time range": "Time range",
   "Outages: {0}": "Outages: {0}",
   "How much of the ping session the graph shows. Saving always includes the whole session.": "How much of the ping session the graph shows. Saving always includes the whole session.",
-  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status."
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.",
+  "Continuous": "Continuous",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.",
+  "Loss %": "Loss %",
+  "Best": "Best",
+  "Worst": "Worst"
 }

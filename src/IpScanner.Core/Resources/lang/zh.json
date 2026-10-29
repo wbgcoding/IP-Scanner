@@ -1255,5 +1255,10 @@
   "Time range": "时间范围",
   "Outages: {0}": "中断次数:{0}",
   "How much of the ping session the graph shows. Saving always includes the whole session.": "图表显示 Ping 会话的多长时间范围。保存时始终包含整个会话。",
-  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "将本次会话的每次探测保存为 CSV 文件:时间、往返时间(毫秒,丢失时为空)和状态。"
+  "Saves every probe of this session as a CSV file: time, round trip in ms (empty when lost) and status.": "将本次会话的每次探测保存为 CSV 文件:时间、往返时间(毫秒,丢失时为空)和状态。",
+  "Continuous": "持续",
+  "After the first pass, probes every hop again each second until you click Stop, so you see loss and latency per hop.": "首轮完成后,每秒重新探测每一跳,直到你点击停止,从而看到每一跳的丢包率和延迟。",
+  "Loss %": "丢包 %",
+  "Best": "最佳",
+  "Worst": "最差"
 }

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading;
@@ -325,14 +327,87 @@ public sealed class PingToolViewModel : ObservableObject
         => double.TryParse(Interval, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : 1.0;
 }
 
+/// <summary>What one probe of a hop brought back; <see cref="Answered"/> is false for a timeout or an error.</summary>
+internal readonly record struct HopProbe(bool Answered, string? Address, double? Ms)
+{
+    public static readonly HopProbe Lost = new(false, null, null);
+}
+
+/// <summary>The network side of the route pane, so the view model can be driven by a fake in tests.</summary>
+internal interface IHopProber
+{
+    /// <summary>The IPv4 address of the target, or null when it does not resolve.</summary>
+    Task<IPAddress?> ResolveAsync(string target, CancellationToken ct);
+
+    /// <summary>One echo to <paramref name="target"/> with the given TTL; a router that drops it reports itself.</summary>
+    Task<HopProbe> ProbeAsync(IPAddress target, int ttl, int timeoutMs, CancellationToken ct);
+
+    /// <summary>The reverse name of an address, or null when it has none.</summary>
+    Task<string?> ReverseNameAsync(string address, CancellationToken ct);
+}
+
+/// <summary>The real prober: ICMP echoes with a limited TTL and the system resolver.</summary>
+internal sealed class SystemHopProber : IHopProber
+{
+    private static readonly byte[] Payload = new byte[32];
+
+    public async Task<IPAddress?> ResolveAsync(string target, CancellationToken ct)
+    {
+        if (IPAddress.TryParse(target, out var direct)) return direct;
+        try
+        {
+            var addresses = await System.Net.Dns.GetHostAddressesAsync(target, ct);
+            return Array.Find(addresses, a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+        }
+        catch (Exception ex) { Core.Log.Debug(Core.LogArea.Tools, "Route lookup failed: " + ex.GetType().Name); return null; }
+    }
+
+    public async Task<HopProbe> ProbeAsync(IPAddress target, int ttl, int timeoutMs, CancellationToken ct)
+    {
+        // One Ping object per probe: the probes of a round run at the same time and an instance takes one at a time.
+        using var ping = new Ping();
+        var options = new PingOptions(ttl, dontFragment: true);
+        try
+        {
+            var reply = await ping.SendPingAsync(target, timeoutMs, Payload, options).WaitAsync(ct);
+            return reply.Status is IPStatus.TtlExpired or IPStatus.Success
+                ? new HopProbe(true, reply.Address?.ToString(), reply.RoundtripTime)
+                : HopProbe.Lost;
+        }
+        catch (PingException) { return HopProbe.Lost; }
+    }
+
+    public async Task<string?> ReverseNameAsync(string address, CancellationToken ct)
+    {
+        try
+        {
+            var entry = await System.Net.Dns.GetHostEntryAsync(address, ct);
+            return string.IsNullOrEmpty(entry.HostName) ? null : entry.HostName;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex) { Core.Log.Debug(Core.LogArea.Tools, "Reverse name lookup failed: " + ex.GetType().Name); return null; }
+    }
+}
+
 public sealed class RouteToolViewModel : ObservableObject
 {
     private const int MaxHops = 30;
     private const int ProbesPerHop = 3;
     private const int HopTimeoutMs = 2000;
 
+    private readonly IHopProber _prober;
+    private readonly TimeSpan _roundInterval;
     private CancellationTokenSource? _cts;
 
+    public RouteToolViewModel() : this(new SystemHopProber(), TimeSpan.FromSeconds(1)) { }
+
+    internal RouteToolViewModel(IHopProber prober, TimeSpan roundInterval)
+    {
+        _prober = prober;
+        _roundInterval = roundInterval;
+    }
+
+    /// <summary>One station of the route with the running statistics of every probe sent to it.</summary>
     public sealed class Hop : ObservableObject
     {
         public int Number { get; init; }
@@ -340,19 +415,39 @@ public sealed class RouteToolViewModel : ObservableObject
         public string? Address { get => _address; set { if (_address != value) { _address = value; Raise(nameof(Address)); Raise(nameof(DisplayLine)); } } }
         private string? _name;
         public string? Name { get => _name; set { if (_name != value) { _name = value; Raise(nameof(Name)); Raise(nameof(DisplayLine)); } } }
-        public ObservableCollection<string> Times { get; } = new();
-        public Hop() => Times.CollectionChanged += (_, _) =>
-        {
-            Raise(nameof(DisplayLine));
-            Raise(nameof(Time1)); Raise(nameof(Time2)); Raise(nameof(Time3));
-        };
 
-        /// <summary>One value per probe, each in its own table column; empty until that probe returned.</summary>
-        public string Time1 => TimeAt(0);
-        public string Time2 => TimeAt(1);
-        public string Time3 => TimeAt(2);
-        private string TimeAt(int i) => i < Times.Count ? Times[i] : "";
-        public string DisplayLine => $"{Number,2}  {Address ?? "*",-16}{(Name is { Length: > 0 } n ? "  " + n : "")}  {string.Join(" ", Times)}";
+        private double _min = double.MaxValue, _max = double.MinValue, _sum, _last;
+        public int Sent { get; private set; }
+        public int Received { get; private set; }
+
+        /// <summary>True once the name lookup of this hop was started (it runs once per address).</summary>
+        internal bool NameRequested { get; set; }
+
+        public string LossText => PingToolViewModel.FormatLoss(Sent, Received);
+        public string LastText => NumberFormat.Ms(Received > 0 ? _last : null);
+        public string AvgText => NumberFormat.Ms(Received > 0 ? _sum / Received : null);
+        public string BestText => NumberFormat.Ms(Received > 0 ? _min : null);
+        public string WorstText => NumberFormat.Ms(Received > 0 ? _max : null);
+
+        /// <summary>Counts one probe (<paramref name="ms"/> null = no answer); an answering router's address is kept
+        /// the first time it is seen.</summary>
+        public void Record(double? ms, string? address = null)
+        {
+            Sent++;
+            if (address is not null && _address is null) _address = address;
+            if (ms is { } v)
+            {
+                Received++;
+                _last = v; _sum += v;
+                if (v < _min) _min = v;
+                if (v > _max) _max = v;
+            }
+            Raise(nameof(Address)); Raise(nameof(Sent)); Raise(nameof(LossText)); Raise(nameof(LastText));
+            Raise(nameof(AvgText)); Raise(nameof(BestText)); Raise(nameof(WorstText)); Raise(nameof(DisplayLine));
+        }
+
+        public string DisplayLine =>
+            $"{Number,2}  {Address ?? "*",-16}{(Name is { Length: > 0 } n ? "  " + n : "")}  {LossText,5}  {LastText,9}  {AvgText,9}  {BestText,9}  {WorstText,9}  {Sent,4}";
     }
 
     public ObservableCollection<Hop> Hops { get; } = new();
@@ -363,6 +458,10 @@ public sealed class RouteToolViewModel : ObservableObject
         get => _target;
         set { if (_target != value) { _target = value; Raise(nameof(Target)); Raise(nameof(CanStart)); } }
     }
+
+    private bool _continuous;
+    /// <summary>After the first pass, probe every hop again each second until stopped. Clearing it ends a run in progress.</summary>
+    public bool Continuous { get => _continuous; set { if (_continuous != value) { _continuous = value; Raise(nameof(Continuous)); } } }
 
     private bool _isRunning;
     public bool IsRunning { get => _isRunning; set { if (_isRunning != value) { _isRunning = value; Raise(nameof(IsRunning)); Raise(nameof(CanStart)); } } }
@@ -387,40 +486,12 @@ public sealed class RouteToolViewModel : ObservableObject
 
         try
         {
-            var targetAddress = await ResolveAsync(target, ct);
+            var targetAddress = await _prober.ResolveAsync(target, ct);
             if (targetAddress is null) { Status = Loc.DnsNotFound; return; }
 
-            using var ping = new Ping();
-            var options = new PingOptions { DontFragment = true };
-            var payload = new byte[32];
-
-            for (int ttl = 1; ttl <= MaxHops && !ct.IsCancellationRequested; ttl++)
-            {
-                options.Ttl = ttl;
-                var hop = new Hop { Number = ttl };
-                Hops.Add(hop);
-
-                string? hopAddress = null;
-                for (int probe = 0; probe < ProbesPerHop && !ct.IsCancellationRequested; probe++)
-                {
-                    PingReply reply;
-                    try { reply = await ping.SendPingAsync(targetAddress, HopTimeoutMs, payload, options).WaitAsync(ct); }
-                    catch (OperationCanceledException) { throw; }
-                    catch (PingException) { hop.Times.Add("*"); continue; }
-
-                    if (reply.Status is IPStatus.TtlExpired or IPStatus.Success)
-                    {
-                        hopAddress ??= reply.Address?.ToString();
-                        hop.Times.Add($"{reply.RoundtripTime} ms");
-                    }
-                    else hop.Times.Add("*");
-                }
-
-                hop.Address = hopAddress;
-                if (hopAddress is { } addr) _ = ResolveNameAsync(hop, addr, ct);
-
-                if (hopAddress == targetAddress.ToString()) break;
-            }
+            await FirstPassAsync(targetAddress, ct);
+            while (Continuous && !ct.IsCancellationRequested && Hops.Count > 0)
+                await ReprobeAsync(targetAddress, ct);
         }
         catch (OperationCanceledException) { /* Stop() was called */ }
         finally
@@ -431,25 +502,55 @@ public sealed class RouteToolViewModel : ObservableObject
         }
     }
 
-    private static async Task<IPAddress?> ResolveAsync(string target, CancellationToken ct)
+    /// <summary>The trace itself: three probes per TTL, until the target answers or the hop limit is reached.</summary>
+    private async Task FirstPassAsync(IPAddress targetAddress, CancellationToken ct)
     {
-        if (IPAddress.TryParse(target, out var direct)) return direct;
-        try
+        for (int ttl = 1; ttl <= MaxHops && !ct.IsCancellationRequested; ttl++)
         {
-            var addresses = await System.Net.Dns.GetHostAddressesAsync(target, ct);
-            return Array.Find(addresses, a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+            var hop = new Hop { Number = ttl };
+            Hops.Add(hop);
+
+            for (int probe = 0; probe < ProbesPerHop && !ct.IsCancellationRequested; probe++)
+            {
+                var result = await _prober.ProbeAsync(targetAddress, ttl, HopTimeoutMs, ct);
+                hop.Record(result.Answered ? result.Ms : null, result.Answered ? result.Address : null);
+                StartNameLookup(hop, ct);
+            }
+
+            if (hop.Address == targetAddress.ToString()) break;
         }
-        catch (Exception ex) { Core.Log.Debug(Core.LogArea.Tools, "Route lookup failed: " + ex.GetType().Name); return null; }
     }
 
-    /// <summary>Reverse-resolves a hop's name without blocking the next hop's probes.</summary>
-    private static async Task ResolveNameAsync(Hop hop, string address, CancellationToken ct)
+    /// <summary>One more round: every known hop gets a probe at the same time, then the round waits out the rest of its second.</summary>
+    private async Task ReprobeAsync(IPAddress targetAddress, CancellationToken ct)
+    {
+        var started = Stopwatch.StartNew();
+        var hops = Hops.ToArray();
+        var results = await Task.WhenAll(hops.Select(h => _prober.ProbeAsync(targetAddress, h.Number, HopTimeoutMs, ct)));
+        for (int i = 0; i < hops.Length; i++)
+        {
+            hops[i].Record(results[i].Answered ? results[i].Ms : null, results[i].Answered ? results[i].Address : null);
+            StartNameLookup(hops[i], ct);
+        }
+
+        var wait = _roundInterval - started.Elapsed;
+        if (wait > TimeSpan.Zero) await Task.Delay(wait, ct);
+    }
+
+    /// <summary>Reverse-resolves a hop's name without blocking the probes; started once, when the address is first known.</summary>
+    private void StartNameLookup(Hop hop, CancellationToken ct)
+    {
+        if (hop.NameRequested || hop.Address is not { } address) return;
+        hop.NameRequested = true;
+        _ = LookupNameAsync(hop, address, ct);
+    }
+
+    private async Task LookupNameAsync(Hop hop, string address, CancellationToken ct)
     {
         try
         {
-            var entry = await System.Net.Dns.GetHostEntryAsync(address, ct);
-            if (!string.IsNullOrEmpty(entry.HostName)) hop.Name = entry.HostName;
+            if (await _prober.ReverseNameAsync(address, ct) is { } name) hop.Name = name;
         }
-        catch (Exception ex) { Core.Log.Debug(Core.LogArea.Tools, "Reverse name lookup failed: " + ex.GetType().Name); /* no reverse name - leave blank */ }
+        catch (OperationCanceledException) { /* Stop() was called */ }
     }
 }

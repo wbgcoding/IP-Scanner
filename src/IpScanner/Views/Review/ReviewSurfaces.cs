@@ -359,10 +359,10 @@ internal static class ReviewSurfaces
         AddMarks(list, "PingRoute", v =>
         {
             var hop = new RouteToolViewModel.Hop { Number = 1, Address = "192.168.1.1", Name = "router.lan" };
-            foreach (var t in new[] { "1 ms", "2 ms", "1 ms" }) hop.Times.Add(t);
+            foreach (var ms in new double?[] { 1, 2, 1 }) hop.Record(ms);
             v.PingRoute.Route.Hops.Add(hop);
             var far = new RouteToolViewModel.Hop { Number = 12, Address = "93.184.216.34", Name = "a-long-host-name.example.net" };
-            foreach (var t in new[] { "118 ms", "*", "121 ms" }) far.Times.Add(t);
+            foreach (var ms in new double?[] { 118, null, 121 }) far.Record(ms);
             v.PingRoute.Route.Hops.Add(far);
         });
         // Pages in their aggressive state: every shared warning mark must show.
