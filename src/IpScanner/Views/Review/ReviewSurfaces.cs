@@ -379,9 +379,9 @@ internal static class ReviewSurfaces
         // The subnet calculator with an IPv6 prefix and a containment test.
         AddMarks(list, "Calculator", v =>
         {
-            v.Calculator.SubnetAddress = "2a02:8071:1234:5600::";
+            v.Calculator.SubnetAddress = "2001:db8:1234:5600::";
             v.Calculator.SubnetMask = "/56";
-            v.Calculator.ContainsAddress = "2a02:8071:1234:5611::42";
+            v.Calculator.ContainsAddress = "2001:db8:1234:5611::42";
         }, null, "tools.CalculatorIpv6");
         // The subnet split with a capped table, and the MAC page with a vendor and a table result.
         AddMarks(list, "Calculator", v =>

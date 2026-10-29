@@ -66,7 +66,7 @@ public partial class MainWindow
             DnsServers = new() { "192.168.10.1", "9.9.9.9" }, Interface = "Ethernet",
             Ipv6 = new()
             {
-                new OwnIpv6Address("Ethernet", 12, Core.Net.Ipv6Address.Parse("2a02:8071:1234:5600:2d1:aff:fe42:7f3a"), 64),
+                new OwnIpv6Address("Ethernet", 12, Core.Net.Ipv6Address.Parse("2001:db8:1234:5600:2d1:aff:fe42:7f3a"), 64),
                 new OwnIpv6Address("Ethernet", 12, Core.Net.Ipv6Address.Parse("fd12:3456:789a:1::50"), 64),
                 new OwnIpv6Address("Ethernet", 12, Core.Net.Ipv6Address.Parse("fe80::2d1:aff:fe42:7f3a").WithZone("12"), 64),
             },
