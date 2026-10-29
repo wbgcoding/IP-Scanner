@@ -159,10 +159,13 @@ public sealed class ScanToolViewModelTests
             return Task.FromResult(results);
         }));
         // The same state a test thread is left in after any test built a WPF object on it.
-        var poisoned = new Thread(() => _ = System.Windows.Threading.Dispatcher.CurrentDispatcher);
+        // The dispatcher is held strongly: WPF tracks it only weakly once its thread is gone, so a
+        // collection under load would otherwise make Dispatcher.FromThread return null.
+        System.Windows.Threading.Dispatcher? unpumped = null;
+        var poisoned = new Thread(() => unpumped = System.Windows.Threading.Dispatcher.CurrentDispatcher);
         poisoned.Start();
         poisoned.Join();
-        vm.UiDispatcherSource = () => System.Windows.Threading.Dispatcher.FromThread(poisoned);
+        vm.UiDispatcherSource = () => unpumped;
         Assert.NotNull(vm.UiDispatcherSource());
 
         await vm.StartAsync(_ => true);
@@ -173,6 +176,7 @@ public sealed class ScanToolViewModelTests
         await vm.StartAsync(_ => true);
 
         Assert.NotEmpty(vm.Rows);
+        GC.KeepAlive(unpumped);
     }
 
     [Fact]
