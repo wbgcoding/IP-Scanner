@@ -97,8 +97,8 @@ public partial class ToolsWindow : Window
     public void RefreshDriver() => _vm.PortCheck.RefreshScanTypes();
 
     /// <summary>Re-raises any cached, language-dependent tool text after a live
-    /// language switch (the vendor-lookup footnote) - see docs/DESIGN.md's
-    /// "Loc property read once into a field" rule.</summary>
+    /// language switch (the vendor-lookup footnote): a Loc property read once into
+    /// a field would otherwise keep the old language.</summary>
     public void RefreshLanguage()
     {
         FlowDirection = Loc.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;

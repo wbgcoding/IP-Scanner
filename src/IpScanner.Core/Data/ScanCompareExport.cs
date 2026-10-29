@@ -64,7 +64,7 @@ public static class ScanCompareExport
         return JsonSerializer.Serialize(doc, ReportCodec.Json);
     }
 
-    /// <summary>Own schema (documented in docs/DESIGN.md): attributes carry the values, a missing value is
+    /// <summary>Own schema: attributes carry the values, a missing value is
     /// an absent attribute.</summary>
     public static string ToXml(ScanCompareResult result)
     {
