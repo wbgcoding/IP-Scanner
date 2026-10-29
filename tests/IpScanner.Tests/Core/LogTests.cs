@@ -218,12 +218,12 @@ public class LogTests : IDisposable
         Log.ClearBuffer();
         var offline = await UpdateService.CheckAsync(new ThrowingHandler(new System.Net.Http.HttpRequestException("No such host is known")));
         Assert.Equal(UpdateService.CheckStatus.Failed, offline.Status);
-        var entry = Assert.Single(Log.Snapshot().Where(e => e.Area == LogArea.Update));
+        var entry = Assert.Single(Log.Snapshot(), e => e.Area == LogArea.Update);
         Assert.Equal(LogLevel.Info, entry.Level);
 
         Log.ClearBuffer();
         await UpdateService.CheckAsync(new ThrowingHandler(new System.Net.Http.HttpRequestException("redirect refused")));
-        Assert.Equal(LogLevel.Warn, Assert.Single(Log.Snapshot().Where(e => e.Area == LogArea.Update)).Level);
+        Assert.Equal(LogLevel.Warn, Assert.Single(Log.Snapshot(), e => e.Area == LogArea.Update).Level);
     }
 
     private sealed class ThrowingHandler(Exception ex) : System.Net.Http.HttpMessageHandler
