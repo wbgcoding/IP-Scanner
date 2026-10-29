@@ -48,10 +48,17 @@ self-contained exe.
 - IPv6 targets next to IPv4, with open, closed and filtered port states and
   several scan types
 - Service and version detection on open ports, plus an OS estimate per device
-- Tools window (non-modal) with the individual scan tools, each on its own page
-  and running in the background while you switch
-- Scan archive: every scan is kept and can be compared with another one; the
-  comparison can be copied or saved as a file
+- Tools window (non-modal), each tool on its own page and running in the
+  background while you switch: Wake-on-LAN, port check, DNS lookup with your
+  own server and a server comparison, continuous ping and route tracing,
+  subnet calculator, MAC address lookup, certificate check, plus the scan
+  pages host discovery, service detection, OS estimate, service checks and
+  export
+- Scan archive with summary cards and a chart over time: every scan is kept
+  and can be compared with another one; the comparison can be copied or saved
+  as a file
+- Optional alert when a device goes offline and when it is back; right click
+  a device to open it in the browser, remote desktop, SSH or its shares
 - Full backup and restore as one ZIP, optionally protected with a password
   (AES); scan profiles for quick switching between setups
 - Notes and mute per device, and a log page inside the app

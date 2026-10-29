@@ -2,6 +2,47 @@
 
 All notable changes, written for people who just use the app.
 
+## Unreleased
+
+A redesigned scan archive, reworked tool pages and a set of everyday
+improvements in the main window.
+
+### Added
+- Scan archive: summary cards (runs, devices, availability, latency, jitter,
+  open ports, findings), a chart of online devices per run, quick ranges
+  (24 hours, 7 days, 30 days, all), a filter for IP, name or MAC, and a run
+  detail with tabs for devices, ports and findings, and history.
+- DNS lookup with your own DNS server, every common record type, the answer
+  time and a mode that asks up to six servers at once and marks differing
+  answers.
+- A MAC address page (vendor lookup and the address table of this PC), and the
+  subnet calculator can split a network into smaller subnets.
+- Continuous ping keeps the whole session, with zoom, an outage count and CSV
+  save. Route tracing can run continuously with loss and times per hop.
+- Main window: a Ports column, First seen and Last seen columns, private
+  (random) MAC addresses are labelled, outages show in the graphs, and an
+  optional alert when a device goes offline and when it is back.
+- Right click on a device: continuous ping, trace route and "Open with"
+  (browser, remote desktop, SSH, network shares). The tools window starts with
+  the selected device as target.
+- The log page has the switch for detailed logging and records routine events.
+
+### Changed
+- The Loss column is visible by default.
+- CSV exports from the app use the list separator and decimal sign of your
+  Windows region, so they open correctly in Excel. Command line exports keep
+  the comma.
+- The ping count is set in one place only, the header. The first-run boxes for
+  update and internet checks start unticked.
+- `--top-ports` accepts up to 1000 ports without an extra switch.
+
+### Fixed
+- The window stays maximised when restored from the tray, and the tray message
+  says "1 device online".
+- Both tables on the port check page can be resized, and the time axis and
+  values under the ping graph show again.
+- Selection boxes on the tool pages showed internal text instead of the label.
+
 ## 2.11 - 2026-10-24
 
 The biggest release so far: a tools window, a scan archive with compare and
