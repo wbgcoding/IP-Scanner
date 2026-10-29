@@ -563,12 +563,12 @@
                     <TextBlock x:Name="FirstRunConfigText" FontSize="11" Foreground="{DynamicResource Subtext}" Margin="0,4,0,0" TextWrapping="Wrap"/>
                     <TextBlock x:Name="FirstRunDatabaseText" FontSize="11" Foreground="{DynamicResource Subtext}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                     <TextBlock x:Name="FirstRunReportsText" FontSize="11" Foreground="{DynamicResource Subtext}" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                    <CheckBox x:Name="FirstRunUpdatesBox" ToolTip="{loc:L TipFirstRunUpdates}" IsChecked="True"
+                    <CheckBox x:Name="FirstRunUpdatesBox" ToolTip="{loc:L TipFirstRunUpdates}" IsChecked="False"
                               Foreground="{DynamicResource Text}" FontSize="12" Margin="0,10,0,0"
                               AutomationProperties.Name="{loc:L FirstRunCheckUpdates}">
                         <TextBlock Text="{loc:L FirstRunCheckUpdates}" TextWrapping="Wrap"/>
                     </CheckBox>
-                    <CheckBox x:Name="FirstRunInternetBox" ToolTip="{loc:L TipFirstRunInternet}" IsChecked="True"
+                    <CheckBox x:Name="FirstRunInternetBox" ToolTip="{loc:L TipFirstRunInternet}" IsChecked="False"
                               Foreground="{DynamicResource Text}" FontSize="12" Margin="0,6,0,0"
                               AutomationProperties.Name="{loc:L FirstRunMeasureInternet}">
                         <TextBlock Text="{loc:L FirstRunMeasureInternet}" TextWrapping="Wrap"/>
@@ -815,12 +815,32 @@
                                         ElementStyle="{StaticResource CenterCell}"/>
                     <DataGridTextColumn x:Name="MacColumn" Header="{loc:L Mac}" Binding="{Binding Mac}" Width="Auto" MinWidth="136"
                                         ElementStyle="{StaticResource CenterCell}"/>
-                    <DataGridTextColumn x:Name="VendorColumn" Header="{loc:L Vendor}" Binding="{Binding Vendor}" Width="Auto" MinWidth="110" MaxWidth="220">
+                    <DataGridTextColumn x:Name="VendorColumn" Header="{loc:L Vendor}" Binding="{Binding VendorDisplay}" SortMemberPath="Vendor" Width="Auto" MinWidth="110" MaxWidth="220">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="Margin" Value="4,0"/>
+                                <Setter Property="ToolTip" Value="{Binding VendorTip}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPrivateMac}" Value="True">
+                                        <Setter Property="Foreground" Value="{DynamicResource Subtext}"/>
+                                        <Setter Property="FontStyle" Value="Italic"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn x:Name="PortsColumn" Header="{loc:L ColPorts}" Binding="{Binding Ports}" SortMemberPath="PortsSortKey" Width="Auto" MinWidth="90" MaxWidth="200">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="ToolTip" Value="{loc:L TipColPorts}"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource CenterCell}">
+                                <Setter Property="ToolTip" Value="{Binding PortsTip}"/>
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -836,6 +856,30 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock" BasedOn="{StaticResource CenterCell}">
                                 <Setter Property="ToolTip" Value="{Binding OsTip}"/>
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn x:Name="FirstSeenColumn" Header="{loc:L ColFirstSeen}" Binding="{Binding FirstSeenText}" SortMemberPath="FirstSeenSortKey" Width="Auto" MinWidth="120" MaxWidth="200">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="ToolTip" Value="{loc:L TipColFirstSeen}"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource CenterCell}">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn x:Name="LastSeenColumn" Header="{loc:L ColLastSeen}" Binding="{Binding LastSeenText}" SortMemberPath="LastSeenSortKey" Width="Auto" MinWidth="120" MaxWidth="200">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                <Setter Property="ToolTip" Value="{loc:L TipColLastSeen}"/>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource CenterCell}">
                                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
@@ -1526,8 +1570,6 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <!-- Right-aligned numbers with a fixed (read-only) unit suffix. -->
                                         <DockPanel Grid.Row="0" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipScanThreads}">
@@ -1545,21 +1587,9 @@
                                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><TextBox x:Name="OfflineAfterBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
                                             <TextBlock Text="{loc:L OfflineAfter}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
                                         </DockPanel>
-                                        <DockPanel Grid.Row="3" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipDefaultPings}">
-                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><CheckBox x:Name="DefaultPingsEndlessBox" Content="{loc:L EndlessLabel}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0" Checked="OnDefaultPingsEndlessChanged" Unchecked="OnDefaultPingsEndlessChanged"/><TextBox x:Name="DefaultPingsBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
-                                            <TextBlock Text="{loc:L DefaultPings}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
-                                        </DockPanel>
-                                        <DockPanel Grid.Row="4" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipStartupPings}">
-                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><CheckBox x:Name="StartupPingsDiscoveryBox" Content="{loc:L DiscoveryOnlyLabel}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0" Checked="OnStartupPingsDiscoveryChanged" Unchecked="OnStartupPingsDiscoveryChanged"/><TextBox x:Name="StartupPingsBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
-                                            <TextBlock Text="{loc:L StartupPings}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
-                                        </DockPanel>
-                                        <DockPanel Grid.Row="5" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipOfflineRecheck}">
+                                        <DockPanel Grid.Row="3" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipOfflineRecheck}">
                                             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><CheckBox x:Name="OfflineRecheckOffBox" Content="{loc:L OffLabel}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0" Checked="OnOfflineRecheckOffChanged" Unchecked="OnOfflineRecheckOffChanged"/><TextBox x:Name="OfflineRecheckBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
                                             <TextBlock Text="{loc:L OfflineRecheck}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
-                                        </DockPanel>
-                                        <DockPanel Grid.Row="6" Grid.Column="0" Margin="0,5" ToolTip="{loc:L TipInitPings}">
-                                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" FlowDirection="LeftToRight"><TextBox x:Name="InitPingCountBox" FlowDirection="LeftToRight" Style="{StaticResource SettingNumberBox}" TextChanged="OnSettingChanged"/><TextBlock Style="{StaticResource SettingUnitLabel}"/></StackPanel>
-                                            <TextBlock Text="{loc:L InitPings}" Foreground="{DynamicResource Text}" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
                                         </DockPanel>
                                     </Grid>
                                     <TextBlock Text="{loc:L ScanComfortLabel}" Foreground="{DynamicResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,17,0,8"/>
@@ -1732,8 +1762,11 @@
                                         <CheckBox x:Name="ProgressColBox" ToolTip="{loc:L TipColProgress}" Content="{loc:L Progress}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="MacColBox" ToolTip="{loc:L TipColMac}" Content="{loc:L Mac}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="VendorColBox" ToolTip="{loc:L TipColVendor}" Content="{loc:L Vendor}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
+                                        <CheckBox x:Name="PortsColBox" ToolTip="{loc:L TipColPorts}" Content="{loc:L ColPorts}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="MethodColBox" ToolTip="{loc:L TipColMethod}" Content="{loc:L FoundBy}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                         <CheckBox x:Name="OsColBox" ToolTip="{loc:L TipColOs}" Content="{loc:L OsColumnHeader}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
+                                        <CheckBox x:Name="FirstSeenColBox" ToolTip="{loc:L TipColFirstSeen}" Content="{loc:L ColFirstSeen}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
+                                        <CheckBox x:Name="LastSeenColBox" ToolTip="{loc:L TipColLastSeen}" Content="{loc:L ColLastSeen}" Foreground="{DynamicResource Text}" FontSize="13" Margin="0,0,16,6" Checked="OnColumnVisibilityChanged" Unchecked="OnColumnVisibilityChanged"/>
                                     </UniformGrid>
                                     <TextBlock Text="{loc:L TabLatencyColors}" Foreground="{DynamicResource Blue}" FontWeight="Bold" FontSize="15" Margin="0,17,0,8"/>
                                     <Grid>

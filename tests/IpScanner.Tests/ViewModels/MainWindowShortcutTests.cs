@@ -16,19 +16,6 @@ public class MainWindowShortcutTests
     }
 
     [Theory]
-    [InlineData(false, "-1", 1)]
-    [InlineData(false, "0", 1)]
-    [InlineData(false, "abc", 10)]
-    [InlineData(false, "25", 25)]
-    [InlineData(false, "99999999", 10_000_000)]
-    [InlineData(true, "-1", -1)]
-    [InlineData(true, "7", -1)]
-    public void ResolveDefaultPings_OnlyTheCheckboxMakesItEndless(bool endless, string text, int expected)
-    {
-        Assert.Equal(expected, MainWindow.ResolveDefaultPings(endless, text));
-    }
-
-    [Theory]
     [InlineData(null, true, null)]
     [InlineData(null, false, null)]
     [InlineData(true, true, null)]

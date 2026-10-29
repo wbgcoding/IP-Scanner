@@ -16,15 +16,15 @@ public static class ConfigManager
     // If any are absent the file is from an older version and gets rewritten.
     private static readonly HashSet<string> RequiredKeys = new(StringComparer.OrdinalIgnoreCase)
     {
-        "ping_count", "ping_interval_ms", "offline_after_failed_pings", "init_ping_count",
-        "startup_ping_count", "offline_recheck_seconds", "hostname_retry_minutes", "enable_internet_ping",
+        "ping_count", "ping_interval_ms", "offline_after_failed_pings",
+        "offline_recheck_seconds", "hostname_retry_minutes", "enable_internet_ping",
         "internet_timeout_ms", "internet_hosts", "known_devices_db", "scan_history", "database_path",
         "config_directory", "network_interface_ip", "graphs_enabled", "network_graphs_enabled", "graph_max_seconds", "output_directory",
         "file_output", "export_csv", "scan_threads", "ui_scale", "language", "check_for_updates", "verbose_log",
         "auto_graph_pinned", "show_offline_db", "minimize_to_tray", "theme", "sidebar_width",
         "color_online", "color_offline", "color_success", "color_failed", "color_skipped",
         "sidebar_exports_expanded", "sidebar_networks_expanded", "sidebar_pinned_expanded", "sidebar_internet_expanded", "table_sort", "table_widths", "manual_export_scope", "manual_export_format", "heat_ms_1", "heat_ms_2", "heat_ms_3", "heat_ms_4",
-        "settings_page", "tools_last_page", "accent_color", "date_number_format", "compact_rows", "hidden_columns",
+        "settings_page", "tools_last_page", "accent_color", "date_number_format", "compact_rows", "hidden_columns", "columns_version",
         "repeat_scan_minutes", "notify_scan_done", "notify_new_device", "start_minimized",
         "export_ports", "html_report", "db_retention_days", "archive_retention_days", "archive_backup_retention_days", "archive_compaction_days", "show_skipped_legend",
         "discovery_modes", "tcp_ping_ports", "udp_ping_ports", "os_fingerprint",
@@ -47,9 +47,9 @@ public static class ConfigManager
     private static readonly string[] ToolsPages = { "WakeOnLan", "PortCheck", "DnsLookup", "PingRoute", "Calculator", "MacTool", "Certificate", "HostDiscovery", "ServiceDetection", "OsEstimate", "Checks", "ScanExport" };
 
     // Table columns that can be hidden - IP/status/hostname stay mandatory.
-    // "loss" and "jitter" are hidden by default (see ScanConfig.HiddenColumns).
+    // "jitter", "method", "os", "first_seen" and "last_seen" are hidden by default (see ScanConfig.HiddenColumns).
     private static readonly string[] OptionalColumnKeys =
-        { "group", "avg", "min", "max", "last", "loss", "jitter", "progress", "mac", "vendor", "method" };
+        { "group", "avg", "min", "max", "last", "loss", "jitter", "progress", "mac", "vendor", "ports", "method", "os", "first_seen", "last_seen" };
 
     /// <summary>If the conf file is missing keys from the current version, rewrite it
     /// with defaults filled in while keeping all existing values. No-op if up to date.</summary>
@@ -80,8 +80,10 @@ public static class ConfigManager
                 case "ping_count":                  cfg.PingCount = ParseInt(value, ScanConfig.InfinitePingCount, ScanConfig.Bounds.PingCountMax, ScanConfig.Bounds.PingCountDefault); break;
                 case "ping_interval_ms":            cfg.PingIntervalMs = ParseInt(value, ScanConfig.Bounds.PingIntervalMsMin, ScanConfig.Bounds.PingIntervalMsMax, ScanConfig.Bounds.PingIntervalMsDefault); break;
                 case "offline_after_failed_pings":  cfg.OfflineAfterFailedPings = ParseInt(value, ScanConfig.Bounds.OfflineAfterFailedPingsMin, ScanConfig.Bounds.OfflineAfterFailedPingsMax, ScanConfig.Bounds.OfflineAfterFailedPingsDefault); break;
-                case "init_ping_count":             cfg.InitPingCount = ParseInt(value, ScanConfig.Bounds.InitPingCountMin, ScanConfig.Bounds.InitPingCountMax, ScanConfig.Bounds.InitPingCountDefault); break;
-                case "startup_ping_count":          cfg.StartupPingCount = ParseInt(value, ScanConfig.Bounds.StartupPingCountMin, ScanConfig.Bounds.StartupPingCountMax, ScanConfig.Bounds.StartupPingCountDefault); break;
+                // Old files may still carry these two: the first pass is fixed at 1 and the startup
+                // sweep uses ping_count, so the values are read past without effect.
+                case "init_ping_count":
+                case "startup_ping_count":          break;
                 case "offline_recheck_seconds":     cfg.OfflineRecheckSeconds = ParseInt(value, ScanConfig.Bounds.OfflineRecheckSecondsMin, ScanConfig.Bounds.OfflineRecheckSecondsMax, ScanConfig.Bounds.OfflineRecheckSecondsDefault); break;
                 case "hostname_retry_minutes":      cfg.HostnameRetryMinutes = ParseInt(value, ScanConfig.Bounds.HostnameRetryMinutesMin, ScanConfig.Bounds.HostnameRetryMinutesMax, ScanConfig.Bounds.HostnameRetryMinutesDefault); break;
                 case "enable_internet_ping":        cfg.EnableInternetPing = ParseBool(value); break;
@@ -210,6 +212,10 @@ public static class ConfigManager
             }
         }
 
+        // A conf from before the first/last seen columns: they stay hidden until the user shows them.
+        if (flat.ContainsKey("hidden_columns") && !flat.ContainsKey("columns_version"))
+            foreach (var seenKey in new[] { "first_seen", "last_seen" })
+                if (!cfg.HiddenColumns.Contains(seenKey)) cfg.HiddenColumns.Add(seenKey);
         cfg.Subnets = subnets.Values.Distinct().ToList();
         cfg.ScanPresets = presets.Values.Distinct().Take(ScanPresets.MaxUserPresets).ToList();
         // A conf from before the archive had its own retention: the archive followed the history
@@ -264,10 +270,6 @@ public static class ConfigManager
         sb.AppendLine($"ping_interval_ms = {c.PingIntervalMs}");
         sb.AppendLine("# offline_after_failed_pings  Mark offline after N failed pings (1-100). Default 5.");
         sb.AppendLine($"offline_after_failed_pings = {c.OfflineAfterFailedPings}");
-        sb.AppendLine("# init_ping_count  Pings per IP during discovery (1-100). Default 1.");
-        sb.AppendLine($"init_ping_count = {c.InitPingCount}");
-        sb.AppendLine("# startup_ping_count  Pings per device for the auto-scan after launch (0-10000). Default 10.");
-        sb.AppendLine($"startup_ping_count = {c.StartupPingCount}");
         sb.AppendLine("# offline_recheck_seconds  Re-check offline IPs every N seconds (0 = off). Default 5.");
         sb.AppendLine($"offline_recheck_seconds = {c.OfflineRecheckSeconds}");
         sb.AppendLine("# hostname_retry_minutes  Retry hostname lookup for nameless devices every N minutes, independent of any active scan (0 = off). Default 10.");
@@ -388,8 +390,10 @@ public static class ConfigManager
         sb.AppendLine("# compact_rows  Denser table rows (22px instead of 28px). Default false.");
         sb.AppendLine($"compact_rows = {B(c.CompactRows)}");
         sb.AppendLine();
-        sb.AppendLine("# hidden_columns  Comma-separated, from: group,avg,min,max,last,loss,jitter,progress,mac,vendor,method.");
+        sb.AppendLine("# hidden_columns  Comma-separated, from: group,avg,min,max,last,loss,jitter,progress,mac,vendor,ports,method,os,first_seen,last_seen.");
         sb.AppendLine($"hidden_columns = {string.Join(",", c.HiddenColumns)}");
+        sb.AppendLine("# columns_version  Set by the program; lets it tell an old column list from a current one.");
+        sb.AppendLine("columns_version = 2");
         sb.AppendLine();
         sb.AppendLine("# -- Scan comfort ----------------------------------------------");
         sb.AppendLine("# repeat_scan_minutes  Auto-repeat the scan every N minutes: 0 (off), 5, 15, 30 or 60.");

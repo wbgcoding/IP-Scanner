@@ -170,6 +170,7 @@ public partial class MainWindow : Window
     {
         try
         {
+            ApplySelectedPingCount();   // the startup sweep uses the header ping count
             await _vm.RunInitScanAsync();
         }
         catch (Exception ex) { Core.Log.Warn(Core.LogArea.Ui, "Startup scan failed", ex); /* best-effort */ }

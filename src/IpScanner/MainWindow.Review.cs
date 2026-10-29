@@ -182,6 +182,15 @@ public partial class MainWindow
         UpdateLayout();
     }
 
+    /// <summary>Shows the optional columns that start hidden or empty (ports, first and last seen).</summary>
+    internal void ReviewShowSeenColumns()
+    {
+        PortsColumn.Visibility = Visibility.Visible;
+        FirstSeenColumn.Visibility = Visibility.Visible;
+        LastSeenColumn.Visibility = Visibility.Visible;
+        UpdateLayout();
+    }
+
     internal void ReviewShowOsColumn()
     {
         OsColumn.Visibility = Visibility.Visible;

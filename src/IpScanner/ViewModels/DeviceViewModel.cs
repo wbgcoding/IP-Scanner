@@ -26,6 +26,7 @@ public sealed class DeviceViewModel : ObservableObject
         _isPinned = isPinned;
         IpSortKey = Core.Net.IpAddressKey.TryParse(device.Ip, out var key) ? key : default;
         ServicesView = System.Windows.Data.CollectionViewSource.GetDefaultView(Services);
+        Services.CollectionChanged += (_, _) => { Raise(nameof(Ports)); Raise(nameof(PortsTip)); Raise(nameof(PortsSortKey)); };
         ServicesView.Filter = o => o is NetService s && ServiceSearch.Matches(s.Name, s.Port, _serviceFilterText);
     }
 
@@ -82,6 +83,26 @@ public sealed class DeviceViewModel : ObservableObject
         return _os;
     }
     /// <summary>Operating system estimate for the table, empty when nothing is known.</summary>
+    /// <summary>Open TCP ports for the table cell, ascending and cut with an ellipsis; a dash when none is known.</summary>
+    public string Ports => PortsSummary.Text(Services);
+    /// <summary>Full open TCP port list with service names for the cell tooltip, null when none is known.</summary>
+    public string? PortsTip => PortsSummary.Tip(Services);
+    /// <summary>Column sort key: count of open TCP ports, then the lowest port.</summary>
+    public long PortsSortKey => PortsSummary.SortKey(Services);
+
+    // First/last time the device was seen online. The stored stamps come from the known-devices
+    // database; a device that answers in this run is "last seen" now, and "first seen" now when the
+    // database never saw it. Kept per row so the cell changes at most once a minute, not per tick.
+    private DateTimeOffset? _onlineAt;
+    private DateTimeOffset? FirstSeenValue => _device.FirstSeen ?? _onlineAt;
+    private DateTimeOffset? LastSeenValue => _onlineAt ?? _device.LastSeen;
+    public string FirstSeenText => SeenText(FirstSeenValue);
+    public string LastSeenText => SeenText(LastSeenValue);
+    /// <summary>Column sort keys: UTC ticks, 0 (sorts first) when unknown.</summary>
+    public long FirstSeenSortKey => FirstSeenValue?.UtcTicks ?? 0;
+    public long LastSeenSortKey => LastSeenValue?.UtcTicks ?? 0;
+    internal static string SeenText(DateTimeOffset? when)
+        => when is { } w ? w.LocalDateTime.ToString("g", System.Globalization.CultureInfo.CurrentCulture) : "–";
     public string Os => Core.Scanner.Os.OsDisplay.Text(CurrentOs());
     public string OsTip => Core.Scanner.Os.OsDisplay.Tip(CurrentOs());
     /// <summary>A muted device never shows the offline-red highlight -
@@ -161,6 +182,15 @@ public sealed class DeviceViewModel : ObservableObject
             return _cachedVendor;
         }
     }
+
+    /// <summary>True when the vendor is unknown only because the MAC is a random, self-assigned one
+    /// (locally administered bit) - phones and laptops use these as a privacy feature.</summary>
+    public bool IsPrivateMac => Vendor == "–" && _device.Mac is { } m && m != Device.Unknown
+                                && ConflictDetector.IsLocallyAdministered(m);
+    /// <summary>The vendor cell text: the vendor, or a note that the address is private.</summary>
+    public string VendorDisplay => IsPrivateMac ? Loc.PrivateAddress : Vendor;
+    /// <summary>Tooltip of the vendor cell, only for a private address.</summary>
+    public string? VendorTip => IsPrivateMac ? Loc.PrivateAddressTip : null;
     /// <summary>Online device whose MAC is not in the known-devices database (new/unknown).
     /// A muted device never gets the rogue highlight either.</summary>
     public bool IsRogue => !_device.IsMuted && _device.IsOnline && !_device.FromDb && !IsSelf
@@ -636,10 +666,17 @@ public sealed class DeviceViewModel : ObservableObject
     public void Refresh()
     {
         RefreshNote();
+        if (_device.IsOnline)
+        {
+            var now = DateTimeOffset.Now;
+            if (_onlineAt is not { } at || now - at >= TimeSpan.FromSeconds(30)) _onlineAt = now;
+        }
+        Raise(nameof(FirstSeenText)); Raise(nameof(LastSeenText));
+        Raise(nameof(FirstSeenSortKey)); Raise(nameof(LastSeenSortKey));
         Raise(nameof(Status)); Raise(nameof(StatusColor)); Raise(nameof(IsOnline)); Raise(nameof(Hostname)); Raise(nameof(Method));
         Raise(nameof(Os)); Raise(nameof(OsTip));
         Raise(nameof(ServicesEmptyText));
-        Raise(nameof(Mac)); Raise(nameof(HasMac)); Raise(nameof(Vendor)); Raise(nameof(IsRogue)); Raise(nameof(GroupId)); Raise(nameof(GroupColor));
+        Raise(nameof(Mac)); Raise(nameof(HasMac)); Raise(nameof(Vendor)); Raise(nameof(VendorDisplay)); Raise(nameof(IsPrivateMac)); Raise(nameof(VendorTip)); Raise(nameof(IsRogue)); Raise(nameof(GroupId)); Raise(nameof(GroupColor));
         Raise(nameof(DeviceTypeIconKey));
         Raise(nameof(IsMuted)); Raise(nameof(IpColor));
         Raise(nameof(ConflictHint)); Raise(nameof(HasConflictHint));

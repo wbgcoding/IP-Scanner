@@ -13,7 +13,7 @@ public static class DeviceFilter
     /// match (AND). A term may target one field via a leading "ip:", "mac:",
     /// "name:", "hersteller:"/"vendor:" or "port:" prefix (case-insensitive);
     /// without a recognized prefix it matches any of ip/hostname/mac/vendor, same
-    /// as the old always-Contains behavior.</summary>
+    /// as the old always-Contains behavior, or an open port number written out in full.</summary>
     public static bool Matches(string filterText, string ip, string hostname, string mac, string vendor,
         IEnumerable<int> ports)
     {
@@ -42,7 +42,8 @@ public static class DeviceFilter
                     return ports.Any(p => Has(p.ToString(CultureInfo.InvariantCulture), value));
             }
         }
-        return Has(ip, term) || Has(hostname, term) || Has(mac, term) || Has(vendor, term);
+        return Has(ip, term) || Has(hostname, term) || Has(mac, term) || Has(vendor, term)
+            || ports.Any(p => p.ToString(CultureInfo.InvariantCulture) == term);
     }
 
     private static bool Has(string haystack, string needle) =>

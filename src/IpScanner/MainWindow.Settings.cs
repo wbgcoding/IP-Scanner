@@ -497,8 +497,11 @@ public partial class MainWindow : Window
         ProgressColumn.Visibility = IsColumnHidden("progress") ? Visibility.Collapsed : Visibility.Visible;
         MacColumn.Visibility = IsColumnHidden("mac") ? Visibility.Collapsed : Visibility.Visible;
         VendorColumn.Visibility = IsColumnHidden("vendor") ? Visibility.Collapsed : Visibility.Visible;
+        PortsColumn.Visibility = IsColumnHidden("ports") ? Visibility.Collapsed : Visibility.Visible;
         MethodColumn.Visibility = IsColumnHidden("method") ? Visibility.Collapsed : Visibility.Visible;
         OsColumn.Visibility = IsColumnHidden("os") ? Visibility.Collapsed : Visibility.Visible;
+        FirstSeenColumn.Visibility = IsColumnHidden("first_seen") ? Visibility.Collapsed : Visibility.Visible;
+        LastSeenColumn.Visibility = IsColumnHidden("last_seen") ? Visibility.Collapsed : Visibility.Visible;
     }
 
     /// <summary>Shows/hides the "skipped" pings legend square. Skipped
@@ -521,8 +524,11 @@ public partial class MainWindow : Window
         if (ProgressColBox.IsChecked != true) hidden.Add("progress");
         if (MacColBox.IsChecked != true) hidden.Add("mac");
         if (VendorColBox.IsChecked != true) hidden.Add("vendor");
+        if (PortsColBox.IsChecked != true) hidden.Add("ports");
         if (MethodColBox.IsChecked != true) hidden.Add("method");
         if (OsColBox.IsChecked != true) hidden.Add("os");
+        if (FirstSeenColBox.IsChecked != true) hidden.Add("first_seen");
+        if (LastSeenColBox.IsChecked != true) hidden.Add("last_seen");
         _config.HiddenColumns = hidden;
         ApplyColumnVisibility();
         PersistConfigDebounced();
@@ -552,20 +558,6 @@ public partial class MainWindow : Window
     // Text scale only commits when the field loses focus - applying it on every
     // keystroke would zoom wildly while typing.
     private void OnUiScaleCommit(object sender, RoutedEventArgs e) => ApplyUiScale();
-
-    private void OnDefaultPingsEndlessChanged(object sender, RoutedEventArgs e)
-    {
-        DefaultPingsBox.IsEnabled = DefaultPingsEndlessBox.IsChecked != true;
-        if (_loadingSettings) return;
-        ApplyInstant();
-    }
-
-    private void OnStartupPingsDiscoveryChanged(object sender, RoutedEventArgs e)
-    {
-        StartupPingsBox.IsEnabled = StartupPingsDiscoveryBox.IsChecked != true;
-        if (_loadingSettings) return;
-        ApplyInstant();
-    }
 
     private void OnOfflineRecheckOffChanged(object sender, RoutedEventArgs e)
     {
@@ -652,7 +644,8 @@ public partial class MainWindow : Window
         ["Hostname"] = HostnameColumn, ["Avg"] = AvgColumn, ["Min"] = MinColumn,
         ["Max"] = MaxColumn, ["Last"] = LastColumn, ["Loss"] = LossColumn,
         ["Jitter"] = JitterColumn, ["Progress"] = ProgressColumn, ["Mac"] = MacColumn,
-        ["Vendor"] = VendorColumn, ["Method"] = MethodColumn, ["Os"] = OsColumn,
+        ["Vendor"] = VendorColumn, ["Ports"] = PortsColumn, ["Method"] = MethodColumn, ["Os"] = OsColumn,
+        ["FirstSeen"] = FirstSeenColumn, ["LastSeen"] = LastSeenColumn,
     };
 
     private void RestoreTableSortAndWidths()
