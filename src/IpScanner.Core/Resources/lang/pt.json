@@ -1266,5 +1266,14 @@
   "Device unreachable": "Dispositivo inacessível",
   "Device reachable again": "Dispositivo acessível novamente",
   "{0} is no longer reachable.": "{0} não está mais acessível.",
-  "{0} is reachable again (after {1}).": "{0} está acessível novamente (após {1})."
+  "{0} is reachable again (after {1}).": "{0} está acessível novamente (após {1}).",
+  "Open with": "Abrir com",
+  "Browser (HTTP)": "Navegador (HTTP)",
+  "Browser (HTTPS)": "Navegador (HTTPS)",
+  "Remote desktop": "Área de trabalho remota",
+  "SSH": "SSH",
+  "Network shares": "Compartilhamentos de rede",
+  "This device has no valid IP address.": "Este dispositivo não tem um endereço IP válido.",
+  "{0} could not be started.": "Não foi possível iniciar {0}.",
+  "Port {0} was not open in the last scan.": "A porta {0} não estava aberta na última verificação."
 }

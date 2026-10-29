@@ -1266,5 +1266,14 @@
   "Device unreachable": "Устройство недоступно",
   "Device reachable again": "Устройство снова доступно",
   "{0} is no longer reachable.": "{0} больше недоступно.",
-  "{0} is reachable again (after {1}).": "{0} снова доступно (через {1})."
+  "{0} is reachable again (after {1}).": "{0} снова доступно (через {1}).",
+  "Open with": "Открыть с помощью",
+  "Browser (HTTP)": "Браузер (HTTP)",
+  "Browser (HTTPS)": "Браузер (HTTPS)",
+  "Remote desktop": "Удалённый рабочий стол",
+  "SSH": "SSH",
+  "Network shares": "Сетевые папки",
+  "This device has no valid IP address.": "У этого устройства нет допустимого IP-адреса.",
+  "{0} could not be started.": "Не удалось запустить {0}.",
+  "Port {0} was not open in the last scan.": "Порт {0} был закрыт при последнем сканировании."
 }

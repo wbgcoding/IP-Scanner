@@ -34,6 +34,13 @@
             <Separator/>
             <MenuItem Header="{loc:L DevicePingContinuous}" Click="OnDeviceContinuousPing"/>
             <MenuItem Header="{loc:L DeviceTraceRoute}" Click="OnDeviceTraceRoute"/>
+            <MenuItem Name="OpenWithItem" Header="{loc:L DeviceOpenWith}">
+                <MenuItem Name="OpenWithBrowserHttp" Tag="BrowserHttp" Header="{loc:L OpenWithBrowserHttp}" Click="OnOpenWith"/>
+                <MenuItem Name="OpenWithBrowserHttps" Tag="BrowserHttps" Header="{loc:L OpenWithBrowserHttps}" Click="OnOpenWith"/>
+                <MenuItem Name="OpenWithRemoteDesktop" Tag="RemoteDesktop" Header="{loc:L OpenWithRemoteDesktop}" Click="OnOpenWith"/>
+                <MenuItem Name="OpenWithSsh" Tag="Ssh" Header="{loc:L OpenWithSsh}" Click="OnOpenWith"/>
+                <MenuItem Name="OpenWithShares" Tag="Shares" Header="{loc:L OpenWithShares}" Click="OnOpenWith"/>
+            </MenuItem>
             <Separator/>
             <MenuItem Name="WakeDeviceItem" Header="{loc:L WakeDevice}" Click="OnWake"/>
         </ContextMenu>
