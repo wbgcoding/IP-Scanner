@@ -74,7 +74,7 @@ public sealed partial class KnownDevicesDb
             runLatency.GetValueOrDefault(x.Id))).ToArray();
 
         var done = runs.Where(x => !x.Cancelled).ToArray();
-        var latest = runs[0];
+        var latest = done.Length > 0 ? done[0] : runs[0];   // newest first; a cancelled run only headlines when nothing finished
         var singles = done.Where(x => x.SampleCount <= 1).ToArray();
         var success = stats.Devices.Sum(x => x.PingSuccess);
         var fail = stats.Devices.Sum(x => x.PingFailed);
