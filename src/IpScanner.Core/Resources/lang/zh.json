@@ -1267,6 +1267,8 @@
   "Device reachable again": "设备已恢复访问",
   "{0} is no longer reachable.": "{0} 已无法访问。",
   "{0} is reachable again (after {1}).": "{0} 已恢复访问（{1} 后）。",
+  "{0} devices are no longer reachable.": "{0} 台设备已无法访问。",
+  "{0} devices are reachable again.": "{0} 台设备已恢复访问。",
   "Open with": "打开方式",
   "Browser (HTTP)": "浏览器 (HTTP)",
   "Browser (HTTPS)": "浏览器 (HTTPS)",

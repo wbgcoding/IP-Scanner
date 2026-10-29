@@ -40,18 +40,37 @@ public partial class MainWindow : Window
         _vm.DeviceAlert += OnDeviceAlert;
     }
 
-    /// <summary>Balloon for a watched device that stopped answering or answers again. Shown while
-    /// either tray notification setting is on; the log line is written regardless.</summary>
+    private readonly Core.Scanner.OfflineAlertBatcher _alertBatcher = new();
+    private System.Windows.Threading.DispatcherTimer? _alertFlushTimer;
+
+    /// <summary>Collects a watched device's alert; the burst is shown by <see cref="OnAlertFlushTick"/>.</summary>
     private void OnDeviceAlert(string name, Core.Scanner.OfflineAlert alert)
     {
         if (!(_config.NotifyScanDone || _config.NotifyNewDevice) || _tray is null) return;
-        UpdateTrayVisibility();
-        bool lost = alert.Kind == Core.Scanner.OfflineAlertKind.Lost;
-        _tray.ShowBalloonTip(6000,
-            lost ? Loc.TrayDeviceLostTitle : Loc.TrayDeviceBackTitle,
-            lost ? string.Format(Loc.TrayDeviceLostTextFmt, name)
-                 : string.Format(Loc.TrayDeviceBackTextFmt, name, Core.NumberFormat.Duration(alert.Down)),
-            lost ? System.Windows.Forms.ToolTipIcon.Warning : System.Windows.Forms.ToolTipIcon.Info);
+        _alertBatcher.Add(name, alert, Environment.TickCount64);
+        if (_alertFlushTimer is { IsEnabled: true }) return;
+        _alertFlushTimer ??= new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(Core.Scanner.OfflineAlertBatcher.WindowMs),
+        };
+        _alertFlushTimer.Tick -= OnAlertFlushTick;
+        _alertFlushTimer.Tick += OnAlertFlushTick;
+        _alertFlushTimer.Start();
+    }
+
+    /// <summary>Balloon for the watched devices that stopped answering or answer again, one per kind
+    /// and burst. Shown while either tray notification setting is on; the log line is written regardless.</summary>
+    private void OnAlertFlushTick(object? sender, EventArgs e)
+    {
+        var due = _alertBatcher.TakeDue(Environment.TickCount64);
+        if (!_alertBatcher.HasPending) _alertFlushTimer?.Stop();
+        if (_tray is null || !(_config.NotifyScanDone || _config.NotifyNewDevice)) return;
+        foreach (var group in due)
+        {
+            UpdateTrayVisibility();
+            _tray.ShowBalloonTip(6000, group.Title, group.Text,
+                group.IsLost ? System.Windows.Forms.ToolTipIcon.Warning : System.Windows.Forms.ToolTipIcon.Info);
+        }
     }
 
     private void OnNewUnknownDevice(ViewModels.DeviceViewModel vm)

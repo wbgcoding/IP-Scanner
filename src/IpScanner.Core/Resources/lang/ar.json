@@ -1267,6 +1267,8 @@
   "Device reachable again": "الجهاز متاح مرة أخرى",
   "{0} is no longer reachable.": "لم يعد {0} متاحًا.",
   "{0} is reachable again (after {1}).": "{0} متاح مرة أخرى (بعد {1}).",
+  "{0} devices are no longer reachable.": "لم تعد {0} أجهزة متاحة.",
+  "{0} devices are reachable again.": "أصبحت {0} أجهزة متاحة مرة أخرى.",
   "Open with": "فتح باستخدام",
   "Browser (HTTP)": "المتصفح (HTTP)",
   "Browser (HTTPS)": "المتصفح (HTTPS)",
