@@ -23,6 +23,8 @@ public sealed class PingRouteToolViewModel : ObservableObject
     public PingToolViewModel Ping { get; } = new();
     public RouteToolViewModel Route { get; } = new();
 
+    public void RefreshLanguage() => Ping.RefreshLanguage();
+
     public void Stop()
     {
         Ping.Stop();
@@ -57,15 +59,30 @@ public sealed class PingToolViewModel : ObservableObject
     public string[] IntervalOptions { get; } = { "0.5", "1", "2", "5" };
     public int[] PayloadOptions { get; } = { 32, 64, 512, 1400 };
 
-    public PingZoom[] ZoomOptions { get; }
+    public PingZoom[] ZoomOptions { get; private set; }
 
     public PingToolViewModel()
     {
-        ZoomOptions = new PingZoom[]
-        {
-            new(Loc.PingZoom1Min, 60), new(Loc.PingZoom5Min, 300), new(Loc.PingZoom1Hour, 3600), new(Loc.PingZoomAll, 0),
-        };
+        ZoomOptions = BuildZoomOptions();
         _zoom = ZoomOptions[0];
+    }
+
+    private static PingZoom[] BuildZoomOptions() => new PingZoom[]
+    {
+        new(Loc.PingZoom1Min, 60), new(Loc.PingZoom5Min, 300), new(Loc.PingZoom1Hour, 3600), new(Loc.PingZoomAll, 0),
+    };
+
+    /// <summary>Re-reads the language-dependent texts after a live language switch: the zoom labels
+    /// (the chosen span stays) and the statistics line.</summary>
+    public void RefreshLanguage()
+    {
+        var seconds = _zoom.Seconds;
+        ZoomOptions = BuildZoomOptions();
+        _zoom = ZoomOptions.First(z => z.Seconds == seconds);
+        Raise(nameof(ZoomOptions));
+        Raise(nameof(Zoom));
+        StatsText = FormatStatsLine();
+        Raise(nameof(StatsText));
     }
 
     private PingZoom _zoom;
@@ -299,12 +316,14 @@ public sealed class PingToolViewModel : ObservableObject
     /// <summary>The session as CSV: one row per probe with its time, the round trip in ms (empty when lost) and the status.</summary>
     internal string BuildCsv(char delimiter)
     {
+        // Same rule as the scan export: a comma delimiter needs a dot decimal, any other the user's own format.
+        var num = delimiter == ',' ? CultureInfo.InvariantCulture : CultureInfo.CurrentCulture;
         var sb = new System.Text.StringBuilder();
         sb.Append("time").Append(delimiter).Append("ms").Append(delimiter).Append("status").Append("\r\n");
         foreach (var smp in _session)
         {
             sb.Append(smp.Time.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)).Append(delimiter)
-              .Append(smp.Ms is { } v ? v.ToString("0.###", CultureInfo.InvariantCulture) : "").Append(delimiter)
+              .Append(smp.Ms is { } v ? v.ToString("0.###", num) : "").Append(delimiter)
               .Append(smp.Ms is null ? "timeout" : "ok").Append("\r\n");
         }
         return sb.ToString();

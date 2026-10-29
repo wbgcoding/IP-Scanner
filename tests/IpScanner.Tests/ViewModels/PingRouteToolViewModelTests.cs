@@ -357,15 +357,53 @@ public class PingRouteToolViewModelTests
     [Fact]
     public void Csv_HasTimeMsAndStatus_LostProbesLeaveMsEmpty()
     {
-        var vm = Filled(3, i => i == 1 ? null : 12.5);
-        var rows = vm.BuildCsv(';').Split("\r\n", System.StringSplitOptions.RemoveEmptyEntries);
-        Assert.Equal(new[]
+        var saved = System.Globalization.CultureInfo.CurrentCulture;
+        try
         {
-            "time;ms;status",
-            "2026-01-01 10:00:00;12.5;ok",
-            "2026-01-01 10:00:01;;timeout",
-            "2026-01-01 10:00:02;12.5;ok",
-        }, rows);
+            System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+            var vm = Filled(3, i => i == 1 ? null : 12.5);
+            var rows = vm.BuildCsv(';').Split("\r\n", System.StringSplitOptions.RemoveEmptyEntries);
+            Assert.Equal(new[]
+            {
+                "time;ms;status",
+                "2026-01-01 10:00:00;12.5;ok",
+                "2026-01-01 10:00:01;;timeout",
+                "2026-01-01 10:00:02;12.5;ok",
+            }, rows);
+        }
+        finally { System.Globalization.CultureInfo.CurrentCulture = saved; }
+    }
+
+    [Fact]
+    public void Csv_NumbersFollowTheCultureUnlessTheDelimiterIsAComma()
+    {
+        var saved = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("de-DE");
+            var vm = Filled(1, _ => 12.5);
+            Assert.Contains("12,5;ok", vm.BuildCsv(';'));
+            Assert.Contains("12.5,ok", vm.BuildCsv(','));
+        }
+        finally { System.Globalization.CultureInfo.CurrentCulture = saved; }
+    }
+
+    [Fact]
+    public void RefreshLanguage_RelabelsTheZoomChoicesAndKeepsTheSpan()
+    {
+        IpScanner.Core.Localization.Loc.SetLanguage("de");
+        try
+        {
+            var vm = new PingToolViewModel();
+            vm.Zoom = vm.ZoomOptions[1];
+            IpScanner.Core.Localization.Loc.SetLanguage("en");
+            vm.RefreshLanguage();
+            Assert.Equal(IpScanner.Core.Localization.Loc.PingZoom1Min, vm.ZoomOptions[0].Label);
+            Assert.Equal("1 min", vm.ZoomOptions[0].Label);
+            Assert.Equal(300, vm.Zoom.Seconds);
+            Assert.Same(vm.ZoomOptions[1], vm.Zoom);
+        }
+        finally { IpScanner.Core.Localization.Loc.SetLanguage("en"); }
     }
 
     [Fact]
@@ -452,7 +490,7 @@ public class PingRouteToolViewModelTests
             var bytes = System.IO.File.ReadAllBytes(path);
             Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes[..3]);
             var text = System.Text.Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
-            Assert.StartsWith("time;ms;status\r\n2026-01-01 10:00:00;3.5;ok\r\n", text);
+            Assert.StartsWith("time;ms;status\r\n2026-01-01 10:00:00;3,5;ok\r\n", text);
             Assert.Contains("Saved", vm.Status);
             Assert.True(vm.CanSave);
         }
