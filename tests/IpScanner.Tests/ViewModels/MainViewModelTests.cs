@@ -200,6 +200,34 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public void LateMac_ReappliesStoredAlertAndMuteFlags()
+    {
+        var dir = Directory.CreateTempSubdirectory().FullName;
+        var path = Path.Combine(dir, "overrides.dat");
+        const string mac = "AA:BB:CC:00:11:77";
+        var stored = new OverrideStore();
+        stored.Load(path);
+        stored.SetAlertOffline(mac, "10.0.0.9", true);
+        stored.SetMuted(mac, "10.0.0.9", true);
+
+        var vm = new MainViewModel(OnlyDotOne, () => new NetworkInfo(), a => a());
+        vm.InitOverrides(path);
+        var model = new Device("10.0.0.9");
+        model.RecordPing(new PingResult(true, 1, 64));
+        var update = typeof(MainViewModel).GetMethod("OnDeviceUpdated", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        update.Invoke(vm, new object[] { model });
+        Assert.Single(vm.Devices);
+        Assert.False(model.AlertOffline);
+        Assert.False(model.IsMuted);
+
+        model.Mac = mac;
+        update.Invoke(vm, new object[] { model });
+
+        Assert.True(model.AlertOffline);
+        Assert.True(model.IsMuted);
+    }
+
+    [Fact]
     public void LateMac_ReappliesStoredNoteBeforeExport_AndUntouchedDraftDoesNotEraseIt()
     {
         var dir = Directory.CreateTempSubdirectory().FullName;
