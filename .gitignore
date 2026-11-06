@@ -44,7 +44,8 @@ docs/superpowers/
 
 # Local dev tooling (icon/screenshot generators, build pipeline) - anchored to the
 # repo root so it does not also swallow src/IpScanner/Views/Tools.
-/tools/
+/tools/*
+!/tools/build-stamp.ps1
 
 # .NET build artifacts
 bin/

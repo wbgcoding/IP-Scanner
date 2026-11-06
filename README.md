@@ -75,7 +75,8 @@ build.bat
 ```
 
 produces `dist\IP-Scanner.exe` (self-contained,
-single-file, no .NET install needed). Equivalent manual command:
+single-file, no .NET install needed). A second run with nothing changed reports "up to date";
+`build.bat --force` or `FORCE=1` rebuilds. Equivalent manual command:
 
 ```
 dotnet publish src\IpScanner\IpScanner.csproj -r win-x64 --self-contained -c Release -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -p:DebugSymbols=false -o dist

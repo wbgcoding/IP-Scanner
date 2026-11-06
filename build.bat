@@ -1,6 +1,21 @@
 @echo off
 setlocal
 cd /d "%~dp0"
+rem === build freshness: check ===
+set "BS=%~dp0tools\build-stamp.ps1"
+set "BSKEY=exe"
+set "BSEXTRA="
+set "BSART=dist\IP-Scanner.exe"
+if /i "%~1"=="auto" set "BSEXTRA=auto"
+set "BSFRESH="
+set "BSFORCE="
+if "%FORCE%"=="1" set "BSFORCE=1"
+for %%A in (%*) do if /i "%%~A"=="--force" set "BSFORCE=1"
+if defined BSFORCE goto :bs_start
+if not exist "%BS%" goto :bs_start
+for /f "usebackq delims=" %%A in (`powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%BS%" -Check -Project "%~dp0." -Key "%BSKEY%" -Extra "%BSEXTRA%"`) do set "BSFRESH=%%A"
+if defined BSFRESH goto :bs_uptodate
+:bs_start
 echo Building IP-Scanner single-file exe ...
 dotnet publish src\IpScanner\IpScanner.csproj ^
     -r win-x64 --self-contained -c Release ^
@@ -22,6 +37,13 @@ if not exist "%APPDATA%\IP-Scanner-signing\key.bin" ( echo No signing key on thi
 dotnet run --project scripts\ReleaseSigner -- sign dist\IP-Scanner.exe
 if errorlevel 1 ( echo SIGNING FAILED: dist\IP-Scanner.exe is not signed. & set BUILD_RC=1 )
 :signed
+rem === build freshness: save (the exe plus the signature files when the signer wrote them) ===
+if not "%BUILD_RC%"=="0" goto :bs_nosave
+set "BSART=dist\IP-Scanner.exe"
+if exist "dist\IP-Scanner.exe.sig" set "BSART=%BSART%,dist\IP-Scanner.exe.sig"
+if exist "dist\IP-Scanner.exe.sha256" set "BSART=%BSART%,dist\IP-Scanner.exe.sha256"
+if exist "%BS%" powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%BS%" -Save -Project "%~dp0." -Key "%BSKEY%" -Extra "%BSEXTRA%" -Artifact "%BSART%" >nul 2>&1
+:bs_nosave
 REM "auto" (passed by the session-end autobuild hook) skips the pause below --
 REM nobody is there to read it, so it just delays the next turn for nothing.
 if /i "%~1"=="auto" goto :done
@@ -38,3 +60,9 @@ if not "%BUILD_RC%"=="0" exit /b 1
 echo.
 echo Done: %~dp0dist\IP-Scanner.exe
 endlocal
+exit /b 0
+
+:bs_uptodate
+for %%F in ("%BSFRESH%") do echo Build is up to date (last build %%~tF), nothing to do: %%~fF
+if /i not "%~1"=="auto" timeout /t 30
+exit /b 0
