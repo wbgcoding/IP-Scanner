@@ -1,6 +1,11 @@
 @echo off
+title IP-Scanner
 setlocal
 cd /d "%~dp0"
+rem double-click run (cmd /c, NOPAUSE unset, not "auto"): small window, stays open on error, closes 10 s after success
+set "DBL="
+if /i not "%~1"=="auto" if not defined NOPAUSE echo %CMDCMDLINE% | "%SystemRoot%\System32\find.exe" /i "/c" >nul && set "DBL=1"
+if defined DBL mode con cols=100 lines=25
 rem === build freshness: check ===
 set "BS=%~dp0tools\build-stamp.ps1"
 set "BSKEY=exe"
@@ -47,14 +52,16 @@ if exist "%BS%" powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%BS%"
 REM "auto" (passed by the session-end autobuild hook) skips the pause below --
 REM nobody is there to read it, so it just delays the next turn for nothing.
 if /i "%~1"=="auto" goto :done
-if not "%BUILD_RC%"=="0" ( echo BUILD FAILED & timeout /t 30 & exit /b 1 )
+if not "%BUILD_RC%"=="0" goto :failed
 echo.
 echo Done: %~dp0dist\IP-Scanner.exe
-timeout /t 30
-goto :eof
+if defined DBL "%SystemRoot%\System32\timeout.exe" /t 10
+exit /b 0
 :failed
 if /i "%~1"=="auto" exit /b 1
-echo BUILD FAILED & timeout /t 30 & exit /b 1
+echo BUILD FAILED
+if defined DBL pause
+exit /b 1
 :done
 if not "%BUILD_RC%"=="0" exit /b 1
 echo.
@@ -64,5 +71,5 @@ exit /b 0
 
 :bs_uptodate
 for %%F in ("%BSFRESH%") do echo Build is up to date (last build %%~tF), nothing to do: %%~fF
-if /i not "%~1"=="auto" timeout /t 30
+if defined DBL "%SystemRoot%\System32\timeout.exe" /t 10
 exit /b 0
