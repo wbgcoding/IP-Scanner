@@ -13,12 +13,12 @@
     <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.15" />
     <!-- ZIP with AES-256 (WinZip AE-2) for password-protected backups; MIT licensed. -->
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <!-- DPAPI wrapper for the per-installation device-data key: managed-only, safe for
          single-file publish (no native SQLCipher bundle, no password prompt). -->
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.14" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="11.0.0" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="IpScanner.Tests" />
